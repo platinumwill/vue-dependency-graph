@@ -4,7 +4,7 @@
         :viewbox="viewbox" :data-format="config.format"
         :style="{color: config.foregroundColor, background: config.backgroundColor, fontFamily: config.fontFamily}" 
         preserveAspectRatio="xMinYMax meet">
-        <DependencyNode v-for="(word, index) in parse.words" :word="word" :index="index" :key="word.text"></DependencyNode>
+        <DependencyNode v-for="(word, index) in parse.words" :word="word" :index="index" :key="index"></DependencyNode>
         <DependencyEdge v-for="arc in parse.arcs" :arc="arc" :key="arc.start + '_to_' + arc.end" :config="config"></DependencyEdge>
     </svg>
 </template>
