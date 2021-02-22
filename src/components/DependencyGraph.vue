@@ -4,7 +4,7 @@
         :viewbox="viewbox" :data-format="config.format"
         :style="{color: config.foregroundColor, background: config.backgroundColor, fontFamily: config.fontFamily}" 
         preserveAspectRatio="xMinYMax meet">
-        <DependencyNode v-for="(word, index) in parse.words" :word="word" :index="index" :key="index"></DependencyNode>
+        <DependencyNode v-for="(word, index) in parse.words" :word="word" :index="index" :key="index" :config="config"></DependencyNode>
         <DependencyEdge v-for="arc in parse.arcs" :arc="arc" :key="arc.start + '_to_' + arc.end" :config="config"></DependencyEdge>
     </svg>
 </template>
@@ -36,6 +36,7 @@ export default {
                 , wordSpacing: 75
                 , format: 'spacy'
                 , foregroundColor: '#ff0000'
+                , selectedForegroundColor: '#00ff00'
                 , backgroundColor: '#000000'
                 , fontFamily:'inherit' 
                 , arrowWidth: 10 
