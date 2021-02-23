@@ -43,6 +43,11 @@ export default {
             }
       }
     }
+    , provided() {
+        return {
+            config: this.config
+        }
+    }
   }
   , data() {
     return {

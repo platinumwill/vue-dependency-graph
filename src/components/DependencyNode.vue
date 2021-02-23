@@ -1,14 +1,19 @@
 <template>
     <text class="displacy-token" fill="currentColor" text-anchor="middle" :y="y">
         <tspan class="displacy-word" fill="currentColor" :x="x">{{ word.text }}</tspan>
-        <tspan class="displacy-lemma" dy="2em" fill="currentColor" :x="x">{{ word.lemma }}</tspan>
-        <tspan class="displacy-tag" dy="2em" :fill="color" :x="x" @click="posClicked">{{ word.tag }}</tspan>
+        <TokenInfo :dy="'2em'">{{ word.lemma }}</TokenInfo>
+        <TokenInfo :dy="'2em'">{{ word.tag }}</TokenInfo>
     </text>
 </template>
 
 <script>
+import TokenInfo from "./TokenInfo.vue";
+
 export default {
     name: 'DependencyeNode'
+    , components: {
+        TokenInfo
+    } 
     , props: {
         config: {
             type: Object
@@ -41,6 +46,12 @@ export default {
         posClicked: function(event) {
             this.selected = !this.selected
             console.log(event)
+        }
+    }
+    , provide() {
+        return {
+            tokenIndex: this.index
+            , config: this.config
         }
     }
 }
