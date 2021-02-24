@@ -16,7 +16,7 @@ export default {
         { text: "Samuel", tag: "PROPN", lemma: "Samuel" },
         { text: "L.", tag: "PROPN", lemma: "l." },
         { text: "Jackson", tag: "PROPN", lemma: "jackson" },
-        { text: "sent", tag: "VERB", lemma: "sent" },
+        { text: "sent", tag: "VERB", lemma: "send" },
         { text: "an", tag: "DET", lemma: "an" },
         { text: "email", tag: "NOUN", lemma: "email" },
         { text: "to", tag: "ADP", lemma: "to" },
