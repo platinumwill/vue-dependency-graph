@@ -7,16 +7,19 @@
         <DependencyNode v-for="(word, index) in parse.words" :word="word" :index="index" :key="index" :config="config"></DependencyNode>
         <DependencyEdge v-for="arc in parse.arcs" :arc="arc" :key="arc.start + '_to_' + arc.end" :config="config"></DependencyEdge>
     </svg>
+    <FormSwitch></FormSwitch>
 </template>
 
 <script>
 import DependencyEdge from "./DependencyEdge.vue";
 import DependencyNode from "./DependencyNode.vue";
+import FormSwitch from "./FormSwitch.vue"
 export default {
   name: 'DependencyGraph'
   , components: {
       DependencyEdge
       , DependencyNode
+      , FormSwitch
   } 
   , props: {
     parse: {
