@@ -31,9 +31,14 @@ export default {
 }
 </script>
 <style>
-    .p-dialog-content {
+    /* @import '../assets/css/primevue-bootstrap4-dark-blue-theme.css'; */
+    @import '../../node_modules/primevue/resources/themes/bootstrap4-dark-blue/theme.css';
+    @import '../../node_modules/primevue/resources/primevue.css';
+    @import '../../node_modules/primeicons/primeicons.css';
+    /* @import '../assets/css/primevue.css'; */
+    /* .p-dialog-content {
         background-color: black;
         border-style: solid;
         border-color: white;
-    }
+    } */
 </style>
