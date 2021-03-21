@@ -1,4 +1,25 @@
 import { createApp } from 'vue'
+import { createStore } from 'vuex'
 import App from './App.vue'
 
-createApp(App).mount('#app')
+const app = createApp(App)
+app.mount('#app')
+
+// vuex
+const store = createStore({
+  state () {
+    return {
+        parsedDocument: {
+            originalText : ''
+        }
+    }
+  }
+  , mutations: {
+    saveParsedDocument (state, parsedDocument) {
+        state.parsedDocument = parsedDocument
+        console.log(state.parsedDocument)
+    }
+  }
+})
+
+app.use(store)
