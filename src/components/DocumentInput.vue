@@ -1,7 +1,7 @@
 <template>
     <div>
     <Dialog header="Input Document" v-model:visible="displayDocumentInput" :style="{width: '50vw'}" :modal="true">
-        <Textarea ref="documentText" v-model="value" rows="10" cols="70" />
+        <Textarea ref="documentText" v-model="documentText" rows="10" cols="70" />
         <br/>
         <Button label="Submit" @click="submitDocumentText"/>
     </Dialog>
@@ -12,12 +12,13 @@
 import Dialog from 'primevue/dialog'
 import Textarea from 'primevue/textarea'
 import Button from 'primevue/button'
-import { mapMutations } from 'vuex'
+import { mapActions } from 'vuex'
 
 export default {
     data() {
         return {
             displayDocumentInput: true
+            , documentText: "Samuel L. Jackson sent an email to Stanford University. He didn't get a reply."
         }
     }
     , mounted() {
@@ -28,11 +29,11 @@ export default {
             this.$refs.documentText.$el.focus()
         }
         , submitDocumentText() {
-            this.saveParsedDocument({originalText: 'xxxxxx'})
+            this.parseAndStoreDocument(this.documentText)
             this.displayDocumentInput = false
         }
-        , ...mapMutations([
-            "saveParsedDocument"
+        , ...mapActions([
+            "parseAndStoreDocument"
         ])
     }
     , components: {
