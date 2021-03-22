@@ -7,18 +7,25 @@
         <DependencyNode v-for="(word, index) in parse.words" :word="word" :index="index" :key="index" :config="config"></DependencyNode>
         <DependencyEdge v-for="arc in parse.arcs" :arc="arc" :key="arc.start + '_to_' + arc.end" :config="config"></DependencyEdge>
     </svg>
+    <DocumentInput></DocumentInput>
     <PatternDialog></PatternDialog>
+    <DocumentPanel></DocumentPanel>
 </template>
 
 <script>
 import DependencyEdge from "./DependencyEdge.vue";
 import DependencyNode from "./DependencyNode.vue";
+import DocumentPanel from "./DocumentPanel.vue"
+import DocumentInput from "./DocumentInput.vue"
 import PatternDialog from "./PatternDialog.vue"
+
 export default {
   name: 'DependencyGraph'
   , components: {
       DependencyEdge
       , DependencyNode
+      , DocumentPanel
+      , DocumentInput
       , PatternDialog
   } 
   , props: {
