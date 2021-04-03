@@ -1,17 +1,38 @@
 <template>
     <div>
-        <span class="currentSentence">fdfad</span><span class="document">11111</span>
-        <span class="document">{{ documentParse }}</span>
+        <span class="document" v-for="(word, index) in documentParse.words" :key="index">{{ word.text }} &nbsp;</span>
+    </div>
+    <div>
+        <Button label="<" @click="previousSentence"/>
+        <Button label=">" @click="nextSentence"/>
     </div>
 </template>
 
 <script>
 import { mapGetters } from 'vuex'
+import Button from 'primevue/button'
+
 export default {
-    computed: {
+    data() {
+        return {
+            // PROGRESS: sentenceIndex
+        }
+    }
+    , computed: {
         ...mapGetters([
             'documentParse'
         ])
+    }
+    , methods: {
+        nextSentence() {
+
+        }
+        , previousSentence() {
+
+        }
+    }
+    , components: {
+        Button
     }
 }
 </script>
