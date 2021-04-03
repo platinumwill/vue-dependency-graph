@@ -4,7 +4,6 @@ import App from './App.vue'
 import axios from 'axios'
 
 const app = createApp(App)
-app.mount('#app')
 
 // vuex
 const store = createStore({
@@ -35,6 +34,12 @@ const store = createStore({
         console.log(state.parsedDocument)
     }
   }
+  , getters: {
+    documentParse (state) {
+      return state.parsedDocument
+    }
+  }
 })
 
 app.use(store)
+app.mount('#app')
