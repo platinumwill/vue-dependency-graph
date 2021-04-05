@@ -8,7 +8,7 @@ import { mapGetters } from 'vuex'
 export default {
     computed: {
         wordClass: function() {
-            if (this.wordIndex < this.sentence.start -1 || this.wordIndex >= this.sentence.end - 1) {
+            if (this.wordIndex < this.sentence.start -1 || this.wordIndex >= this.sentence.end) {
                 return 'document'
             }
             return 'currentSentence' 
