@@ -1,4 +1,6 @@
 <template>
+    <div v-if="isDocumentReady">
+        
     <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:lang="en"
         id="displacy-svg" class="displacy" :width="width" :height="height" 
         :viewbox="viewbox" :data-format="config.format"
@@ -7,9 +9,13 @@
         <DependencyNode v-for="(word, index) in parse.words" :word="word" :index="index" :key="index" :config="config"></DependencyNode>
         <DependencyEdge v-for="arc in parse.arcs" :arc="arc" :key="arc.start + '_to_' + arc.end" :config="config"></DependencyEdge>
     </svg>
+
+    </div>
+
     <DocumentInput></DocumentInput>
     <PatternDialog></PatternDialog>
     <DocumentPanel></DocumentPanel>
+
 </template>
 
 <script>
@@ -18,6 +24,7 @@ import DependencyNode from "./DependencyNode.vue";
 import DocumentPanel from "./DocumentPanel.vue"
 import DocumentInput from "./DocumentInput.vue"
 import PatternDialog from "./PatternDialog.vue"
+import { mapGetters } from 'vuex'
 
 export default {
   name: 'DependencyGraph'
@@ -83,6 +90,11 @@ export default {
     , offsetY: function() {
         return this.config.distance / 2 * this.highestLevel
     }
+    , ...mapGetters([
+        'documentParse'
+        , 'isDocumentReady'
+        , 'maxSentenceIndex'
+    ])
 }
   , methods: {
   }
