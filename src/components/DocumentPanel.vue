@@ -37,7 +37,6 @@ export default {
             this.shiftSentence(-1)
         }
         , shiftSentence(offset) {
-            console.log(this.sentenceIndex)
             if (!this.isDocumentReady) {
                 return
             }
@@ -49,7 +48,6 @@ export default {
                 return
             }
             this.sentenceIndex = newIndex
-            console.log(this.sentenceIndex)
         }
     }
     , components: {
