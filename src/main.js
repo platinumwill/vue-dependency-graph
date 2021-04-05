@@ -38,6 +38,22 @@ const store = createStore({
     documentParse (state) {
       return state.parsedDocument
     }
+    , isDocumentReady(state) {
+      if (state.parsedDocument.spacy_sents === undefined) {
+        return false
+      }
+      if (state.parsedDocument.spacy_sents.length <= 0) {
+        return false
+      }
+      return true
+    }
+    , maxSentenceIndex(state, getters) {
+      console.log(state)
+      if (! getters.isDocumentReady) {
+        return -1 
+      }
+      return state.parsedDocument.spacy_sents.length - 1
+    }
   }
 })
 
