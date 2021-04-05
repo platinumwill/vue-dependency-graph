@@ -12,6 +12,7 @@ const store = createStore({
         parsedDocument: {
             originalText : ''
         }
+        , currentSentenceIndex: 0
     }
   }
   , actions: {
@@ -33,6 +34,15 @@ const store = createStore({
     storeParsedDocument (state, parsedDocument) {
         state.parsedDocument = parsedDocument
     }
+    , shiftSentence(state, offset) {
+        const newIndex = state.currentSentenceIndex + offset
+        if (newIndex < 0) {
+            return
+        }
+        console.log(state.currentSentenceIndex)
+        console.log(offset)
+        state.currentSentenceIndex = newIndex
+    }
   }
   , getters: {
     documentParse (state) {
@@ -48,11 +58,13 @@ const store = createStore({
       return true
     }
     , maxSentenceIndex(state, getters) {
-      console.log(state)
       if (! getters.isDocumentReady) {
         return -1 
       }
       return state.parsedDocument.spacy_sents.length - 1
+    }
+    , currentSentenceIndex(state) {
+      return state.currentSentenceIndex
     }
   }
 })

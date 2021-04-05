@@ -1,32 +1,45 @@
 <template>
     <div v-if="isDocumentReady">
         <div>
-            <DocumentWord v-for="(word, index) in documentParse.words" :word="word" :key="index" :wordIndex="index" :sentence="documentParse.spacy_sents[sentenceIndex]"></DocumentWord>
+            <DocumentWord v-for="(word, index) in documentParse.words" :word="word" :key="index" :wordIndex="index" :sentence="documentParse.spacy_sents[currentSentenceIndex]"></DocumentWord>
         </div>
         <div>
-            <Button label="<" @click="previousSentence"/>
-            <Button label=">" @click="nextSentence"/>
+            <Button label="<" @click="previousSentence" :disabled="previousSentenceButtonDisabled" />
+            <Button label=">" @click="nextSentence" :disabled="nextSentenceButtonDisabled" />
         </div>
     </div>
 </template>
 
 <script>
 import DocumentWord from "./DocumentWord.vue"
-import { mapGetters } from 'vuex'
+import { mapGetters, mapMutations } from 'vuex'
 import Button from 'primevue/button'
 
 export default {
-    data() {
-        return {
-            sentenceIndex: 0
-            // PROGRESS: sentenceIndex
+    computed: {
+        nextSentenceButtonDisabled: function() {
+            if (!this.isDocumentReady) {
+                return true
+            }
+            if (this.currentSentenceIndex >= this.maxSentenceIndex) {
+                return true
+            }
+            return false
         }
-    }
-    , computed: {
-        ...mapGetters([
+        , previousSentenceButtonDisabled: function() {
+            if (!this.isDocumentReady) {
+                return true
+            }
+            if (this.currentSentenceIndex <= 0) {
+                return true
+            }
+            return false
+        }
+        , ...mapGetters([
             'documentParse'
             , 'isDocumentReady'
             , 'maxSentenceIndex'
+            , 'currentSentenceIndex'
         ])
     }
     , methods: {
@@ -36,19 +49,7 @@ export default {
         , previousSentence() {
             this.shiftSentence(-1)
         }
-        , shiftSentence(offset) {
-            if (!this.isDocumentReady) {
-                return
-            }
-            const newIndex = this.sentenceIndex + offset
-            if (newIndex > this.maxSentenceIndex) {
-                return
-            }
-            if (newIndex < 0) {
-                return
-            }
-            this.sentenceIndex = newIndex
-        }
+        , ...mapMutations(['shiftSentence'])
     }
     , components: {
         DocumentWord

@@ -1,10 +1,8 @@
 <template>
-
     <SentenceParseGraph></SentenceParseGraph>
     <DocumentInput></DocumentInput>
     <PatternDialog></PatternDialog>
     <DocumentPanel></DocumentPanel>
-
 </template>
 
 <script>
@@ -33,11 +31,6 @@ export default {
             config: this.config
         }
     }
-  }
-  , data() {
-    return {
-      //
-    } 
   }
 }
 </script>
