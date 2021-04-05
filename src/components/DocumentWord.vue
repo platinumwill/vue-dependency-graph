@@ -1,5 +1,5 @@
 <template>
-    <span class="document">{{ word.text }} &nbsp;</span>
+    <span :class="wordClass">{{ word.text }} &nbsp;</span>
 </template>
 
 <script>
@@ -7,10 +7,25 @@ import { mapGetters } from 'vuex'
 
 export default {
     computed: {
-        ...mapGetters([
+        wordClass: function() {
+            if (this.wordIndex < this.sentence.start -1 || this.wordIndex >= this.sentence.end - 1) {
+                return 'document'
+            }
+            return 'currentSentence' 
+        }
+        , ...mapGetters([
             'documentParse'
         ])
     }
-    , props: ['word']
+    , props: ['word', 'wordIndex', 'sentence']
 }
 </script>
+
+<style>
+span.currentSentence {
+    color: yellow
+}
+span.document {
+    color: white;
+}
+</style>
