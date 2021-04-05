@@ -11,6 +11,7 @@ const store = createStore({
     return {
         parsedDocument: {
             originalText : ''
+            , spacy_sents: []
         }
         , currentSentenceIndex: 0
     }
@@ -39,8 +40,6 @@ const store = createStore({
         if (newIndex < 0) {
             return
         }
-        console.log(state.currentSentenceIndex)
-        console.log(offset)
         state.currentSentenceIndex = newIndex
     }
   }
@@ -49,9 +48,6 @@ const store = createStore({
       return state.parsedDocument
     }
     , isDocumentReady(state) {
-      if (state.parsedDocument.spacy_sents === undefined) {
-        return false
-      }
       if (state.parsedDocument.spacy_sents.length <= 0) {
         return false
       }

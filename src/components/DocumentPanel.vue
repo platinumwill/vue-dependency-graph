@@ -18,18 +18,12 @@ import Button from 'primevue/button'
 export default {
     computed: {
         nextSentenceButtonDisabled: function() {
-            if (!this.isDocumentReady) {
-                return true
-            }
             if (this.currentSentenceIndex >= this.maxSentenceIndex) {
                 return true
             }
             return false
         }
         , previousSentenceButtonDisabled: function() {
-            if (!this.isDocumentReady) {
-                return true
-            }
             if (this.currentSentenceIndex <= 0) {
                 return true
             }
