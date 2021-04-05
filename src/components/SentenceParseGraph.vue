@@ -6,7 +6,7 @@
             :style="{color: config.foregroundColor, background: config.backgroundColor, fontFamily: config.fontFamily}" 
             preserveAspectRatio="xMinYMax meet">
             <DependencyNode v-for="(word, index) in parse.words" :word="word" :index="index" :key="index" :config="config"></DependencyNode>
-            <DependencyEdge v-for="arc in parse.arcs" :arc="arc" :key="arc.start + '_to_' + arc.end" :config="config"></DependencyEdge>
+            <DependencyEdge v-for="arc in parse.arcs" :arc="arc" :key="arc.key" :config="config"></DependencyEdge>
         </svg>
     </div>
 </template>
@@ -38,7 +38,7 @@ export default {
         }
         , ...mapGetters({ 
             isDocumentReady: 'isDocumentReady'
-            , parse: 'documentParse'
+            , parse: 'currentSentenceParse'
         })
     }
     , props: {
