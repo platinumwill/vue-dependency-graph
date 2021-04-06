@@ -20,13 +20,7 @@ export default {
       , PatternDialog
   } 
   , props: {
-    parse: {
-        type: Object
-        , default: function() {
-            return {}
-        }
-    }
-    , provided() {
+    provided() {
         return {
             config: this.config
         }

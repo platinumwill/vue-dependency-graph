@@ -23,7 +23,7 @@ export default {
 
 <style>
 span.currentSentence {
-    color: green
+    color: red;
 }
 span.document {
     color: white;
