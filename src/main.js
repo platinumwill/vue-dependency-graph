@@ -35,6 +35,12 @@ const store = createStore({
       }).catch(function(error) {
         console.log(error)
       })
+      // properties={"annotators":"tokenize,pos,parse,lemma","outputFormat":"json"}
+      await axios.post('http://localhost:9000/?%7B%22annotators%22%3A%22tokenize%2Cpos%2Cparse%2Clemma%22%2C%22outputFormat%22%3A%22json%22%7D', documentText).then(function(response) {
+        console.log(response.data);
+      }).catch(function(error) {
+        console.log(error)
+      })
     }
   }
   , mutations: {
