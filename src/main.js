@@ -13,6 +13,8 @@ const store = createStore({
             originalText : ''
             , spacy_sents: []
         }
+        , googleParse: {
+        }
         , currentSentenceIndex: 0
     }
   }
@@ -24,11 +26,12 @@ const store = createStore({
         const parsedDocument = response.data
         parsedDocument.originalText = documentText
 
-        function adjustArcs(arc) {
+        function putArcKey(arc) {
           arc.key = arc.start + '_to_' + arc.end
         }
-        parsedDocument.arcs.forEach(adjustArcs)
+        parsedDocument.arcs.forEach(putArcKey)
 
+        console.log("SPACY parse:")
         console.log(parsedDocument)
         console.log(parsedDocument.originalText)
         commit('storeParsedDocument', parsedDocument)
@@ -40,6 +43,7 @@ const store = createStore({
       // properties={"annotators":"tokenize,pos,parse,lemma","outputFormat":"json"}
       // await axios.post('http://localhost:9000/?properties=%7B%22annotators%22%3A%22tokenize%2Cpos%2Cparse%2Clemma%22%2C%22outputFormat%22%3A%22json%22%7D', documentText).then(function(response) {
       await axios.post('http://172.22.102.238:9000/?properties=%7B%22annotators%22%3A%22tokenize%2Cpos%2Cparse%2Clemma%22%2C%22outputFormat%22%3A%22json%22%7D', documentText).then(function(response) {
+        console.log("STANFORD pase:")
         console.log(response.data);
       }).catch(function(error) {
         console.log(error)
@@ -55,6 +59,7 @@ const store = createStore({
       google_param.document = document
       google_param.encodingType = 'UTF8'
       await axios.post(google_url, google_param).then(function(response) {
+        console.log("GOOGLE parse:")
         console.log(response.data);
       }).catch(function(error) {
         console.log(error)
@@ -65,6 +70,9 @@ const store = createStore({
   , mutations: {
     storeParsedDocument (state, parsedDocument) {
         state.parsedDocument = parsedDocument
+    }
+    , storeGoogleParse (state, googleParsedResult) {
+        state.googleParse = googleParsedResult
     }
     , shiftSentence(state, offset) {
         const newIndex = state.currentSentenceIndex + offset
@@ -80,23 +88,19 @@ const store = createStore({
     }
     , currentSentenceParse (state, getters) {
       function wordsFilter(word, index) {
-        if (index < getters.currentSentence.start) {
-          return false
-        }
-        if (index >= getters.currentSentence.end) {
-          return false
-        }
-        return true
+        return (
+          index >= getters.currentSentence.start 
+          && index < getters.currentSentence.end
+          )
       }
       const filteredWords = state.parsedDocument.words.filter(wordsFilter)
       function arcsFilter(arc) {
-        if (arc.start < getters.currentSentence.start && arc.end < getters.currentSentence.start) {
-          return false
-        }
-        if (arc.start >= getters.currentSentence.end && arc.end >= getters.currentSentence.end) {
-          return false
-        }
-        return true;
+        return (
+          arc.start >= getters.currentSentence.start 
+          && arc.end >= getters.currentSentence.start
+          && arc.start < getters.currentSentence.end 
+          && arc.end < getters.currentSentence.end 
+          ) 
       }
       const filteredArcs = getters.documentParse.arcs.filter(arcsFilter)
       function adjustArc(arc) {
