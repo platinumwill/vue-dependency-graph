@@ -42,7 +42,7 @@ const store = createStore({
       // Stanford CoreNLP
       // properties={"annotators":"tokenize,pos,parse,lemma","outputFormat":"json"}
       // await axios.post('http://localhost:9000/?properties=%7B%22annotators%22%3A%22tokenize%2Cpos%2Cparse%2Clemma%22%2C%22outputFormat%22%3A%22json%22%7D', documentText).then(function(response) {
-      await axios.post('http://172.22.102.238:9000/?properties=%7B%22annotators%22%3A%22tokenize%2Cpos%2Cparse%2Clemma%22%2C%22outputFormat%22%3A%22json%22%7D', documentText).then(function(response) {
+      await axios.post('http://stanford-local:9000/?properties=%7B%22annotators%22%3A%22tokenize%2Cpos%2Cparse%2Clemma%22%2C%22outputFormat%22%3A%22json%22%7D', documentText).then(function(response) {
         console.log("STANFORD pase:")
         console.log(response.data);
       }).catch(function(error) {
@@ -61,6 +61,15 @@ const store = createStore({
       await axios.post(google_url, google_param).then(function(response) {
         console.log("GOOGLE parse:")
         console.log(response.data);
+        // PROGRESS
+        const googleParsedResult = response.data
+        // const googleParseConvertedSpacy = {googleParsedResult}
+        console.log("GOOGLE parse in SPACY format:")
+        const googleParseConvertedSpacy = ({
+                    words: googleParsedResult.tokens.map(({ text: { content: text }, partOfSpeech: { tag }} ) => ({ text, tag }))
+                    , arcs: googleParsedResult.tokens.map(({ dependencyEdge: { label, headTokenIndex: j }}, i) => (i != j) ? ({ label, start: Math.min(i, j), end: Math.max(i, j), dir: (j > i) ? 'left' : 'right' }) : null).filter(word => word != null)
+                })
+        console.log(googleParseConvertedSpacy)
       }).catch(function(error) {
         console.log(error)
       })
@@ -107,7 +116,6 @@ const store = createStore({
         arc.start -= (getters.currentSentence.start)
         arc.end -= (getters.currentSentence.start)
       }
-      // let arcsClone = filteredArcs.slice(0)// PROGRESS
       let arcsClone = JSON.parse(JSON.stringify(filteredArcs.slice(0)))
       arcsClone.forEach(adjustArc)
       const sentenceParse = {
