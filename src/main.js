@@ -10,12 +10,12 @@ const store = createStore({
   state () {
     return {
         parsedDocument: {
-            originalText : ''
-            , spacy_sents: []
         }
         , googleParse: {
         }
         , currentSentenceIndex: 0
+        , originalText : ''
+        , spacySentences: []
     }
   }
   , actions: {
@@ -24,7 +24,7 @@ const store = createStore({
       params.append('text', documentText);
       await axios.post('http://localhost:5000/spacy/parse', params).then(function(response) {
         const parsedDocument = response.data
-        parsedDocument.originalText = documentText
+        commit('storeOriginalText', documentText)
 
         function putArcKey(arc) {
           arc.key = arc.start + '_to_' + arc.end
@@ -33,8 +33,8 @@ const store = createStore({
 
         console.log("SPACY parse:")
         console.log(parsedDocument)
-        console.log(parsedDocument.originalText)
         commit('storeParsedDocument', parsedDocument)
+        commit('storeSpacySentences', parsedDocument.spacy_sents)
       }).catch(function(error) {
         console.log(error)
       })
@@ -61,13 +61,12 @@ const store = createStore({
       await axios.post(google_url, google_param).then(function(response) {
         console.log("GOOGLE parse:")
         console.log(response.data);
-        // PROGRESS
         const googleParsedResult = response.data
         // const googleParseConvertedSpacy = {googleParsedResult}
         console.log("GOOGLE parse in SPACY format:")
         const googleParseConvertedSpacy = ({
-                    words: googleParsedResult.tokens.map(({ text: { content: text }, partOfSpeech: { tag }} ) => ({ text, tag }))
-                    , arcs: googleParsedResult.tokens.map(({ dependencyEdge: { label, headTokenIndex: j }}, i) => (i != j) ? ({ label, start: Math.min(i, j), end: Math.max(i, j), dir: (j > i) ? 'left' : 'right' }) : null).filter(word => word != null)
+                    arcs: googleParsedResult.tokens.map(({ dependencyEdge: { label, headTokenIndex: j }}, i) => (i != j) ? ({ label, start: Math.min(i, j), end: Math.max(i, j), dir: (j > i) ? 'left' : 'right' }) : null).filter(word => word != null)
+                    , words: googleParsedResult.tokens.map(({ text: { content: text }, partOfSpeech: { tag }} ) => ({ text, tag }))
                 })
         console.log(googleParseConvertedSpacy)
       }).catch(function(error) {
@@ -77,7 +76,13 @@ const store = createStore({
     }
   }
   , mutations: {
-    storeParsedDocument (state, parsedDocument) {
+    storeOriginalText (state, originalText) {
+        state.originalText = originalText
+    }
+    , storeSpacySentences (state, spacySentences) {
+        state.spacySentences = spacySentences
+    }
+    , storeParsedDocument (state, parsedDocument) {
         state.parsedDocument = parsedDocument
     }
     , storeGoogleParse (state, googleParsedResult) {
@@ -94,6 +99,9 @@ const store = createStore({
   , getters: {
     documentParse (state) {
       return state.parsedDocument
+    }
+    , spacySentences (state) {
+      return state.spacySentences
     }
     , currentSentenceParse (state, getters) {
       function wordsFilter(word, index) {
@@ -124,8 +132,8 @@ const store = createStore({
       }
       return sentenceParse
     }
-    , isDocumentReady(state) {
-      if (state.parsedDocument.spacy_sents.length <= 0) {
+    , isDocumentReady(state, getters) {
+      if (getters.spacySentences.length <= 0) {
         return false
       }
       return true
@@ -134,13 +142,13 @@ const store = createStore({
       if (! getters.isDocumentReady) {
         return -1 
       }
-      return state.parsedDocument.spacy_sents.length - 1
+      return getters.spacySentences.length - 1
     }
     , currentSentenceIndex(state) {
       return state.currentSentenceIndex
     }
     , currentSentence (state, getters) {
-      return getters.documentParse.spacy_sents[getters.currentSentenceIndex]
+      return getters.spacySentences[getters.currentSentenceIndex]
     }
   }
 })
