@@ -69,6 +69,7 @@ const store = createStore({
                     , words: googleParsedResult.tokens.map(({ text: { content: text }, partOfSpeech: { tag }} ) => ({ text, tag }))
                 })
         console.log(googleParseConvertedSpacy)
+        commit('storeGoogleParse', googleParseConvertedSpacy)
       }).catch(function(error) {
         console.log(error)
       })
@@ -104,28 +105,23 @@ const store = createStore({
       return state.spacySentences
     }
     , currentSentenceParse (state, getters) {
-      function wordsFilter(word, index) {
-        return (
+      const filteredWords = state.parsedDocument.words.filter(
+        (word, index) =>
           index >= getters.currentSentence.start 
           && index < getters.currentSentence.end
-          )
-      }
-      const filteredWords = state.parsedDocument.words.filter(wordsFilter)
-      function arcsFilter(arc) {
-        return (
+      )
+      const filteredArcs = getters.documentParse.arcs.filter(
+        arc =>
           arc.start >= getters.currentSentence.start 
           && arc.end >= getters.currentSentence.start
           && arc.start < getters.currentSentence.end 
           && arc.end < getters.currentSentence.end 
-          ) 
-      }
-      const filteredArcs = getters.documentParse.arcs.filter(arcsFilter)
-      function adjustArc(arc) {
+        )
+      let arcsClone = JSON.parse(JSON.stringify(filteredArcs.slice(0)))
+      arcsClone.forEach(function (arc) {
         arc.start -= (getters.currentSentence.start)
         arc.end -= (getters.currentSentence.start)
-      }
-      let arcsClone = JSON.parse(JSON.stringify(filteredArcs.slice(0)))
-      arcsClone.forEach(adjustArc)
+      })
       const sentenceParse = {
         words: filteredWords
         , arcs: arcsClone
