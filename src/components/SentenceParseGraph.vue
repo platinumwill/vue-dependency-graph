@@ -58,7 +58,7 @@ export default {
                     , fontFamily:'inherit' 
                     , arrowWidth: 10 
                 }
-        }
+            }
         }
     }
     , components: {
