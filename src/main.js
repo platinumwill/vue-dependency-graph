@@ -105,11 +105,6 @@ const store = createStore({
       return state.spacySentences
     }
     , currentSentenceParse (state, getters) {
-      const filteredWords = state.parsedDocument.words.filter(
-        (word, index) =>
-          index >= getters.currentSentence.start 
-          && index < getters.currentSentence.end
-      )
       const filteredArcs = getters.documentParse.arcs.filter(
         arc =>
           arc.start >= getters.currentSentence.start 
@@ -122,8 +117,13 @@ const store = createStore({
         arc.start -= (getters.currentSentence.start)
         arc.end -= (getters.currentSentence.start)
       })
+      
       const sentenceParse = {
-        words: filteredWords
+        words: state.parsedDocument.words.filter(
+          (word, index) =>
+            index >= getters.currentSentence.start 
+            && index < getters.currentSentence.end
+          )
         , arcs: arcsClone
       }
       return sentenceParse
