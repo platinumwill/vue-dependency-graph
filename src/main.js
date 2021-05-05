@@ -101,10 +101,19 @@ const store = createStore({
     documentParse (state) {
       return state.parsedDocument
     }
+    , googleParse (state) {
+      return state.googleParse
+    }
     , spacySentences (state) {
       return state.spacySentences
     }
-    , currentSentenceParse (state, getters) {
+    , isGoogleParseReady (state) {
+      return (state.googleParse.words !== undefined)
+    }
+    , currentSentenceSpacyParse (state, getters) {
+      if (!getters.isDocumentReady) {
+        return {}
+      }
       const filteredArcs = getters.documentParse.arcs.filter(
         arc =>
           arc.start >= getters.currentSentence.start 
@@ -120,6 +129,33 @@ const store = createStore({
       
       const sentenceParse = {
         words: state.parsedDocument.words.filter(
+          (word, index) =>
+            index >= getters.currentSentence.start 
+            && index < getters.currentSentence.end
+          )
+        , arcs: arcsClone
+      }
+      return sentenceParse
+    }
+    , currentSentenceGoogleParse (state, getters) {
+      if (!getters.isDocumentReady || !getters.isGoogleParseReady) {
+        return {}
+      }
+      const filteredArcs = getters.googleParse.arcs.filter(
+        arc =>
+          arc.start >= getters.currentSentence.start 
+          && arc.end >= getters.currentSentence.start
+          && arc.start < getters.currentSentence.end 
+          && arc.end < getters.currentSentence.end 
+        )
+      let arcsClone = JSON.parse(JSON.stringify(filteredArcs.slice(0)))
+      arcsClone.forEach(function (arc) {
+        arc.start -= (getters.currentSentence.start)
+        arc.end -= (getters.currentSentence.start)
+      })
+      
+      const sentenceParse = {
+        words: state.googleParse.words.filter(
           (word, index) =>
             index >= getters.currentSentence.start 
             && index < getters.currentSentence.end
