@@ -5,6 +5,17 @@ import axios from 'axios'
 
 const app = createApp(App)
 
+const spacyParse = {
+  namespaced: true
+  , state: () => ({
+    parse: {}
+  })
+  , mutations: {
+    storeParse (state, input) {
+      state.parse = input
+    }
+  }
+}
 // vuex
 const store = createStore({
   state () {
@@ -16,6 +27,16 @@ const store = createStore({
         , currentSentenceIndex: 0
         , originalText : ''
         , spacySentences: []
+    }
+  }
+  , modules: {
+    implements: {
+      namespaced: true
+      , modules: {
+        spacy: spacyParse
+        , google: spacyParse
+        , stanfordnlp: spacyParse
+      }
     }
   }
   , actions: {
@@ -35,6 +56,7 @@ const store = createStore({
         console.log(parsedDocument)
         commit('storeParsedDocument', parsedDocument)
         commit('storeSpacySentences', parsedDocument.spacy_sents)
+        commit('implements/spacy/storeParse', parsedDocument, {root: true})
       }).catch(function(error) {
         console.log(error)
       })
