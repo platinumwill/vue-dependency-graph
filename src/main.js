@@ -10,8 +10,43 @@ const parseProvider = {
   , state: () => ({
     parse: {}
   })
+  , getters: {
+    isReady (state) {
+      return (!( JSON.stringify(state.parse) === JSON.stringify({}) ))
+    }
+    , parse (state) {
+      return state.parse
+    }
+    , currentSentenceParse (state, getters, rootState, rootGetters) {
+      if (!getters.isReady) {
+        return {}
+      }
+      const filteredArcs = getters.parse.arcs.filter(
+        arc =>
+          arc.start >= rootGetters.currentSentence.start 
+          && arc.end >= rootGetters.currentSentence.start
+          && arc.start < rootGetters.currentSentence.end 
+          && arc.end < rootGetters.currentSentence.end 
+        )
+      let arcsClone = JSON.parse(JSON.stringify(filteredArcs.slice(0)))
+      arcsClone.forEach(function (arc) {
+        arc.start -= (rootGetters.currentSentence.start)
+        arc.end -= (rootGetters.currentSentence.start)
+      })
+      
+      const sentenceParse = {
+        words: getters.parse.words.filter(
+          (word, index) =>
+            index >= rootGetters.currentSentence.start 
+            && index < rootGetters.currentSentence.end
+          )
+        , arcs: arcsClone
+      }
+      return sentenceParse
+    }
+  }
   , mutations: {
-    storeParse (state, input) {
+    storeSpacyFormatParse (state, input) {
       state.parse = input
     }
   }
@@ -56,7 +91,7 @@ const store = createStore({
         console.log(parsedDocument)
         commit('storeParsedDocument', parsedDocument)
         commit('storeSpacySentences', parsedDocument.spacy_sents)
-        commit('parseProviders/spacy/storeParse', parsedDocument, {root: true})
+        commit('parseProviders/spacy/storeSpacyFormatParse', parsedDocument, {root: true})
       }).catch(function(error) {
         console.log(error)
       })
@@ -91,7 +126,7 @@ const store = createStore({
                     , words: googleParsedResult.tokens.map(({ text: { content: text }, partOfSpeech: { tag }} ) => ({ text, tag }))
                 })
         console.log(googleParseConvertedSpacy)
-        commit('storeGoogleParse', googleParseConvertedSpacy)
+        commit('parseProviders/google/storeSpacyFormatParse', googleParseConvertedSpacy, {root: true})
       }).catch(function(error) {
         console.log(error)
       })
@@ -133,64 +168,16 @@ const store = createStore({
       return (state.googleParse.words !== undefined)
     }
     , currentSentenceSpacyParse (state, getters) {
-      if (!getters.isDocumentReady) {
-        return {}
-      }
-      const filteredArcs = getters.documentParse.arcs.filter(
-        arc =>
-          arc.start >= getters.currentSentence.start 
-          && arc.end >= getters.currentSentence.start
-          && arc.start < getters.currentSentence.end 
-          && arc.end < getters.currentSentence.end 
-        )
-      let arcsClone = JSON.parse(JSON.stringify(filteredArcs.slice(0)))
-      arcsClone.forEach(function (arc) {
-        arc.start -= (getters.currentSentence.start)
-        arc.end -= (getters.currentSentence.start)
-      })
-      
-      const sentenceParse = {
-        words: state.parsedDocument.words.filter(
-          (word, index) =>
-            index >= getters.currentSentence.start 
-            && index < getters.currentSentence.end
-          )
-        , arcs: arcsClone
-      }
-      return sentenceParse
+      return getters['parseProviders/spacy/currentSentenceParse']
     }
-    , currentSentenceGoogleParse (state, getters) {
-      if (!getters.isDocumentReady || !getters.isGoogleParseReady) {
-        return {}
-      }
-      const filteredArcs = getters.googleParse.arcs.filter(
-        arc =>
-          arc.start >= getters.currentSentence.start 
-          && arc.end >= getters.currentSentence.start
-          && arc.start < getters.currentSentence.end 
-          && arc.end < getters.currentSentence.end 
-        )
-      let arcsClone = JSON.parse(JSON.stringify(filteredArcs.slice(0)))
-      arcsClone.forEach(function (arc) {
-        arc.start -= (getters.currentSentence.start)
-        arc.end -= (getters.currentSentence.start)
-      })
-      
-      const sentenceParse = {
-        words: state.googleParse.words.filter(
-          (word, index) =>
-            index >= getters.currentSentence.start 
-            && index < getters.currentSentence.end
-          )
-        , arcs: arcsClone
-      }
-      return sentenceParse
+    , currentSentenceGoogleParseSpacyFormat (state, getters) {
+      return getters['parseProviders/google/currentSentenceParse']
     }
     , isDocumentReady(state, getters) {
-      if (getters.spacySentences.length <= 0) {
-        return false
-      }
-      return true
+      return (
+        getters.spacySentences.length > 0
+        && getters['parseProviders/google/isReady']
+        )
     }
     , maxSentenceIndex(state, getters) {
       if (! getters.isDocumentReady) {
