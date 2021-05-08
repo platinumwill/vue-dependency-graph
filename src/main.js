@@ -5,7 +5,7 @@ import axios from 'axios'
 
 const app = createApp(App)
 
-const spacyParse = {
+const parseProvider = {
   namespaced: true
   , state: () => ({
     parse: {}
@@ -30,12 +30,12 @@ const store = createStore({
     }
   }
   , modules: {
-    implements: {
+    parseProviders: {
       namespaced: true
       , modules: {
-        spacy: spacyParse
-        , google: spacyParse
-        , stanfordnlp: spacyParse
+        spacy: parseProvider
+        , google: parseProvider
+        , stanfordnlp: parseProvider
       }
     }
   }
@@ -56,7 +56,7 @@ const store = createStore({
         console.log(parsedDocument)
         commit('storeParsedDocument', parsedDocument)
         commit('storeSpacySentences', parsedDocument.spacy_sents)
-        commit('implements/spacy/storeParse', parsedDocument, {root: true})
+        commit('parseProviders/spacy/storeParse', parsedDocument, {root: true})
       }).catch(function(error) {
         console.log(error)
       })
