@@ -5,7 +5,7 @@ import axios from 'axios'
 
 const app = createApp(App)
 
-const parseProvider = {
+const spacyFormatParse = {
   namespaced: true
   , state: () => ({
     parse: {}
@@ -61,12 +61,12 @@ const store = createStore({
     }
   }
   , modules: {
-    parseProviders: {
+    spacyFormatParseProviders: {
       namespaced: true
       , modules: {
-        spacy: parseProvider
-        , google: parseProvider
-        , stanfordnlp: parseProvider
+        spacy: spacyFormatParse
+        , google: spacyFormatParse
+        , stanfordnlp: spacyFormatParse
       }
     }
   }
@@ -86,7 +86,7 @@ const store = createStore({
         console.log("SPACY parse:")
         console.log(parsedDocument)
         commit('storeSpacySentences', parsedDocument.spacy_sents)
-        commit('parseProviders/spacy/storeSpacyFormatParse', parsedDocument, {root: true})
+        commit('spacyFormatParseProviders/spacy/storeSpacyFormatParse', parsedDocument, {root: true})
       }).catch(function(error) {
         console.log(error)
       })
@@ -121,7 +121,7 @@ const store = createStore({
                     , words: googleParsedResult.tokens.map(({ text: { content: text }, partOfSpeech: { tag }} ) => ({ text, tag }))
                 })
         console.log(googleParseConvertedSpacy)
-        commit('parseProviders/google/storeSpacyFormatParse', googleParseConvertedSpacy, {root: true})
+        commit('spacyFormatParseProviders/google/storeSpacyFormatParse', googleParseConvertedSpacy, {root: true})
       }).catch(function(error) {
         console.log(error)
       })
@@ -148,7 +148,7 @@ const store = createStore({
   }
   , getters: {
     documentParse (state, getters) {
-      return getters['parseProviders/spacy/parse']
+      return getters['spacyFormatParseProviders/spacy/parse']
     }
     , googleParse (state) {
       return state.googleParse
@@ -160,15 +160,15 @@ const store = createStore({
       return (state.googleParse.words !== undefined)
     }
     , currentSentenceSpacyParse (state, getters) {
-      return getters['parseProviders/spacy/currentSentenceParse']
+      return getters['spacyFormatParseProviders/spacy/currentSentenceParse']
     }
     , currentSentenceGoogleParseSpacyFormat (state, getters) {
-      return getters['parseProviders/google/currentSentenceParse']
+      return getters['spacyFormatParseProviders/google/currentSentenceParse']
     }
     , isDocumentReady(state, getters) {
       return (
         getters.spacySentences.length > 0
-        && getters['parseProviders/google/isReady']
+        && getters['spacyFormatParseProviders/google/isReady']
         )
     }
     , maxSentenceIndex(state, getters) {
