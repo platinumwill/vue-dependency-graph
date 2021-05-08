@@ -1,5 +1,6 @@
 <template>
     <SentenceParseGraph :parse="currentSentenceSpacyParse"></SentenceParseGraph>
+    <SentenceParseGraph :parse="currentSentenceStanfordNLPParseSpacyFormat"></SentenceParseGraph>
     <SentenceParseGraph :parse="currentSentenceGoogleParseSpacyFormat"></SentenceParseGraph>
     <DocumentInput></DocumentInput>
     <PatternDialog></PatternDialog>
@@ -29,7 +30,12 @@ export default {
     }
   }
   , computed: {
-    ...mapGetters(['isDocumentReady', 'currentSentenceSpacyParse', 'currentSentenceGoogleParseSpacyFormat'])
+    ...mapGetters([
+      'isDocumentReady'
+    , 'currentSentenceSpacyParse'
+    , 'currentSentenceGoogleParseSpacyFormat'
+    , 'currentSentenceStanfordNLPParseSpacyFormat'
+    ])
   }
 }
 </script>
