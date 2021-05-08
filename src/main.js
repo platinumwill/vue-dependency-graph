@@ -55,11 +55,7 @@ const parseProvider = {
 const store = createStore({
   state () {
     return {
-        parsedDocument: {
-        }
-        , googleParse: {
-        }
-        , currentSentenceIndex: 0
+        currentSentenceIndex: 0
         , originalText : ''
         , spacySentences: []
     }
@@ -89,7 +85,6 @@ const store = createStore({
 
         console.log("SPACY parse:")
         console.log(parsedDocument)
-        commit('storeParsedDocument', parsedDocument)
         commit('storeSpacySentences', parsedDocument.spacy_sents)
         commit('parseProviders/spacy/storeSpacyFormatParse', parsedDocument, {root: true})
       }).catch(function(error) {
@@ -140,9 +135,6 @@ const store = createStore({
     , storeSpacySentences (state, spacySentences) {
         state.spacySentences = spacySentences
     }
-    , storeParsedDocument (state, parsedDocument) {
-        state.parsedDocument = parsedDocument
-    }
     , storeGoogleParse (state, googleParsedResult) {
         state.googleParse = googleParsedResult
     }
@@ -155,8 +147,8 @@ const store = createStore({
     }
   }
   , getters: {
-    documentParse (state) {
-      return state.parsedDocument
+    documentParse (state, getters) {
+      return getters['parseProviders/spacy/parse']
     }
     , googleParse (state) {
       return state.googleParse
