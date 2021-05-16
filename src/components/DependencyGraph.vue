@@ -2,6 +2,7 @@
     <SentenceParseGraph :parse="currentSentenceSpacyParse"></SentenceParseGraph>
     <SentenceParseGraph :parse="currentSentenceStanfordNLPParseSpacyFormat"></SentenceParseGraph>
     <SentenceParseGraph :parse="currentSentenceGoogleParseSpacyFormat"></SentenceParseGraph>
+    <SentenceParseGraph2 :parse="currentSentenceSpacyParse"></SentenceParseGraph2>
     <DocumentInput></DocumentInput>
     <PatternDialog></PatternDialog>
     <DocumentPanel></DocumentPanel>
@@ -12,12 +13,14 @@ import DocumentPanel from "./DocumentPanel.vue"
 import DocumentInput from "./DocumentInput.vue"
 import PatternDialog from "./PatternDialog.vue"
 import SentenceParseGraph from "./SentenceParseGraph.vue"
+import SentenceParseGraph2 from "./SentenceParseGraph2.vue"
 import { mapGetters } from 'vuex'
 
 export default {
   name: 'DependencyGraph'
   , components: {
       SentenceParseGraph
+      , SentenceParseGraph2
       , DocumentPanel
       , DocumentInput
       , PatternDialog
