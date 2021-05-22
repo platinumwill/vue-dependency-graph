@@ -2,7 +2,7 @@
     <SentenceParseGraph :parse="currentSentenceSpacyParse"></SentenceParseGraph>
     <SentenceParseGraph :parse="currentSentenceStanfordNLPParseSpacyFormat"></SentenceParseGraph>
     <SentenceParseGraph :parse="currentSentenceGoogleParseSpacyFormat"></SentenceParseGraph>
-    <SentenceParseGraph2 :spacyAgent="parseBySpacy" :parse="currentSentenceSpacyParse"></SentenceParseGraph2>
+    <SentenceParseGraph2 :spacyAgent="parseBySpacy"></SentenceParseGraph2>
     <DocumentInput></DocumentInput>
     <PatternDialog></PatternDialog>
     <DocumentPanel></DocumentPanel>

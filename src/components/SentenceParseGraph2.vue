@@ -5,8 +5,8 @@
             :viewbox="viewbox" :data-format="config.format"
             :style="{color: config.foregroundColor, background: config.backgroundColor, fontFamily: config.fontFamily}" 
             preserveAspectRatio="xMinYMax meet">
-            <DependencyNode v-for="(word, index) in parse.words" :word="word" :index="index" :key="index" :config="config"></DependencyNode>
-            <DependencyEdge v-for="arc in parse.arcs" :arc="arc" :key="arc.key" :config="config"></DependencyEdge>
+            <DependencyNode v-for="(word, index) in sentenceParse.words" :word="word" :index="index" :key="index" :config="config"></DependencyNode>
+            <DependencyEdge v-for="arc in sentenceParse.arcs" :arc="arc" :key="arc.key" :config="config"></DependencyEdge>
         </svg>
         <div>{{ sentenceParse }}</div>
     </div>
@@ -26,13 +26,13 @@ export default {
     }
     , computed: {
         levels: function() {
-            return [...new Set(this.parse.arcs.map(({ end, start }) => end - start).sort((a, b) => a - b))]
+            return this.spacyFormatDocumentParse === undefined ? [] : [...new Set(this.spacyFormatDocumentParse.arcs.map(({ end, start }) => end - start).sort((a, b) => a - b))]
         }
         , highestLevel: function() {
             return this.levels.indexOf(this.levels.slice(-1)[0]) + 1
         } 
         , width: function() {
-            return this.config.offsetX + this.parse.words.length * this.config.distance
+            return this.spacyFormatDocumentParse === undefined ? 0 : this.config.offsetX + this.spacyFormatDocumentParse.words.length * this.config.distance
         }
         , height: function() {
             return this.offsetY + 3 * this.config.wordSpacing
@@ -47,13 +47,9 @@ export default {
             return this.originalText !== ''
         }
         , sentenceParse: function() {
-            if (this.spacyFormatDocumentParse === undefined || !this.$store.getters.isReady) {
+            if (this.spacyFormatDocumentParse === undefined || !this.$store.getters.isDocumentReady) {
                 return {}
             }
-    // , currentSentenceParse (state, getters, rootState, rootGetters) {
-    //   if (!getters.isReady) {
-    //     return {}
-    //   }
             const filteredArcs = this.spacyFormatDocumentParse.arcs.filter(
                 arc =>
                 arc.start >= this.currentSentence.start 
@@ -65,8 +61,7 @@ export default {
             arcsClone.forEach(function (arc) {
                 arc.start -= (this.currentSentence.start)
                 arc.end -= (this.currentSentence.start)
-            })
-            console.log('AAAAAAAAAAAAAA')
+            }, this)
             const sentenceParse = {
                 words: this.spacyFormatDocumentParse.words.filter(
                 (word, index) =>
@@ -115,10 +110,6 @@ export default {
                     , arrowWidth: 10 
                 }
             }
-        }
-        , parse: {
-            type: Object
-            , required: true
         }
         , spacyAgent: {
             type: Function
