@@ -35,9 +35,6 @@ export default {
   , computed: {
     ...mapGetters([
       'isDocumentReady'
-    , 'currentSentenceSpacyParse'
-    , 'currentSentenceGoogleParseSpacyFormat'
-    , 'currentSentenceStanfordNLPParseSpacyFormat'
     ])
   }
   , methods: {

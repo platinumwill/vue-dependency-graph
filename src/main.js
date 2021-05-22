@@ -5,52 +5,6 @@ import axios from 'axios'
 
 const app = createApp(App)
 
-const spacyFormatParse = {
-  namespaced: true
-  , state: () => ({
-    parse: {}
-  })
-  , getters: {
-    isReady (state) {
-      return (!( JSON.stringify(state.parse) === JSON.stringify({}) ))
-    }
-    , parse (state) {
-      return state.parse
-    }
-    , currentSentenceParse (state, getters, rootState, rootGetters) {
-      if (!getters.isReady) {
-        return {}
-      }
-      const filteredArcs = getters.parse.arcs.filter(
-        arc =>
-          arc.start >= rootGetters.currentSentence.start 
-          && arc.end >= rootGetters.currentSentence.start
-          && arc.start < rootGetters.currentSentence.end 
-          && arc.end < rootGetters.currentSentence.end 
-        )
-      let arcsClone = JSON.parse(JSON.stringify(filteredArcs.slice(0)))
-      arcsClone.forEach(function (arc) {
-        arc.start -= (rootGetters.currentSentence.start)
-        arc.end -= (rootGetters.currentSentence.start)
-      })
-      
-      const sentenceParse = {
-        words: getters.parse.words.filter(
-          (word, index) =>
-            index >= rootGetters.currentSentence.start 
-            && index < rootGetters.currentSentence.end
-          )
-        , arcs: arcsClone
-      }
-      return sentenceParse
-    }
-  }
-  , mutations: {
-    storeSpacyFormatParse (state, input) {
-      state.parse = input
-    }
-  }
-}
 // vuex
 const store = createStore({
   state () {
@@ -61,12 +15,17 @@ const store = createStore({
     }
   }
   , modules: {
-    spacyFormatParseProviders: {
+    baseline: {
       namespaced: true
-      , modules: {
-        spacy: spacyFormatParse
-        , google: spacyFormatParse
-        , stanfordnlp: spacyFormatParse
+      , state: () => ({
+        tokens: []
+        , sentences: []
+        , tempSpacyParse: undefined
+      })
+      , mutations: {
+        saveTempSpacyParse (state, tempSpacyParse) {
+          state.tempSpacyParse = tempSpacyParse
+        }
       }
     }
   }
@@ -80,6 +39,7 @@ const store = createStore({
       await axios.post('http://localhost:5000/spacy/parse', params).then(function(response) {
         const parsedDocument = response.data
         commit('storeSpacySentences', parsedDocument.spacy_sents)
+        commit('baseline/saveTempSpacyParse', parsedDocument)
       }).catch(function(error) {
         console.log(error)
       })
@@ -104,8 +64,9 @@ const store = createStore({
     }
   }
   , getters: {
-    documentParse (state, getters) {
-      return getters['spacyFormatParseProviders/spacy/parse']
+    documentParse (state) {
+      // TODO to be removed
+      return state.baseline.tempSpacyParse
     }
     , originalText (state) {
       return state.originalText
@@ -118,15 +79,6 @@ const store = createStore({
     }
     , isGoogleParseReady (state) {
       return (state.googleParse.words !== undefined)
-    }
-    , currentSentenceSpacyParse (state, getters) {
-      return getters['spacyFormatParseProviders/spacy/currentSentenceParse']
-    }
-    , currentSentenceGoogleParseSpacyFormat (state, getters) {
-      return getters['spacyFormatParseProviders/google/currentSentenceParse']
-    }
-    , currentSentenceStanfordNLPParseSpacyFormat (state, getters) {
-      return getters['spacyFormatParseProviders/stanfordnlp/currentSentenceParse']
     }
     , isDocumentReady(state, getters) {
       return (getters.spacySentences.length > 0)
