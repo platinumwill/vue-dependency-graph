@@ -1,6 +1,7 @@
 <template>
-    <SentenceParseGraph :parse="currentSentenceSpacyParse"></SentenceParseGraph>
-    <SentenceParseGraph :parse="currentSentenceGoogleParse"></SentenceParseGraph>
+    <SentenceParseGraph :spacyFormatParseProvider="parseBySpacy"></SentenceParseGraph>
+    <SentenceParseGraph :spacyFormatParseProvider="parseByStanfordnlp"></SentenceParseGraph>
+    <SentenceParseGraph :spacyFormatParseProvider="parseByGooglenlp"></SentenceParseGraph>
     <DocumentInput></DocumentInput>
     <PatternDialog></PatternDialog>
     <DocumentPanel></DocumentPanel>
@@ -12,6 +13,9 @@ import DocumentInput from "./DocumentInput.vue"
 import PatternDialog from "./PatternDialog.vue"
 import SentenceParseGraph from "./SentenceParseGraph.vue"
 import { mapGetters } from 'vuex'
+import spacyAgent from '../assets/js/spacyAgent.js'
+import stanfordnlpAgent from '../assets/js/stanfordnlpAgent.js'
+import googlenlpAgent from '../assets/js/googleAgent.js'
 
 export default {
   name: 'DependencyGraph'
@@ -29,7 +33,26 @@ export default {
     }
   }
   , computed: {
-    ...mapGetters(['isDocumentReady', 'currentSentenceSpacyParse', 'currentSentenceGoogleParse'])
+    ...mapGetters([
+      'isDocumentReady'
+    ])
+  }
+  , methods: {
+    parseBySpacy: async function (documentText) {
+      const result = await spacyAgent(documentText)
+      console.log(result)
+      return result
+    }
+    , parseByStanfordnlp: async function (documentText) {
+      const result = await stanfordnlpAgent(documentText)
+      console.log(result)
+      return result
+    }
+    , parseByGooglenlp: async function (documentText) {
+      const result = await googlenlpAgent(documentText)
+      console.log(result)
+      return result
+    }
   }
 }
 </script>
