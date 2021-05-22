@@ -8,7 +8,6 @@
             <DependencyNode v-for="(word, index) in sentenceParse.words" :word="word" :index="index" :key="index" :config="config"></DependencyNode>
             <DependencyEdge v-for="arc in sentenceParse.arcs" :arc="arc" :key="arc.key" :config="config"></DependencyEdge>
         </svg>
-        <div>{{ sentenceParse }}</div>
     </div>
 </template>
 
@@ -16,7 +15,6 @@
 import DependencyEdge from "./DependencyEdge.vue";
 import DependencyNode from "./DependencyNode.vue";
 import { mapGetters } from 'vuex'
-// import axios from 'axios'
 
 export default {
     data() {
@@ -44,7 +42,7 @@ export default {
             return this.config.distance / 2 * this.highestLevel
         }
         , isParsedContentReady() {
-            return this.originalText !== ''
+            return this.spacyFormatDocumentParse !== undefined
         }
         , sentenceParse: function() {
             if (this.spacyFormatDocumentParse === undefined || !this.$store.getters.isDocumentReady) {

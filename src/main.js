@@ -46,8 +46,8 @@ const store = createStore({
     }
   }
   , mutations: {
-    storeOriginalText (state, originalText) {
-        state.originalText = originalText
+    storeOriginalText (state, documentText) {
+        state.originalText = documentText
     }
     , storeSpacySentences (state, spacySentences) {
         state.spacySentences = spacySentences
