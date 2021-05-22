@@ -2,7 +2,7 @@
     <SentenceParseGraph :parse="currentSentenceSpacyParse"></SentenceParseGraph>
     <SentenceParseGraph :parse="currentSentenceStanfordNLPParseSpacyFormat"></SentenceParseGraph>
     <SentenceParseGraph :parse="currentSentenceGoogleParseSpacyFormat"></SentenceParseGraph>
-    <SentenceParseGraph2 :parse="currentSentenceSpacyParse"></SentenceParseGraph2>
+    <SentenceParseGraph2 :spacyAgent="parseBySpacy" :parse="currentSentenceSpacyParse"></SentenceParseGraph2>
     <DocumentInput></DocumentInput>
     <PatternDialog></PatternDialog>
     <DocumentPanel></DocumentPanel>
@@ -15,6 +15,7 @@ import PatternDialog from "./PatternDialog.vue"
 import SentenceParseGraph from "./SentenceParseGraph.vue"
 import SentenceParseGraph2 from "./SentenceParseGraph2.vue"
 import { mapGetters } from 'vuex'
+import spacyAgent from '../assets/js/spacyAgent.js'
 
 export default {
   name: 'DependencyGraph'
@@ -39,6 +40,13 @@ export default {
     , 'currentSentenceGoogleParseSpacyFormat'
     , 'currentSentenceStanfordNLPParseSpacyFormat'
     ])
+  }
+  , methods: {
+    parseBySpacy: async function (documentText) {
+      const result = await spacyAgent(documentText)
+      console.log(result)
+      return result
+    }
   }
 }
 </script>

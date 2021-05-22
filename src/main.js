@@ -72,11 +72,12 @@ const store = createStore({
   }
   , actions: {
     async parseAndStoreDocument({commit}, documentText) {
+      commit('storeOriginalText', documentText)
+
       const params = new URLSearchParams();
       params.append('text', documentText);
       await axios.post('http://localhost:5000/spacy/parse', params).then(function(response) {
         const parsedDocument = response.data
-        commit('storeOriginalText', documentText)
 
         function putArcKey(arc) {
           arc.key = arc.start + '_to_' + arc.end
@@ -173,6 +174,9 @@ const store = createStore({
   , getters: {
     documentParse (state, getters) {
       return getters['spacyFormatParseProviders/spacy/parse']
+    }
+    , originalText (state) {
+      return state.originalText
     }
     , googleParse (state) {
       return state.googleParse

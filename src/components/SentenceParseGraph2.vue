@@ -1,5 +1,5 @@
 <template>
-    <div v-if="isDocumentReady">
+    <div v-if="isParsedContentReady && isDocumentReady">
         <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:lang="en"
             id="displacy-svg" class="displacy" :width="width" :height="height" 
             :viewbox="viewbox" :data-format="config.format"
@@ -8,6 +8,7 @@
             <DependencyNode v-for="(word, index) in parse.words" :word="word" :index="index" :key="index" :config="config"></DependencyNode>
             <DependencyEdge v-for="arc in parse.arcs" :arc="arc" :key="arc.key" :config="config"></DependencyEdge>
         </svg>
+        <div>{{ sentenceParse }}</div>
     </div>
 </template>
 
@@ -15,9 +16,15 @@
 import DependencyEdge from "./DependencyEdge.vue";
 import DependencyNode from "./DependencyNode.vue";
 import { mapGetters } from 'vuex'
+// import axios from 'axios'
 
 export default {
-    computed: {
+    data() {
+        return {
+            spacyFormatDocumentParse: undefined
+        }
+    }
+    , computed: {
         levels: function() {
             return [...new Set(this.parse.arcs.map(({ end, start }) => end - start).sort((a, b) => a - b))]
         }
@@ -36,10 +43,59 @@ export default {
         , offsetY: function() {
             return this.config.distance / 2 * this.highestLevel
         }
+        , isParsedContentReady() {
+            return this.originalText !== ''
+        }
+        , sentenceParse: function() {
+            if (this.spacyFormatDocumentParse === undefined || !this.$store.getters.isReady) {
+                return {}
+            }
+    // , currentSentenceParse (state, getters, rootState, rootGetters) {
+    //   if (!getters.isReady) {
+    //     return {}
+    //   }
+            const filteredArcs = this.spacyFormatDocumentParse.arcs.filter(
+                arc =>
+                arc.start >= this.currentSentence.start 
+                && arc.end >= this.currentSentence.start
+                && arc.start < this.currentSentence.end 
+                && arc.end < this.currentSentence.end 
+                )
+            let arcsClone = JSON.parse(JSON.stringify(filteredArcs.slice(0)))
+            arcsClone.forEach(function (arc) {
+                arc.start -= (this.currentSentence.start)
+                arc.end -= (this.currentSentence.start)
+            })
+            console.log('AAAAAAAAAAAAAA')
+            const sentenceParse = {
+                words: this.spacyFormatDocumentParse.words.filter(
+                (word, index) =>
+                    index >= this.currentSentence.start 
+                    && index < this.currentSentence.end
+                )
+                , arcs: arcsClone
+            }
+            return sentenceParse
+        }
         , ...mapGetters({ 
             isDocumentReady: 'isDocumentReady'
             , isGoogleParseReady: 'isGoogleParseReady'
+            , originalText: 'originalText'
+            , currentSentence: 'currentSentence'
         })
+    }
+    , watch: {
+        originalText (newText) {
+            this.delegateToSpacyAgent(newText)
+        }
+    }
+    , methods: {
+        async delegateToSpacyAgent(documentText) {
+            await this.spacyAgent(documentText).then((spacyFormatParsedResult) => {
+                console.log('XXXXXXXXXXX')
+                this.spacyFormatDocumentParse = spacyFormatParsedResult
+            })
+        }
     }
     , props: {
         config: {
@@ -63,6 +119,9 @@ export default {
         , parse: {
             type: Object
             , required: true
+        }
+        , spacyAgent: {
+            type: Function
         }
     }
     , components: {
