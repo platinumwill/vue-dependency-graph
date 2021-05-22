@@ -1,13 +1,14 @@
 <template>
-    <div v-if="isDocumentReady">
+    <div v-if="isParsedContentReady && isDocumentReady">
         <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:lang="en"
             id="displacy-svg" class="displacy" :width="width" :height="height" 
             :viewbox="viewbox" :data-format="config.format"
             :style="{color: config.foregroundColor, background: config.backgroundColor, fontFamily: config.fontFamily}" 
             preserveAspectRatio="xMinYMax meet">
-            <DependencyNode v-for="(word, index) in parse.words" :word="word" :index="index" :key="index" :config="config"></DependencyNode>
-            <DependencyEdge v-for="arc in parse.arcs" :arc="arc" :key="arc.key" :config="config"></DependencyEdge>
+            <DependencyNode v-for="(word, index) in sentenceParse.words" :word="word" :index="index" :key="index" :config="config"></DependencyNode>
+            <DependencyEdge v-for="arc in sentenceParse.arcs" :arc="arc" :key="arc.key" :config="config"></DependencyEdge>
         </svg>
+        <div>{{ sentenceParse }}</div>
     </div>
 </template>
 
@@ -15,17 +16,23 @@
 import DependencyEdge from "./DependencyEdge.vue";
 import DependencyNode from "./DependencyNode.vue";
 import { mapGetters } from 'vuex'
+// import axios from 'axios'
 
 export default {
-    computed: {
+    data() {
+        return {
+            spacyFormatDocumentParse: undefined
+        }
+    }
+    , computed: {
         levels: function() {
-            return [...new Set(this.parse.arcs.map(({ end, start }) => end - start).sort((a, b) => a - b))]
+            return this.spacyFormatDocumentParse === undefined ? [] : [...new Set(this.spacyFormatDocumentParse.arcs.map(({ end, start }) => end - start).sort((a, b) => a - b))]
         }
         , highestLevel: function() {
             return this.levels.indexOf(this.levels.slice(-1)[0]) + 1
         } 
         , width: function() {
-            return this.config.offsetX + this.parse.words.length * this.config.distance
+            return this.spacyFormatDocumentParse === undefined ? 0 : this.config.offsetX + this.spacyFormatDocumentParse.words.length * this.config.distance
         }
         , height: function() {
             return this.offsetY + 3 * this.config.wordSpacing
@@ -36,10 +43,53 @@ export default {
         , offsetY: function() {
             return this.config.distance / 2 * this.highestLevel
         }
+        , isParsedContentReady() {
+            return this.originalText !== ''
+        }
+        , sentenceParse: function() {
+            if (this.spacyFormatDocumentParse === undefined || !this.$store.getters.isDocumentReady) {
+                return {}
+            }
+            const filteredArcs = this.spacyFormatDocumentParse.arcs.filter(
+                arc =>
+                arc.start >= this.currentSentence.start 
+                && arc.end >= this.currentSentence.start
+                && arc.start < this.currentSentence.end 
+                && arc.end < this.currentSentence.end 
+                )
+            let arcsClone = JSON.parse(JSON.stringify(filteredArcs.slice(0)))
+            arcsClone.forEach(function (arc) {
+                arc.start -= (this.currentSentence.start)
+                arc.end -= (this.currentSentence.start)
+            }, this)
+            const sentenceParse = {
+                words: this.spacyFormatDocumentParse.words.filter(
+                (word, index) =>
+                    index >= this.currentSentence.start 
+                    && index < this.currentSentence.end
+                )
+                , arcs: arcsClone
+            }
+            return sentenceParse
+        }
         , ...mapGetters({ 
             isDocumentReady: 'isDocumentReady'
             , isGoogleParseReady: 'isGoogleParseReady'
+            , originalText: 'originalText'
+            , currentSentence: 'currentSentence'
         })
+    }
+    , watch: {
+        originalText (newText) {
+            this.delegateToSpacyAgent(newText)
+        }
+    }
+    , methods: {
+        async delegateToSpacyAgent(documentText) {
+            await this.spacyFormatParseProvider(documentText).then((spacyFormatParsedResult) => {
+                this.spacyFormatDocumentParse = spacyFormatParsedResult
+            })
+        }
     }
     , props: {
         config: {
@@ -60,9 +110,8 @@ export default {
                 }
             }
         }
-        , parse: {
-            type: Object
-            , required: true
+        , spacyFormatParseProvider: {
+            type: Function
         }
     }
     , components: {
