@@ -86,8 +86,7 @@ export default {
     }
     , methods: {
         async delegateToSpacyAgent(documentText) {
-            await this.spacyAgent(documentText).then((spacyFormatParsedResult) => {
-                console.log('XXXXXXXXXXX')
+            await this.spacyFormatParseProvider(documentText).then((spacyFormatParsedResult) => {
                 this.spacyFormatDocumentParse = spacyFormatParsedResult
             })
         }
@@ -111,7 +110,7 @@ export default {
                 }
             }
         }
-        , spacyAgent: {
+        , spacyFormatParseProvider: {
             type: Function
         }
     }
