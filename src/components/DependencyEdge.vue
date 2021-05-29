@@ -13,27 +13,38 @@
       :id="id"
       class="displacy-arc"
       fill="none"
-      stroke="currentColor"
+      :stroke="color"
     ></path>
     <text dy="1em">
         <textPath :xlink:href="'#' + id" class="displacy-label"
             :data-label="arc.label"
             :data-dir="arc.dir"
-            startOffset="50%" side="left" fill="currentColor" text-anchor="middle">{{ arc.label }}</textPath>
+            @click="edgeLabelClicked"
+            startOffset="50%" side="left" :fill="color" text-anchor="middle">{{ arc.label }}</textPath>
     </text>
-    <path class="displacy-arrowhead" :d="arrowheadD" fill="currentColor" :data-label="arc.label" :data-dir="arc.dir" />
+    <path class="displacy-arrowhead" :d="arrowheadD" :fill="color" :data-label="arc.label" :data-dir="arc.dir" />
  </g>
 </template>
 
 <script>
 export default {
     name: 'DependencyEdge'
+    , data() {
+        return {
+            selected: false
+        }
+    }
     , props: {
         arc: Object
     }
     , inject: [
         'config'
     ]
+    , methods: {
+        edgeLabelClicked: function() {
+            this.selected = !this.selected
+        }
+    }
     , computed: {
         level: function() {
             return this.$parent.levels.indexOf(this.arc.end - this.arc.start) + 1
@@ -74,6 +85,9 @@ export default {
             + "," + (this.startY - this.config.arrowWidth)
             + " " + ((this.arc.dir == 'left') ? this.startX + this.config.arrowWidth - 2 : this.endpoint - this.config.arrowWidth + 2)
             + "," + (this.startY - this.config.arrowWidth) 
+        }
+        , color: function() {
+            return this.selected ? this.config.selectedForegroundColor : 'currentColor'
         }
    }
 }
