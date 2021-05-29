@@ -8,6 +8,7 @@
             <DependencyNode v-for="(word, index) in sentenceParse.words" :word="word" :index="index" :key="index" :config="config"></DependencyNode>
             <DependencyEdge v-for="arc in sentenceParse.arcs" :arc="arc" :key="arc.key" :config="config"></DependencyEdge>
         </svg>
+        <PatternDialog></PatternDialog>
     </div>
 </template>
 
@@ -15,6 +16,7 @@
 import DependencyEdge from "./DependencyEdge.vue";
 import DependencyNode from "./DependencyNode.vue";
 import { mapGetters } from 'vuex'
+import PatternDialog from "./PatternDialog.vue"
 
 export default {
     data() {
@@ -115,6 +117,7 @@ export default {
     , components: {
         DependencyEdge
         , DependencyNode
+        , PatternDialog
     } 
 }
 </script>

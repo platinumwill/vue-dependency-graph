@@ -3,14 +3,12 @@
     <SentenceParseGraph :spacyFormatParseProvider="parseByGooglenlp"></SentenceParseGraph>
     <SentenceParseGraph :spacyFormatParseProvider="parseByStanfordnlp"></SentenceParseGraph>
     <DocumentInput></DocumentInput>
-    <PatternDialog></PatternDialog>
     <DocumentPanel></DocumentPanel>
 </template>
 
 <script>
 import DocumentPanel from "./DocumentPanel.vue"
 import DocumentInput from "./DocumentInput.vue"
-import PatternDialog from "./PatternDialog.vue"
 import SentenceParseGraph from "./SentenceParseGraph.vue"
 import { mapGetters } from 'vuex'
 import spacyAgent from '../assets/js/spacyAgent.js'
@@ -23,7 +21,6 @@ export default {
       SentenceParseGraph
       , DocumentPanel
       , DocumentInput
-      , PatternDialog
   } 
   , props: {
     provided() {
