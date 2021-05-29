@@ -119,5 +119,10 @@ export default {
         , DependencyNode
         , PatternDialog
     } 
+    , provide() {
+        return {
+            config: this.config
+        }
+    }
 }
 </script>

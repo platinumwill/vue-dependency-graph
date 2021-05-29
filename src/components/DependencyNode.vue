@@ -15,11 +15,7 @@ export default {
         TokenInfo
     } 
     , props: {
-        config: {
-            type: Object
-            , default: function() {}
-        }
-        , word: {
+        word: {
             type: Object
         }
         , index: {
@@ -45,8 +41,10 @@ export default {
     , provide() {
         return {
             tokenIndex: this.index
-            , config: this.config
         }
     }
+    , inject: [
+        'config'
+    ]
 }
 </script>

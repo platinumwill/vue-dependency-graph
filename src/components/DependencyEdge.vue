@@ -30,15 +30,10 @@ export default {
     name: 'DependencyEdge'
     , props: {
         arc: Object
-        , config: {
-            type: Object
-            , default: function() {
-                return {
-                   //
-                }
-            }
-        }
     }
+    , inject: [
+        'config'
+    ]
     , computed: {
         level: function() {
             return this.$parent.levels.indexOf(this.arc.end - this.arc.start) + 1
