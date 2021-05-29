@@ -28,7 +28,7 @@ export default async function (documentText) {
                 }
                 const stanfordSpacyFormatParse = {
                     arcs: dependencies.map(dependency => newInfoDependency(dependency)).filter(arc => arc.start >= 0)
-                    , words: tokens.map(({originalText: text, pos: tag}) => ({text, tag}))
+                    , words: tokens.map(({originalText: text, pos: tag, lemma: lemma}) => ({text, tag, lemma}))
                 }
                 resolve(stanfordSpacyFormatParse)
                 console.log("STANFORD parse in Spacy format:")
