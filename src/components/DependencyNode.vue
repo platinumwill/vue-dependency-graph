@@ -42,12 +42,6 @@ export default {
             return this.selected ? this.config.selectedForegroundColor : 'currentColor'
         }
     }
-    , methods: {
-        posClicked: function(event) {
-            this.selected = !this.selected
-            console.log(event)
-        }
-    }
     , provide() {
         return {
             tokenIndex: this.index
