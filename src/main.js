@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import { createStore } from 'vuex'
 import App from './App.vue'
 import axios from 'axios'
+import PrimeVue from 'primevue/config'
 
 const app = createApp(App)
 
@@ -99,4 +100,5 @@ const store = createStore({
 })
 
 app.use(store)
+app.use(PrimeVue)
 app.mount('#app')
