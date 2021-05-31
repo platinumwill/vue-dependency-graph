@@ -2,6 +2,9 @@
     <div>
         <button @click="openTranslationPatternWindow">Add Pattern Segment</button>
         <Dialog header="Header" v-model:visible="displayModal" :style="{width: '50vw'}" :modal="true" :closeOnEscape="true" position="topleft">
+            <vue-horizontal responsive>
+            <draggable v-model="myArray" tag="transition-group" item-key="id">
+                <template #item="{element}">
             <Card>
                 <template #header>
                 </template>
@@ -9,25 +12,16 @@
                     Advanced Card
                 </template>
                 <template #content>
+                    {{element.id}}
                 </template>
                 <template #footer>
                     <Button icon="pi pi-check" label="Save" />
                     <Button icon="pi pi-times" label="Cancel" class="p-button-secondary" style="margin-left: .5em" />
                 </template>
             </Card>
-            <Card>
-                <template #header>
                 </template>
-                <template #title>
-                    Advanced Card
-                </template>
-                <template #content>
-                </template>
-                <template #footer>
-                    <Button icon="pi pi-check" label="Save" />
-                    <Button icon="pi pi-times" label="Cancel" class="p-button-secondary" style="margin-left: .5em" />
-                </template>
-            </Card>
+            </draggable>
+            </vue-horizontal>
         </Dialog>
     </div>
 </template>
@@ -37,16 +31,21 @@
 import Dialog from 'primevue/dialog'
 import Card from 'primevue/card'
 import Button from 'primevue/button'
+import draggable from 'vuedraggable'
+import VueHorizontal from "vue-horizontal";
 
 export default {
     components: {
         Dialog
         , Card
         , Button
+        , draggable
+        , VueHorizontal
     }
     , data() {
         return {
             displayModal: false
+            , myArray: [{id: 1}, {id: 2}]
         }
     }
     , methods: {
@@ -68,5 +67,13 @@ export default {
         background-color: black;
         border-style: solid;
         border-color: white;
+    } */
+    /* .p-card {
+        display: inline;
+        width: 30%;
+    }
+    .p-card-body {
+        display: inline;
+        width: 30%;
     } */
 </style>

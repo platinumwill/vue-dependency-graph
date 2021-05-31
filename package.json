@@ -14,6 +14,8 @@
     "primeicons": "^4.1.0",
     "primevue": "^3.5.0",
     "vue": "^3.0.11",
+    "vue-horizontal": "^1.0.0",
+    "vuedraggable": "^4.0.1",
     "vuex": "^4.0.1"
   },
   "devDependencies": {
