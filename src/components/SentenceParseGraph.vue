@@ -81,11 +81,11 @@ export default {
     }
     , watch: {
         originalText (newText) {
-            this.delegateToSpacyAgent(newText)
+            this.deletegateToSpaceFormatParserProvider(newText)
         }
     }
     , methods: {
-        async delegateToSpacyAgent(documentText) {
+        async deletegateToSpaceFormatParserProvider(documentText) {
             await this.spacyFormatParseProvider(documentText).then((spacyFormatParsedResult) => {
                 this.spacyFormatDocumentParse = spacyFormatParsedResult
             })
