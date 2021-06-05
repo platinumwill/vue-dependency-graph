@@ -22,13 +22,6 @@ export default {
       , DocumentPanel
       , DocumentInput
   } 
-  , props: {
-    provided() {
-        return {
-            config: this.config
-        }
-    }
-  }
   , computed: {
     ...mapGetters([
       'isDocumentReady'
