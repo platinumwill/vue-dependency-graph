@@ -66,6 +66,8 @@ export default {
                 arc.end -= (this.currentSentence.start)
                 // Chin format property
                 arc.indexInSentence = index
+                arc.trueStart = arc.dir == 'right' ? arc.start : arc.end
+                arc.trueEnd = arc.dir == 'right' ? arc.end : arc.start
             }, this)
             // Chin format property
             this.spacyFormatDocumentParse.words.forEach((word, index) => word.indexInSentence = index - this.currentSentence.start, this)            

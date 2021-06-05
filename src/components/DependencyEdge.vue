@@ -90,12 +90,6 @@ export default {
         , color: function() {
             return this.selected ? this.config.selectedForegroundColor : 'currentColor'
         }
-        , trueStart: function() {
-            return this.arc.dir == 'right' ? this.arc.start : this.arc.end
-        }
-        , trueEnd: function() {
-            return this.arc.dir == 'right' ? this.arc.end : this.arc.start
-        }
         , selected: function() {
             return this.selectedDependencyIndices.indexOf(this.arc.indexInSentence) >= 0
         }
