@@ -31,7 +31,6 @@ export default {
     name: 'DependencyEdge'
     , data() {
         return {
-            selected: false
         }
     }
     , props: {
@@ -39,10 +38,12 @@ export default {
     }
     , inject: [
         'config'
+        , 'selectedDependencyIndices'
+        , 'toggleDependencySelected'
     ]
     , methods: {
         edgeLabelClicked: function() {
-            this.selected = !this.selected
+            this.toggleDependencySelected(this.arc.indexInSentence)
         }
     }
     , computed: {
@@ -94,6 +95,9 @@ export default {
         }
         , trueEnd: function() {
             return this.arc.dir == 'right' ? this.arc.end : this.arc.start
+        }
+        , selected: function() {
+            return this.selectedDependencyIndices.indexOf(this.arc.indexInSentence) >= 0
         }
    }
 }

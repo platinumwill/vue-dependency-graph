@@ -13,15 +13,23 @@ export default {
             type: String
             , default: ''
         }
+        , selectedIndices: {
+            type: Array
+        }
+        , token: {
+            type: Object
+        }
+        , toggleSelectionAction: {
+            type: Function
+        }
     }
     , data() {
         return {
-            selected: false
         }
     }
     , methods: {
         posClicked: function() {
-            this.selected = !this.selected
+            this.toggleSelectionAction(this.token.indexInSentence)
         }
     }
     , watch: {
@@ -36,6 +44,9 @@ export default {
         , ...mapGetters([
             'currentSentenceIndex'
             ])
+        , selected: function() {
+            return this.selectedIndices.indexOf(this.token.indexInSentence) >= 0
+        }
 
     }
 }

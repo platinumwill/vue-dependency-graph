@@ -22,6 +22,9 @@ export default {
     data() {
         return {
             spacyFormatDocumentParse: undefined
+            , selectedPOSIndices: []
+            , selectedLemmaIndices: []
+            , selectedDependencyIndices: []
         }
     }
     , computed: {
@@ -58,10 +61,14 @@ export default {
                 && arc.end < this.currentSentence.end 
                 )
             let arcsClone = JSON.parse(JSON.stringify(filteredArcs.slice(0)))
-            arcsClone.forEach(function (arc) {
+            arcsClone.forEach(function (arc, index) {
                 arc.start -= (this.currentSentence.start)
                 arc.end -= (this.currentSentence.start)
+                // Chin format property
+                arc.indexInSentence = index
             }, this)
+            // Chin format property
+            this.spacyFormatDocumentParse.words.forEach((word, index) => word.indexInSentence = index - this.currentSentence.start, this)            
             const sentenceParse = {
                 words: this.spacyFormatDocumentParse.words.filter(
                 (word, index) =>
@@ -89,6 +96,30 @@ export default {
             await this.spacyFormatParseProvider(documentText).then((spacyFormatParsedResult) => {
                 this.spacyFormatDocumentParse = spacyFormatParsedResult
             })
+        }
+        , togglePOSIndexSelected(posIndex) {
+            const indexOfPOSIndex = this.selectedPOSIndices.indexOf(posIndex)
+            if (indexOfPOSIndex >= 0) {
+                this.selectedPOSIndices.splice(indexOfPOSIndex, 1)
+            } else {
+                this.selectedPOSIndices.push(posIndex)
+            }
+        }
+        , toggleLemmaIndexSelected(lemmaIndex) {
+            const indexOfLemmaIndex = this.selectedLemmaIndices.indexOf(lemmaIndex)
+            if (indexOfLemmaIndex >= 0) {
+                this.selectedLemmaIndices.splice(indexOfLemmaIndex, 1)
+            } else {
+                this.selectedLemmaIndices.push(lemmaIndex)
+            }
+        }
+        , toggleDependencyIndexSelected(dependencyIndex) {
+            const indexOfDependencyIndex = this.selectedDependencyIndices.indexOf(dependencyIndex)
+            if (indexOfDependencyIndex >= 0) {
+                this.selectedDependencyIndices.splice(indexOfDependencyIndex, 1)
+            } else {
+                this.selectedDependencyIndices.push(dependencyIndex)
+            }
         }
     }
     , props: {
@@ -122,6 +153,12 @@ export default {
     , provide() {
         return {
             config: this.config
+            , selectedPOSIndices: this.selectedPOSIndices
+            , selectedLemmaIndices: this.selectedLemmaIndices
+            , selectedDependencyIndices: this.selectedDependencyIndices
+            , togglePOSSelected: this.togglePOSIndexSelected
+            , toggleLemmaSelected: this.toggleLemmaIndexSelected
+            , toggleDependencySelected: this.toggleDependencyIndexSelected
         }
     }
 }

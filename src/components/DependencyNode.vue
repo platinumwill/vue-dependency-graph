@@ -1,8 +1,8 @@
 <template>
     <text class="displacy-token" fill="currentColor" text-anchor="middle" :y="y">
         <tspan class="displacy-word" fill="currentColor" :x="x">{{ word.text }}</tspan>
-        <TokenInfo :dy="'2em'">{{ word.lemma }}</TokenInfo>
-        <TokenInfo :dy="'2em'">{{ word.tag }}</TokenInfo>
+        <TokenInfo :token="word" :selectedIndices="selectedLemmaIndices" :toggleSelectionAction="toggleLemmaSelected" :dy="'2em'">{{ word.lemma }}</TokenInfo>
+        <TokenInfo :token="word" :selectedIndices="selectedPOSIndices" :toggleSelectionAction="togglePOSSelected" :dy="'2em'">{{ word.tag }}</TokenInfo>
     </text>
 </template>
 
@@ -45,6 +45,10 @@ export default {
     }
     , inject: [
         'config'
+        , 'selectedPOSIndices'
+        , 'selectedLemmaIndices'
+        , 'togglePOSSelected'
+        , 'toggleLemmaSelected'
     ]
 }
 </script>
