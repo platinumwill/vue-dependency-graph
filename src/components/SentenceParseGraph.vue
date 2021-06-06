@@ -106,6 +106,9 @@ export default {
             } else {
                 this.selectedPOSIndices.push(posIndex)
             }
+            if (this.selectedLemmaIndices.indexOf(posIndex) >= 0) {
+                this.selectedLemmaIndices.splice(this.selectedLemmaIndices.indexOf(posIndex), 1)
+            }
         }
         , toggleLemmaIndexSelected(lemmaIndex) {
             const indexOfLemmaIndex = this.selectedLemmaIndices.indexOf(lemmaIndex)
@@ -113,6 +116,9 @@ export default {
                 this.selectedLemmaIndices.splice(indexOfLemmaIndex, 1)
             } else {
                 this.selectedLemmaIndices.push(lemmaIndex)
+            }
+            if (this.selectedPOSIndices.indexOf(lemmaIndex) >= 0) {
+                this.selectedPOSIndices.splice(indexOfLemmaIndex, 1)
             }
         }
         , toggleDependencyIndexSelected(dependencyIndex) {
