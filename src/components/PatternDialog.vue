@@ -4,6 +4,7 @@
         <Dialog header="Pattern Segment" 
             v-model:visible="displayModal" 
             :maximizable="true"
+            :keepInViewport="false"
             @show="generateSegmentItems"
             :style="{width: '50vw'}" :modal="true" :closeOnEscape="true" position="topleft"
             >
