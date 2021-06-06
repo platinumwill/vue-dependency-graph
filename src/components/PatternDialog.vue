@@ -66,6 +66,7 @@ export default {
                 item.type = 'POS'
                 item.content = token.tag + ' (' + token.lemma + ')'
                 item.vueKey = 'sentence-' + this.$parent.currentSentence.indexInDocument + "_pos-" + token.indexInSentence
+                item.sortOrder = token.indexInSentence
                 segmentItems.push(item)
             }, this)
             this.selectedLemmaIndices.forEach(function (lemmaIndex){
@@ -74,6 +75,7 @@ export default {
                 item.type = 'Lemma'
                 item.content = token.lemma
                 item.vueKey = 'sentence-' + this.$parent.currentSentence.indexInDocument + "_lemma-" + token.indexInSentence
+                item.sortOrder = token.indexInSentence
                 segmentItems.push(item)
             }, this)
             this.selectedDependencyIndices.forEach(function (dependencyIndex) {
@@ -82,8 +84,12 @@ export default {
                 item.type = 'Dependency'
                 item.content = dependency.label
                 item.vueKey = 'sentence-' + this.$parent.currentSentence.indexInDocument + "_dependency-" + dependency.indexInSentence
+                item.sortOrder = (dependency.trueStart + dependency.trueEnd) / 2
                 segmentItems.push(item)
             }, this)
+            segmentItems.sort(function(a, b) {
+                return a.sortOrder - b.sortOrder
+            })
             this.cardItems = segmentItems
         }
     }
