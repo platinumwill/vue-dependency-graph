@@ -3,27 +3,28 @@
         <button @click="openTranslationPatternWindow">Add Pattern Segment</button>
         <Dialog header="Pattern Segment" 
             v-model:visible="displayModal" 
+            :maximizable="true"
             @show="generateSegmentItems"
             :style="{width: '50vw'}" :modal="true" :closeOnEscape="true" position="topleft"
             >
             <vue-horizontal responsive>
             <draggable v-model="cardItems" tag="transition-group" item-key="vueKey">
                 <template #item="{element}">
-            <Card>
-                <template #header>
-                    {{ element.type }}
-                </template>
-                <template #title>
-                    {{ element.content }}
-                </template>
-                <template #content>
-                    {{element}}
-                </template>
-                <template #footer>
-                    <Button icon="pi pi-check" label="Save" />
-                    <Button icon="pi pi-times" label="Cancel" class="p-button-secondary" style="margin-left: .5em" />
-                </template>
-            </Card>
+                    <Card>
+                        <template #header>
+                            {{ element.type }}
+                        </template>
+                        <template #title>
+                            {{ element.content }}
+                        </template>
+                        <template #content>
+                            {{element}}
+                        </template>
+                        <template #footer>
+                            <Button icon="pi pi-check" label="Save" />
+                            <Button icon="pi pi-times" label="Cancel" class="p-button-secondary" style="margin-left: .5em" />
+                        </template>
+                    </Card>
                 </template>
             </draggable>
             </vue-horizontal>
