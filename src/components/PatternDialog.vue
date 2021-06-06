@@ -1,18 +1,23 @@
 <template>
     <div>
         <button @click="openTranslationPatternWindow">Add Pattern Segment</button>
-        <Dialog header="Header" v-model:visible="displayModal" :style="{width: '50vw'}" :modal="true" :closeOnEscape="true" position="topleft">
+        <Dialog header="Pattern Segment" 
+            v-model:visible="displayModal" 
+            @show="generateSegmentItems"
+            :style="{width: '50vw'}" :modal="true" :closeOnEscape="true" position="topleft"
+            >
             <vue-horizontal responsive>
-            <draggable v-model="myArray" tag="transition-group" item-key="id">
+            <draggable v-model="cardItems" tag="transition-group" item-key="vueKey">
                 <template #item="{element}">
             <Card>
                 <template #header>
+                    {{ element.type }}
                 </template>
                 <template #title>
-                    Advanced Card
+                    {{ element.content }}
                 </template>
                 <template #content>
-                    {{element.id}}
+                    {{element}}
                 </template>
                 <template #footer>
                     <Button icon="pi pi-check" label="Save" />
@@ -45,16 +50,47 @@ export default {
     , data() {
         return {
             displayModal: false
-            , myArray: [{id: 1}, {id: 2}]
+            , cardItems: []
         }
     }
     , methods: {
         openTranslationPatternWindow: function() {
-            console.log('open translation pattern window');
             this.displayModal = !this.displayModal
-            console.log(this.displayModal)
+        }
+        , generateSegmentItems: function() {
+            const segmentItems = []
+            this.selectedPOSIndices.forEach(function (posIndex) {
+                const item = {}
+                const token = this.$parent.sentenceParse.words[posIndex]
+                item.type = 'POS'
+                item.content = token.tag + ' (' + token.lemma + ')'
+                item.vueKey = 'sentence-' + this.$parent.currentSentence.indexInDocument + "_pos-" + token.indexInSentence
+                segmentItems.push(item)
+            }, this)
+            this.selectedLemmaIndices.forEach(function (lemmaIndex){
+                const item = {}
+                const token = this.$parent.sentenceParse.words[lemmaIndex]
+                item.type = 'Lemma'
+                item.content = token.lemma
+                item.vueKey = 'sentence-' + this.$parent.currentSentence.indexInDocument + "_lemma-" + token.indexInSentence
+                segmentItems.push(item)
+            }, this)
+            this.selectedDependencyIndices.forEach(function (dependencyIndex) {
+                const item = {}
+                const dependency = this.$parent.sentenceParse.arcs[dependencyIndex]
+                item.type = 'Dependency'
+                item.content = dependency.label
+                item.vueKey = 'sentence-' + this.$parent.currentSentence.indexInDocument + "_dependency-" + dependency.indexInSentence
+                segmentItems.push(item)
+            }, this)
+            this.cardItems = segmentItems
         }
     }
+    , inject: [
+            'selectedPOSIndices'
+            , 'selectedLemmaIndices'
+            , 'selectedDependencyIndices'
+    ]
 }
 </script>
 <style>

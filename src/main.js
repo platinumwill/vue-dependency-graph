@@ -39,7 +39,9 @@ const store = createStore({
       params.append('text', documentText);
       await axios.post('http://localhost:5000/spacy/parse', params).then(function(response) {
         const parsedDocument = response.data
-        commit('storeSpacySentences', parsedDocument.spacy_sents)
+        const spacySentences = parsedDocument.spacy_sents
+        spacySentences.forEach((spacySentence) => spacySentence.indexInDocument = spacySentences.indexOf(spacySentence))
+        commit('storeSpacySentences', spacySentences)
         commit('baseline/saveTempSpacyParse', parsedDocument)
       }).catch(function(error) {
         console.log(error)
