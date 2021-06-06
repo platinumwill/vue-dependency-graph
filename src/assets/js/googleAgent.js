@@ -19,7 +19,7 @@ export default async function (documentText) {
                 console.log("GOOGLE parse in SPACY format:")
                 const googleParseConvertedSpacy = ({
                             arcs: googleParsedResult.tokens.map(({ dependencyEdge: { label, headTokenIndex: j }}, i) => (i != j) ? ({ label, start: Math.min(i, j), end: Math.max(i, j), dir: (j > i) ? 'left' : 'right' }) : null).filter(word => word != null)
-                            , words: googleParsedResult.tokens.map(({ text: { content: text }, partOfSpeech: { tag }} ) => ({ text, tag }))
+                            , words: googleParsedResult.tokens.map(({ text: { content: text }, partOfSpeech: { tag }, lemma: lemma } ) => ({ text, tag, lemma }))
                         })
                 console.log(googleParseConvertedSpacy)
                 resolve(googleParseConvertedSpacy)
