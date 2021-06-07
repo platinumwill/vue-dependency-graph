@@ -11,24 +11,13 @@
             <vue-horizontal responsive>
             <draggable v-model="cardItems" tag="transition-group" item-key="vueKey">
                 <template #item="{element}">
-                    <Card>
-                        <template #header>
-                            {{ element.type }}
-                        </template>
-                        <template #title>
-                            {{ element.content }}
-                        </template>
-                        <template #content>
-                            {{element}}
-                        </template>
-                        <template #footer>
-                            <Button icon="pi pi-check" label="Save" />
-                            <Button icon="pi pi-times" label="Cancel" class="p-button-secondary" style="margin-left: .5em" />
-                        </template>
-                    </Card>
+                    <SegmentPiece :item="element"></SegmentPiece>
                 </template>
             </draggable>
             </vue-horizontal>
+            <div>
+                <span>譯文暫定位置</span>
+            </div>
         </Dialog>
     </div>
 </template>
@@ -36,18 +25,16 @@
 <script>
 // import PrimeVue from 'primevue/config';
 import Dialog from 'primevue/dialog'
-import Card from 'primevue/card'
-import Button from 'primevue/button'
 import draggable from 'vuedraggable'
 import VueHorizontal from "vue-horizontal";
+import SegmentPiece from "./SegmentPiece.vue"
 
 export default {
     components: {
         Dialog
-        , Card
-        , Button
         , draggable
         , VueHorizontal
+        , SegmentPiece
     }
     , data() {
         return {
