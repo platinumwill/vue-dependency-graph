@@ -8,10 +8,13 @@
             @show="generateSegmentItems"
             :style="{width: '50vw'}" :modal="true" :closeOnEscape="true" position="topleft"
             >
+            <div>
+                <Button icon="pi pi-plus" label="Add Fixed Text" @click="addFixedTextPiece" />
+            </div>
             <vue-horizontal responsive>
             <draggable v-model="cardItems" tag="transition-group" item-key="vueKey">
                 <template #item="{element}">
-                    <SegmentPiece :item="element"></SegmentPiece>
+                    <SegmentPiece :item="element" @removePiece="removePiece" ></SegmentPiece>
                 </template>
             </draggable>
             </vue-horizontal>
@@ -28,6 +31,7 @@ import Dialog from 'primevue/dialog'
 import draggable from 'vuedraggable'
 import VueHorizontal from "vue-horizontal";
 import SegmentPiece from "./SegmentPiece.vue"
+import Button from 'primevue/button'
 
 export default {
     components: {
@@ -35,6 +39,7 @@ export default {
         , draggable
         , VueHorizontal
         , SegmentPiece
+        , Button
     }
     , data() {
         return {
@@ -79,6 +84,18 @@ export default {
                 return a.sortOrder - b.sortOrder
             })
             this.cardItems = segmentItems
+        }
+        , addFixedTextPiece() {
+            this.cardItems.push({
+                type: 'Fixed'
+                , content: 'TEXT'
+                , vueKey: 'fixed-' + this.cardItems.filter(item => item.type === 'fixed').length
+            })
+        }
+        , removePiece(piece) {
+            const index = this.cardItems.indexOf(piece)
+            if (index < 0) return
+            this.cardItems.splice(index, 1)
         }
     }
     , inject: [

@@ -13,8 +13,10 @@
             </div>
         </template>
         <template #footer>
-            <Button icon="pi pi-check" label="Save" />
-            <Button icon="pi pi-times" label="Cancel" class="p-button-secondary" style="margin-left: .5em" />
+            <Button 
+                label="Remove" 
+                @click="removeSelf"
+                con="pi pi-times" class="p-button-secondary" style="margin-left: .5em" />
         </template>
     </Card>
 </template>
@@ -33,6 +35,11 @@ export default {
     , props: {
         item: {
             type: Object
+        }
+    }
+    , methods: {
+        removeSelf: function () {
+            this.$emit('removePiece', this.item)
         }
     }
 }
