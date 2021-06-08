@@ -10,6 +10,7 @@
             >
             <div>
                 <Button icon="pi pi-plus" label="Add Fixed Text" @click="addFixedTextPiece" />
+                <Button icon="pi pi-replay" label="Revert" @click="revertPieces" style="margin-left: .5em" />
             </div>
             <vue-horizontal responsive>
             <draggable v-model="segmentPieces" tag="transition-group" item-key="vueKey">
@@ -45,6 +46,7 @@ export default {
         return {
             displayModal: false
             , segmentPieces: []
+            , segmentPiecesForRevert: []
         }
     }
     , methods: {
@@ -84,6 +86,7 @@ export default {
                 return a.sortOrder - b.sortOrder
             })
             this.segmentPieces = segmentItems
+            this.segmentPiecesForRevert = [...segmentItems]
         }
         , addFixedTextPiece() {
             this.segmentPieces.push({
@@ -91,6 +94,9 @@ export default {
                 , content: 'TEXT'
                 , vueKey: 'fixed-' + this.segmentPieces.filter(item => item.type === 'fixed').length
             })
+        }
+        , revertPieces() {
+            this.segmentPieces = [...this.segmentPiecesForRevert]
         }
         , removePiece(piece) {
             const index = this.segmentPieces.indexOf(piece)
