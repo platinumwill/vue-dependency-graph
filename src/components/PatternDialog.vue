@@ -12,7 +12,7 @@
                 <Button icon="pi pi-plus" label="Add Fixed Text" @click="addFixedTextPiece" />
             </div>
             <vue-horizontal responsive>
-            <draggable v-model="cardItems" tag="transition-group" item-key="vueKey">
+            <draggable v-model="segmentPieces" tag="transition-group" item-key="vueKey">
                 <template #item="{element}">
                     <SegmentPiece :item="element" @removePiece="removePiece" ></SegmentPiece>
                 </template>
@@ -44,7 +44,7 @@ export default {
     , data() {
         return {
             displayModal: false
-            , cardItems: []
+            , segmentPieces: []
         }
     }
     , methods: {
@@ -83,19 +83,19 @@ export default {
             segmentItems.sort(function(a, b) {
                 return a.sortOrder - b.sortOrder
             })
-            this.cardItems = segmentItems
+            this.segmentPieces = segmentItems
         }
         , addFixedTextPiece() {
-            this.cardItems.push({
+            this.segmentPieces.push({
                 type: 'Fixed'
                 , content: 'TEXT'
-                , vueKey: 'fixed-' + this.cardItems.filter(item => item.type === 'fixed').length
+                , vueKey: 'fixed-' + this.segmentPieces.filter(item => item.type === 'fixed').length
             })
         }
         , removePiece(piece) {
-            const index = this.cardItems.indexOf(piece)
+            const index = this.segmentPieces.indexOf(piece)
             if (index < 0) return
-            this.cardItems.splice(index, 1)
+            this.segmentPieces.splice(index, 1)
         }
     }
     , inject: [
