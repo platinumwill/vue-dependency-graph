@@ -6,7 +6,7 @@
             :maximizable="true"
             :keepInViewport="false"
             @show="generateSegmentItems"
-            :style="{width: '50vw'}" :modal="true" :closeOnEscape="true" position="topleft"
+            :style="{width: '100vw'}" :modal="true" :closeOnEscape="true" position="topleft"
             >
             <div>
                 <Button icon="pi pi-plus" label="Add Fixed Text" @click="addFixedTextPiece" />
