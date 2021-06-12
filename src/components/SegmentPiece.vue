@@ -21,7 +21,8 @@
             </div>
             <div v-if="item.type == 'Fixed'">
                 <Dropdown v-model="appliedText" :options="fixedTextOptions"
-                :editable="true"
+                    @input="notifyOfAppliedTextChange"
+                    :editable="true"
                 >
                 </Dropdown>
             </div>
@@ -89,6 +90,9 @@ export default {
                 }
             }
             this.filteredDictionaries = tempFilteredDictionaries
+        }
+        , notifyOfAppliedTextChange(event) {
+            this.$emit('appliedTextChanged', {piece: this.item, text: event.target.value})
         }
     }
 }

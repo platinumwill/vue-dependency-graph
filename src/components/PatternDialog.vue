@@ -15,13 +15,14 @@
             <vue-horizontal responsive>
             <draggable v-model="segmentPieces" tag="transition-group" item-key="vueKey">
                 <template #item="{element}">
-                    <SegmentPiece :item="element" @removePiece="removePiece" ></SegmentPiece>
+                    <SegmentPiece :item="element"
+                        @appliedTextChanged="changeAppliedText"
+                        @removePiece="removePiece" >
+                    </SegmentPiece>
                 </template>
             </draggable>
             </vue-horizontal>
-            <div>
-                <span>譯文暫定位置</span>
-            </div>
+            <span v-for="piece in segmentPieces" :key="piece.vueKey">{{ piece.appliedText }} &nbsp;</span>
         </Dialog>
     </div>
 </template>
@@ -84,6 +85,7 @@ export default {
                 const endConnected = (this.selectedPOSIndices.indexOf(dependency.trueEnd) >= 0) || (this.selectedLemmaIndices.indexOf(dependency.trueEnd) >= 0)
                 if (startConnected && !endConnected) {
                     item.isPlaceholder = true
+                    item.appliedText = '{連結處}'
                 }
                 segmentItems.push(item)
             }, this)
@@ -107,6 +109,9 @@ export default {
             const index = this.segmentPieces.indexOf(piece)
             if (index < 0) return
             this.segmentPieces.splice(index, 1)
+        }
+        , changeAppliedText(pieceAndText) {
+            this.segmentPieces[this.segmentPieces.indexOf(pieceAndText.piece)].appliedText = pieceAndText.text
         }
     }
     , inject: [
