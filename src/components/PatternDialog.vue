@@ -17,7 +17,9 @@
                 <template #item="{element}">
                     <SegmentPiece :item="element"
                         @appliedTextChanged="changeAppliedText"
-                        @removePiece="removePiece" >
+                        @removePiece="removePiece"
+                        @isOptionalChanged="changeIsOptional"
+                        >
                     </SegmentPiece>
                 </template>
             </draggable>
@@ -85,7 +87,7 @@ export default {
                 const endConnected = (this.selectedPOSIndices.indexOf(dependency.trueEnd) >= 0) || (this.selectedLemmaIndices.indexOf(dependency.trueEnd) >= 0)
                 if (startConnected && !endConnected) {
                     item.isPlaceholder = true
-                    item.appliedText = '{連結處}'
+                    item.appliedText = '{連接處}'
                 }
                 segmentItems.push(item)
             }, this)
@@ -110,8 +112,13 @@ export default {
             if (index < 0) return
             this.segmentPieces.splice(index, 1)
         }
-        , changeAppliedText(pieceAndText) {
-            this.segmentPieces[this.segmentPieces.indexOf(pieceAndText.piece)].appliedText = pieceAndText.text
+        , changeAppliedText(pieceAndValue) {
+            // 是 child component 的事件，但物件的值不能在 child component 修改，要在這裡才能修改
+            pieceAndValue.piece.appliedText = pieceAndValue.value
+        }
+        , changeIsOptional(pieceAndValue) {
+            // 是 child component 的事件，但物件的值不能在 child component 修改，要在這裡才能修改
+            pieceAndValue.piece.isOptional = pieceAndValue.value
         }
     }
     , inject: [

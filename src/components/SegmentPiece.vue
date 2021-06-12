@@ -15,6 +15,7 @@
                     optionGroupLabel="label"
                     v-model="appliedText"
                     @input="notifyOfAppliedTextChange"
+                    @change="notifyOfAppliedTextChange"
                     :editable="true"
                     >
                 </Dropdown>
@@ -27,6 +28,10 @@
                 </Dropdown>
             </div>
             <div v-if="item.isPlaceholder">
+                <Checkbox v-model="isOptional"
+                    :binary="true"
+                    @change="notifyOfIsOptionalChange"
+                ></Checkbox>
                 {placeholder}
             </div>
         </template>
@@ -43,12 +48,14 @@
 import Card from 'primevue/card'
 import Button from 'primevue/button'
 import Dropdown from 'primevue/dropdown'
+import Checkbox from 'primevue/checkbox'
 
 export default {
     components: {
         Card
         , Button
         , Dropdown
+        , Checkbox
     }
     , data() {
         return {
@@ -65,6 +72,7 @@ export default {
             , fixedTextOptions: [
 
             ]
+            , isOptional: false
         }
     }
     , props: {
@@ -77,7 +85,19 @@ export default {
             this.$emit('removePiece', this.item)
         }
         , notifyOfAppliedTextChange(event) {
-            this.$emit('appliedTextChanged', {piece: this.item, text: event.target.value})
+            console.log(event)
+            let value = undefined
+            if (event.value !== undefined) {
+                // change event
+                value = event.value.target
+            } else {
+                // input event
+                value = event.target.value
+            }
+            this.$emit('appliedTextChanged', {piece: this.item, value: value})
+        }
+        , notifyOfIsOptionalChange() {
+            this.$emit('isOptionalChanged', {piece: this.item, value: this.isOptional})
         }
     }
 }
