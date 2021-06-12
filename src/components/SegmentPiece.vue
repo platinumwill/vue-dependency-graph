@@ -88,7 +88,6 @@ export default {
             this.$emit('removePiece', this.item)
         }
         , notifyOfAppliedTextChange(event) {
-            console.log(event)
             let value = undefined
             if (event.value !== undefined) {
                 // change event
