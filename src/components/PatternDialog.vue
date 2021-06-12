@@ -9,8 +9,8 @@
             :style="{width: '100vw'}" :modal="true" :closeOnEscape="true" position="topleft"
             >
             <div>
-                <Button icon="pi pi-plus" label="Add Fixed Text" @click="addFixedTextPiece" />
-                <Button icon="pi pi-replay" label="Revert" @click="revertPieces" style="margin-left: .5em" />
+                <Button icon="pi pi-replay" label="Revert" @click="revertPieces" />
+                <Button icon="pi pi-plus" label="Add Fixed Text" @click="addFixedTextPiece" style="margin-left: .5em" />
             </div>
             <vue-horizontal responsive>
             <draggable v-model="segmentPieces" tag="transition-group" item-key="vueKey">
@@ -105,7 +105,9 @@ export default {
             })
         }
         , revertPieces() {
+            this.segmentPiecesForRevert.forEach(piece => console.log(piece.appliedText))
             this.segmentPieces = [...this.segmentPiecesForRevert]
+            // applied text 可能也要清空
         }
         , removePiece(piece) {
             const index = this.segmentPieces.indexOf(piece)

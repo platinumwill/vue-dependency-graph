@@ -28,11 +28,14 @@
                 </Dropdown>
             </div>
             <div v-if="item.isPlaceholder">
-                <Checkbox v-model="isOptional"
-                    :binary="true"
-                    @change="notifyOfIsOptionalChange"
-                ></Checkbox>
                 {placeholder}
+                <div>
+                    <Checkbox v-model="isOptional"
+                        :binary="true"
+                        @change="notifyOfIsOptionalChange"
+                    ></Checkbox>
+                    Optional
+                </div>
             </div>
         </template>
         <template #footer>
