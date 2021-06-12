@@ -19,6 +19,12 @@
                     :inputStyle="{'width':'50%'}">
                 </AutoComplete>
             </div>
+            <div v-if="item.type == 'Fixed'">
+                <Dropdown v-model="appliedText" :options="fixedTextOptions"
+                :editable="true"
+                >
+                </Dropdown>
+            </div>
         </template>
         <template #footer>
             <Button 
@@ -33,6 +39,7 @@
 import Card from 'primevue/card'
 import Button from 'primevue/button'
 import AutoComplete from 'primevue/autocomplete'
+import Dropdown from 'primevue/dropdown'
 import {FilterService, FilterMatchMode} from 'primevue/api'
 
 export default {
@@ -40,6 +47,7 @@ export default {
         Card
         , Button
         , AutoComplete
+        , Dropdown
     }
     , data() {
         return {
@@ -54,6 +62,9 @@ export default {
                 }
             ]
             , filteredDictionaries: []
+            , fixedTextOptions: [
+
+            ]
         }
     }
     , props: {
