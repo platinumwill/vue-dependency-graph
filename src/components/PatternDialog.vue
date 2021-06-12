@@ -22,7 +22,7 @@
                 </template>
             </draggable>
             </vue-horizontal>
-            <span v-for="piece in segmentPieces" :key="piece.vueKey">{{ piece.appliedText }} &nbsp;</span>
+            <span v-for="piece in segmentPieces" :key="piece.vueKey">{{ piece.appliedText }}</span>
         </Dialog>
     </div>
 </template>
