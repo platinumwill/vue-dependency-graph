@@ -7,7 +7,7 @@
             {{ item.content }}
         </template>
         <template #content>
-            <div v-if="item.type == 'Lemma'">
+            <div v-if="item.type == 'POS'">
                 <AutoComplete 
                     :suggestions="filteredDictionaries"
                     field="target"
