@@ -80,6 +80,11 @@ export default {
                 item.content = dependency.label
                 item.vueKey = 'sentence-' + this.$parent.currentSentence.indexInDocument + "_dependency-" + dependency.indexInSentence
                 item.sortOrder = (dependency.trueStart + dependency.trueEnd) / 2
+                const startConnected = (this.selectedPOSIndices.indexOf(dependency.trueStart) >= 0) || (this.selectedLemmaIndices.indexOf(dependency.trueStart) >= 0)
+                const endConnected = (this.selectedPOSIndices.indexOf(dependency.trueEnd) >= 0) || (this.selectedLemmaIndices.indexOf(dependency.trueEnd) >= 0)
+                if (startConnected && !endConnected) {
+                    item.isPlaceholder = true
+                }
                 segmentItems.push(item)
             }, this)
             segmentItems.sort(function(a, b) {

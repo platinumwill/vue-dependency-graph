@@ -25,6 +25,9 @@
                 >
                 </Dropdown>
             </div>
+            <div v-if="item.isPlaceholder">
+                {placeholder}
+            </div>
         </template>
         <template #footer>
             <Button 
