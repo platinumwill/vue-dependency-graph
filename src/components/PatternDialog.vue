@@ -19,12 +19,18 @@
                         @appliedTextChanged="changeAppliedText"
                         @removePiece="removePiece"
                         @isOptionalChanged="changeIsOptional"
+                        @prefixChanged="changePrefix"
                         >
                     </SegmentPiece>
                 </template>
             </draggable>
             </vue-horizontal>
-            <span v-for="piece in segmentPieces" :key="piece.vueKey">{{ piece.appliedText }}</span>
+            <span 
+                v-for="piece in segmentPieces"
+                :class="piece.isOptional ? 'optional' : ''"
+                :key="piece.vueKey">
+                    {{ piece.displayText }}
+            </span>
         </Dialog>
     </div>
 </template>
@@ -36,6 +42,18 @@ import draggable from 'vuedraggable'
 import VueHorizontal from "vue-horizontal";
 import SegmentPiece from "./SegmentPiece.vue"
 import Button from 'primevue/button'
+
+class Piece {
+    constructor () {
+
+    }
+    get displayText () {
+        if (this.prefix !== undefined) {
+            return this.prefix + this.appliedText
+        }
+        return this.appliedText
+    }
+} 
 
 export default {
     components: {
@@ -59,7 +77,7 @@ export default {
         , generateSegmentItems: function() {
             const segmentItems = []
             this.selectedPOSIndices.forEach(function (posIndex) {
-                const item = {}
+                const item = new Piece()
                 const token = this.$parent.sentenceParse.words[posIndex]
                 item.type = 'POS'
                 item.content = token.tag + ' (' + token.lemma + ')'
@@ -68,7 +86,7 @@ export default {
                 segmentItems.push(item)
             }, this)
             this.selectedLemmaIndices.forEach(function (lemmaIndex){
-                const item = {}
+                const item = new Piece()
                 const token = this.$parent.sentenceParse.words[lemmaIndex]
                 item.type = 'Lemma'
                 item.content = token.lemma
@@ -77,7 +95,7 @@ export default {
                 segmentItems.push(item)
             }, this)
             this.selectedDependencyIndices.forEach(function (dependencyIndex) {
-                const item = {}
+                const item = new Piece()
                 const dependency = this.$parent.sentenceParse.arcs[dependencyIndex]
                 item.type = 'Dependency'
                 item.content = dependency.label
@@ -87,7 +105,7 @@ export default {
                 const endConnected = (this.selectedPOSIndices.indexOf(dependency.trueEnd) >= 0) || (this.selectedLemmaIndices.indexOf(dependency.trueEnd) >= 0)
                 if (startConnected && !endConnected) {
                     item.isPlaceholder = true
-                    item.appliedText = '{連接處}'
+                    item.appliedText = '{' + dependency.label + ' 連接處}'
                 }
                 segmentItems.push(item)
             }, this)
@@ -98,11 +116,11 @@ export default {
             this.segmentPiecesForRevert = [...segmentItems]
         }
         , addFixedTextPiece() {
-            this.segmentPieces.push({
-                type: 'Fixed'
-                , content: 'TEXT'
-                , vueKey: 'fixed-' + this.segmentPieces.filter(item => item.type === 'fixed').length
-            })
+            const fixedTextPiece = new Piece()
+            fixedTextPiece.type = 'Fixed'
+            fixedTextPiece.content = 'TEXT'
+            fixedTextPiece.vueKey = 'fixed-' + this.segmentPieces.filter(item => item.type === 'fixed').length
+            this.segmentPieces.push(fixedTextPiece)
         }
         , revertPieces() {
             this.segmentPiecesForRevert.forEach(piece => console.log(piece.appliedText))
@@ -121,6 +139,10 @@ export default {
         , changeIsOptional(pieceAndValue) {
             // 是 child component 的事件，但物件的值不能在 child component 修改，要在這裡才能修改
             pieceAndValue.piece.isOptional = pieceAndValue.value
+        }
+        , changePrefix(pieceAndValue) {
+            // 是 child component 的事件，但物件的值不能在 child component 修改，要在這裡才能修改
+            pieceAndValue.piece.prefix = pieceAndValue.value
         }
     }
     , inject: [
@@ -149,4 +171,7 @@ export default {
         display: inline;
         width: 30%;
     } */
+    span.optional {
+        color: gray;
+    }
 </style>
