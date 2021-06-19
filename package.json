@@ -10,7 +10,7 @@
   "dependencies": {
     "axios": "^0.21.1",
     "core-js": "^3.13.1",
-    "neo4j-driver": "^4.2.2",
+    "gremlin": "^3.5.0",
     "primeicons": "^4.1.0",
     "primevue": "^3.5.0",
     "vue": "^3.0.11",
