@@ -19,7 +19,6 @@
                         @appliedTextChanged="changeAppliedText"
                         @removePiece="removePiece"
                         @isOptionalChanged="changeIsOptional"
-                        @prefixChanged="changePrefix"
                         >
                     </SegmentPiece>
                 </template>
@@ -48,9 +47,6 @@ class Piece {
 
     }
     get displayText () {
-        if (this.prefix !== undefined) {
-            return this.prefix + this.appliedText
-        }
         return this.appliedText
     }
 } 
@@ -139,10 +135,6 @@ export default {
         , changeIsOptional(pieceAndValue) {
             // 是 child component 的事件，但物件的值不能在 child component 修改，要在這裡才能修改
             pieceAndValue.piece.isOptional = pieceAndValue.value
-        }
-        , changePrefix(pieceAndValue) {
-            // 是 child component 的事件，但物件的值不能在 child component 修改，要在這裡才能修改
-            pieceAndValue.piece.prefix = pieceAndValue.value
         }
     }
     , inject: [

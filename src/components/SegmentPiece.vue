@@ -20,15 +20,6 @@
                     >
                 </Dropdown>
             </div>
-            <div v-if="item.isPlaceholder">
-                <Dropdown 
-                    v-model="prefix"
-                    :options="prefixOptions"
-                    @input="notifyOfPrefixChange"
-                    :editable="true"
-                >
-                </Dropdown>
-            </div>
             <div v-if="item.type == 'Fixed'">
                 <Dropdown v-model="appliedText" :options="fixedTextOptions"
                     @input="notifyOfAppliedTextChange"
@@ -85,9 +76,6 @@ export default {
 
             ]
             , isOptional: false
-            , prefix: undefined
-            , prefixOptions: [
-            ]
         }
     }
     , props: {
@@ -112,9 +100,6 @@ export default {
         }
         , notifyOfIsOptionalChange() {
             this.$emit('isOptionalChanged', {piece: this.item, value: this.isOptional})
-        }
-        , notifyOfPrefixChange() {
-            this.$emit('prefixChanged', {piece: this.item, value: this.prefix})
         }
     }
 }
