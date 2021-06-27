@@ -30,6 +30,9 @@
                 :key="piece.vueKey">
                     {{ piece.displayText }}
             </span>
+            <div>
+                <Button icon="pi pi-check" label="Save" @click="savePattern"></Button>
+            </div>
         </Dialog>
     </div>
 </template>
@@ -41,6 +44,7 @@ import draggable from 'vuedraggable'
 import VueHorizontal from "vue-horizontal";
 import SegmentPiece from "./SegmentPiece.vue"
 import Button from 'primevue/button'
+import axios from 'axios'
 
 class Piece {
     constructor () {
@@ -135,6 +139,35 @@ export default {
         , changeIsOptional(pieceAndValue) {
             // 是 child component 的事件，但物件的值不能在 child component 修改，要在這裡才能修改
             pieceAndValue.piece.isOptional = pieceAndValue.value
+        }
+        , savePattern() {
+            console.log('savePattern...')
+            console.log(this.segmentPieces)
+            let command = "g.addV('SimplePatternHandle').property('owner', 'Chin').as('handle')"
+            let pieceSeq = 0;
+            let lastAddedPieceAlias
+            this.segmentPieces.forEach((piece) => {
+                const currentPieceAlias = 'v' + pieceSeq
+                command += ".addV('SimplePatternPiece').property('type', '" + piece.type + "').as('" + currentPieceAlias + "')"
+                if (lastAddedPieceAlias) {
+                    command += ".addE('follows').to('" + lastAddedPieceAlias + "')"
+                } else {
+                    command += ".addE('represents').from('handle')"
+                }
+                lastAddedPieceAlias = currentPieceAlias
+                pieceSeq++;
+            });
+            console.log(command)
+            let argument = {
+                gremlin: command
+            }
+            axios.post('http://stanford-local:8182/', JSON.stringify(argument)).then(function(response) {
+                console.log(response)
+                console.log(response.status)
+                console.log(response.data)
+            }).catch(function(error) {
+                console.log(error)
+            })
         }
     }
     , inject: [
