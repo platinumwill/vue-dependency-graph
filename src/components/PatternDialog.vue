@@ -148,7 +148,7 @@ export default {
             let lastAddedPieceAlias
             this.segmentPieces.forEach((piece) => {
                 const currentPieceAlias = 'v' + pieceSeq
-                command += ".addV('SimplePatternPiece').property('type', '" + piece.type + "').as('" + currentPieceAlias + "')"
+                command += ".addV('SimplePatternPiece').property('sourceType', '" + piece.type + "').as('" + currentPieceAlias + "')"
                 if (lastAddedPieceAlias) {
                     command += ".addE('follows').to('" + lastAddedPieceAlias + "')"
                 } else {
