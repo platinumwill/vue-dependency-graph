@@ -1,7 +1,7 @@
 <template>
+    <SentenceParseGraph :spacyFormatParseProvider="parseByStanfordnlp"></SentenceParseGraph>
     <SentenceParseGraph :spacyFormatParseProvider="parseBySpacy"></SentenceParseGraph>
     <SentenceParseGraph :spacyFormatParseProvider="parseByGooglenlp"></SentenceParseGraph>
-    <SentenceParseGraph :spacyFormatParseProvider="parseByStanfordnlp"></SentenceParseGraph>
     <DocumentInput></DocumentInput>
     <DocumentPanel></DocumentPanel>
 </template>
