@@ -149,17 +149,57 @@ export default {
         }
         , savePattern() {
             console.log('savePattern...')
+
+            let command = "g.addV('SourcePatternHandle').property('owner', 'Chin').as('sourceHandle')"
+            this.selectedPOSIndices.forEach(function (posIndex) {
+                command += ".addV('POS').as('pos_" + posIndex + "')"
+                const token = this.$parent.sentenceParse.words[posIndex]
+                console.log(token)
+            }, this)
+            this.selectedLemmaIndices.forEach(function (lemmaIndex){
+                command += ".addV('Lemma').as('lemma_" + lemmaIndex + "')"
+                const token = this.$parent.sentenceParse.words[lemmaIndex]
+                console.log(token)
+            }, this)
+            this.selectedDependencyIndices.forEach(function (dependencyIndex) {
+                const dependency = this.$parent.sentenceParse.arcs[dependencyIndex]
+                let startVPrefix = undefined
+                if (this.selectedPOSIndices.includes(dependency.trueStart)) {
+                    startVPrefix = "pos_"
+                } else if (this.selectedLemmaIndices.includes(dependency.trueStart)) {
+                    startVPrefix = "lemma_"
+                } else {
+                    const error = "dependency 起點沒被選取"
+                    console.error(error)
+                    throw error
+                }
+                let startVName = startVPrefix + dependency.trueStart
+                let endVName = undefined
+                const connectorVName = "connector_" + dependency.trueStart + "-" + dependency.trueEnd + ""
+                if (this.isDependencyPlaceholder(dependency)) {
+                    command += ".addV('Connector').as('" + connectorVName + "')"
+                    endVName = connectorVName
+                } else if (this.selectedPOSIndices.includes(dependency.trueEnd)) {
+                    endVName = "pos_" + dependency.trueEnd
+                } else if (this.selectedLemmaIndices.includes(dependency.trueEnd)) {
+                    endVName = "lemma_" + dependency.trueEnd
+                }
+                command += ".addE('" + dependency.label + "').from('" + startVName + "').to('" + endVName + "')"
+                
+            }, this)
+            
             console.log(this.segmentPieces)
-            let command = "g.addV('SimplePatternHandle').property('owner', 'Chin').as('handle')"
+            command += ".addV('SimpleTargetPatternHandle').property('owner', 'Chin').as('targetHandle')"
+            command += ".addE('applicable').to('sourceHandle')"
             let pieceSeq = 0;
             let lastAddedPieceAlias
             this.segmentPieces.forEach((piece) => {
                 const currentPieceAlias = 'v' + pieceSeq
-                command += ".addV('SimplePatternPiece').property('sourceType', '" + piece.type + "').as('" + currentPieceAlias + "')"
+                command += ".addV('SimpleTargetPatternPiece').property('sourceType', '" + piece.type + "').as('" + currentPieceAlias + "')"
                 if (lastAddedPieceAlias) {
                     command += ".addE('follows').to('" + lastAddedPieceAlias + "')"
                 } else {
-                    command += ".addE('represents').from('handle')"
+                    command += ".addE('represents').from('targetHandle')"
                 }
                 lastAddedPieceAlias = currentPieceAlias
                 pieceSeq++;
