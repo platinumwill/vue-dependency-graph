@@ -101,9 +101,7 @@ export default {
                 item.content = dependency.label
                 item.vueKey = 'sentence-' + this.$parent.currentSentence.indexInDocument + "_dependency-" + dependency.indexInSentence
                 item.sortOrder = (dependency.trueStart + dependency.trueEnd) / 2
-                const startConnected = (this.selectedPOSIndices.indexOf(dependency.trueStart) >= 0) || (this.selectedLemmaIndices.indexOf(dependency.trueStart) >= 0)
-                const endConnected = (this.selectedPOSIndices.indexOf(dependency.trueEnd) >= 0) || (this.selectedLemmaIndices.indexOf(dependency.trueEnd) >= 0)
-                if (startConnected && !endConnected) {
+                if (this.isDependencyPlaceholder(dependency)) {
                     item.isPlaceholder = true
                     item.appliedText = '{' + dependency.label + ' 連接處}'
                 }
@@ -139,6 +137,15 @@ export default {
         , changeIsOptional(pieceAndValue) {
             // 是 child component 的事件，但物件的值不能在 child component 修改，要在這裡才能修改
             pieceAndValue.piece.isOptional = pieceAndValue.value
+        }
+        , isDependencyPlaceholder(dependency) {
+            console.log(dependency)
+            const startConnected = (this.selectedPOSIndices.indexOf(dependency.trueStart) >= 0) || (this.selectedLemmaIndices.indexOf(dependency.trueStart) >= 0)
+            const endConnected = (this.selectedPOSIndices.indexOf(dependency.trueEnd) >= 0) || (this.selectedLemmaIndices.indexOf(dependency.trueEnd) >= 0)
+            if (startConnected && !endConnected) {
+                return true
+            }
+            return false
         }
         , savePattern() {
             console.log('savePattern...')
