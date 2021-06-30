@@ -6,7 +6,7 @@
 import { mapGetters } from 'vuex'
 
 export default {
-    name: 'DependencyLemma'
+    name: 'TokenInfo'
     , inject: ['config', 'tokenIndex']
     , props: {
         dy: {
