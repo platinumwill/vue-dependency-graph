@@ -18,14 +18,7 @@ import DependencyNode from "./DependencyNode.vue";
 import { mapGetters } from 'vuex'
 import { provide } from 'vue'
 import PatternDialog from "./PatternDialog.vue"
-import {
-    selectedPOSs
-    , selectedLemmas
-    , selectedDependencies
-    , togglePOSSelected
-    , toggleLemmaSelected
-    , toggleDependencySelected
-} from "@/composables/selectionManager"
+import selectionManager from "@/composables/selectionManager"
 
 export default {
     data() {
@@ -147,6 +140,15 @@ export default {
 
         // provide('posManager', {selections: selectedPOSs, toggler: togglePOSSelected})
         // provide('lemmaManager', {selections: selectedLemmas, toggler: toggleLemmaSelected})
+
+    const {
+        selectedPOSs
+        , selectedLemmas
+        , selectedDependencies
+        , togglePOSSelected
+        , toggleLemmaSelected
+        , toggleDependencySelected
+    } = selectionManager()
 
         provide('selectedPOSIndices', selectedPOSs.value)
         provide('selectedLemmaIndices', selectedLemmas.value)
