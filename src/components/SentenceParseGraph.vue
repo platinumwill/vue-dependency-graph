@@ -16,14 +16,13 @@
 import DependencyEdge from "./DependencyEdge.vue";
 import DependencyNode from "./DependencyNode.vue";
 import { mapGetters } from 'vuex'
+import { provide, ref } from 'vue'
 import PatternDialog from "./PatternDialog.vue"
 
 export default {
     data() {
         return {
             spacyFormatDocumentParse: undefined
-            , selectedPOSIndices: []
-            , selectedLemmaIndices: []
             , selectedDependencyIndices: []
         }
     }
@@ -99,28 +98,6 @@ export default {
                 this.spacyFormatDocumentParse = spacyFormatParsedResult
             })
         }
-        , togglePOSIndexSelected(posIndex) {
-            const indexOfPOSIndex = this.selectedPOSIndices.indexOf(posIndex)
-            if (indexOfPOSIndex >= 0) {
-                this.selectedPOSIndices.splice(indexOfPOSIndex, 1)
-            } else {
-                this.selectedPOSIndices.push(posIndex)
-            }
-            if (this.selectedLemmaIndices.indexOf(posIndex) >= 0) {
-                this.selectedLemmaIndices.splice(this.selectedLemmaIndices.indexOf(posIndex), 1)
-            }
-        }
-        , toggleLemmaIndexSelected(lemmaIndex) {
-            const indexOfLemmaIndex = this.selectedLemmaIndices.indexOf(lemmaIndex)
-            if (indexOfLemmaIndex >= 0) {
-                this.selectedLemmaIndices.splice(indexOfLemmaIndex, 1)
-            } else {
-                this.selectedLemmaIndices.push(lemmaIndex)
-            }
-            if (this.selectedPOSIndices.indexOf(lemmaIndex) >= 0) {
-                this.selectedPOSIndices.splice(indexOfLemmaIndex, 1)
-            }
-        }
         , toggleDependencyIndexSelected(dependencyIndex) {
             const indexOfDependencyIndex = this.selectedDependencyIndices.indexOf(dependencyIndex)
             if (indexOfDependencyIndex >= 0) {
@@ -158,15 +135,55 @@ export default {
         , DependencyNode
         , PatternDialog
     } 
+    , setup() {
+        const selectedPOSs = ref([])
+        const selectedLemmas = ref([])
+        const selectedDependencies = ref([])
+
+        const togglePOSSelected = (posIndex) => {
+            const indexOfPOS = selectedPOSs.value.indexOf(posIndex)
+            if (indexOfPOS >= 0) {
+                selectedPOSs.value.splice(indexOfPOS, 1)
+            } else {
+                selectedPOSs.value.push(posIndex)
+            }
+            if (selectedLemmas.value.indexOf(posIndex) >= 0) {
+                selectedLemmas.value.splice(selectedLemmas.value.indexOf(posIndex), 1)
+            }
+        }
+        const toggleLemmaSelected = (lemmaIndex) => {
+            const indexOfLemma = selectedLemmas.value.indexOf(lemmaIndex)
+            if (indexOfLemma >= 0) {
+                selectedLemmas.value.splice(indexOfLemma, 1)
+            } else {
+                selectedLemmas.value.push(lemmaIndex)
+            }
+            if (selectedPOSs.value.indexOf(lemmaIndex) >= 0) {
+                selectedPOSs.value.splice(indexOfLemma, 1)
+            }
+        }
+        const toggleDependencySelected = (dependencyIndex) => {
+            const indexOfDependency = selectedDependencies.value.indexOf(dependencyIndex)
+            if (indexOfDependency >= 0) {
+                selectedDependencies.value.splice(indexOfDependency, 1)
+            } else {
+                selectedDependencies.value.push(dependencyIndex)
+            }
+        }
+
+        // provide('posManager', {selections: selectedPOSs, toggler: togglePOSSelected})
+        // provide('lemmaManager', {selections: selectedLemmas, toggler: toggleLemmaSelected})
+
+        provide('selectedPOSIndices', selectedPOSs.value)
+        provide('selectedLemmaIndices', selectedLemmas.value)
+        provide('selectedDependencyIndices', selectedDependencies.value)
+        provide('togglePOSSelected', togglePOSSelected)
+        provide('toggleLemmaSelected', toggleLemmaSelected)
+        provide('toggleDependencySelected', toggleDependencySelected)
+    }
     , provide() {
         return {
             config: this.config
-            , selectedPOSIndices: this.selectedPOSIndices
-            , selectedLemmaIndices: this.selectedLemmaIndices
-            , selectedDependencyIndices: this.selectedDependencyIndices
-            , togglePOSSelected: this.togglePOSIndexSelected
-            , toggleLemmaSelected: this.toggleLemmaIndexSelected
-            , toggleDependencySelected: this.toggleDependencyIndexSelected
         }
     }
 }
