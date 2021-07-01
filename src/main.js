@@ -71,9 +71,6 @@ const store = createStore({
       // TODO to be removed
       return state.baseline.tempSpacyParse
     }
-    , originalText (state) {
-      return state.originalText
-    }
     , googleParse (state) {
       return state.googleParse
     }

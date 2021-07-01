@@ -15,7 +15,7 @@
 <script>
 import DependencyEdge from "./DependencyEdge.vue";
 import DependencyNode from "./DependencyNode.vue";
-import { mapGetters } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 import { provide } from 'vue'
 import PatternDialog from "./PatternDialog.vue"
 import selectionManager from "@/composables/selectionManager"
@@ -81,10 +81,12 @@ export default {
             }
             return sentenceParse
         }
+        , ...mapState({
+            originalText: 'originalText'
+        })
         , ...mapGetters({ 
             isDocumentReady: 'isDocumentReady'
             , isGoogleParseReady: 'isGoogleParseReady'
-            , originalText: 'originalText'
             , currentSentence: 'currentSentence'
         })
     }
