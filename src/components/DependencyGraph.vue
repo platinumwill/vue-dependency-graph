@@ -11,9 +11,9 @@ import DocumentPanel from "./DocumentPanel.vue"
 import DocumentInput from "./DocumentInput.vue"
 import SentenceParseGraph from "./SentenceParseGraph.vue"
 import { mapGetters } from 'vuex'
-import spacyAgent from '@/composables/spacyAgent.js'
-import stanfordnlpAgent from '@/composables/stanfordnlpAgent.js'
-import googlenlpAgent from '@/composables/googleAgent.js'
+import spacyAgent from '@/composables/parse-providers/spacyAgent.js'
+import stanfordnlpAgent from '@/composables/parse-providers/stanfordnlpAgent.js'
+import googlenlpAgent from '@/composables/parse-providers/googleAgent.js'
 
 export default {
   name: 'DependencyGraph'
