@@ -1,5 +1,5 @@
 <template>
-    <div v-if="isParsedContentReady && isDocumentReady">
+    <div v-if="isParsedContentReady">
         <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:lang="en"
             id="displacy-svg" class="displacy" :width="width" :height="height" 
             :viewbox="viewbox" :data-format="config.format"
@@ -50,7 +50,7 @@ export default {
             return this.spacyFormatDocumentParse !== undefined
         }
         , sentenceParse: function() {
-            if (this.spacyFormatDocumentParse === undefined || !this.$store.getters.isDocumentReady) {
+            if (this.spacyFormatDocumentParse === undefined) {
                 return {}
             }
             const filteredArcs = this.spacyFormatDocumentParse.arcs.filter(
@@ -85,8 +85,7 @@ export default {
             originalText: 'originalText'
         })
         , ...mapGetters({ 
-            isDocumentReady: 'isDocumentReady'
-            , isGoogleParseReady: 'isGoogleParseReady'
+            isGoogleParseReady: 'isGoogleParseReady'
             , currentSentence: 'currentSentence'
         })
     }

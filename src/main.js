@@ -84,7 +84,7 @@ const store = createStore({
       return (getters.spacySentences.length > 0)
     }
     , maxSentenceIndex(state, getters) {
-      if (! getters.isDocumentReady) {
+      if (! getters.spacySentences.length > 0) {
         return -1 
       }
       return getters.spacySentences.length - 1
