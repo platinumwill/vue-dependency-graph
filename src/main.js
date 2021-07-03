@@ -24,8 +24,8 @@ const store = createStore({
         , tempSpacyParse: undefined
       })
       , mutations: {
-        saveTempSpacyParse (state, tempSpacyParse) {
-          state.tempSpacyParse = tempSpacyParse
+        saveTempSpacyParse (state, parse) {
+          state.tempSpacyParse = parse
         }
       }
     }
@@ -39,9 +39,9 @@ const store = createStore({
       params.append('text', documentText);
       await axios.post('http://localhost:5000/spacy/parse', params).then(function(response) {
         const parsedDocument = response.data
-        const spacySentences = parsedDocument.spacy_sents
-        spacySentences.forEach((spacySentence) => spacySentence.indexInDocument = spacySentences.indexOf(spacySentence))
-        commit('storeSpacySentences', spacySentences)
+        const sentences = parsedDocument.spacy_sents
+        sentences.forEach((spacySentence) => spacySentence.indexInDocument = sentences.indexOf(spacySentence))
+        commit('storeSpacySentences', sentences)
         commit('baseline/saveTempSpacyParse', parsedDocument)
       }).catch(function(error) {
         console.log(error)
@@ -52,8 +52,8 @@ const store = createStore({
     storeOriginalText (state, documentText) {
         state.originalText = documentText
     }
-    , storeSpacySentences (state, spacySentences) {
-        state.spacySentences = spacySentences
+    , storeSpacySentences (state, sentences) {
+        state.spacySentences = sentences
     }
     , storeGoogleParse (state, googleParsedResult) {
         state.googleParse = googleParsedResult
