@@ -143,14 +143,14 @@ export default {
         // provide('posManager', {selections: selectedPOSs, toggler: togglePOSSelected})
         // provide('lemmaManager', {selections: selectedLemmas, toggler: toggleLemmaSelected})
 
-    const {
-        selectedPOSs
-        , selectedLemmas
-        , selectedDependencies
-        , togglePOSSelected
-        , toggleLemmaSelected
-        , toggleDependencySelected
-    } = selectionManager()
+        const {
+            selectedPOSs
+            , selectedLemmas
+            , selectedDependencies
+            , togglePOSSelected
+            , toggleLemmaSelected
+            , toggleDependencySelected
+        } = selectionManager()
 
         provide('selectedPOSIndices', selectedPOSs.value)
         provide('selectedLemmaIndices', selectedLemmas.value)
