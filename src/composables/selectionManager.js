@@ -45,7 +45,9 @@ export default function selectionManager() {
             selections: selectedLemmas.value
             , toggler: toggleLemmaSelected
         }
-        , selectedDependencies
-        , toggleDependencySelected
+        , dependencySelectionManager: {
+            selections: selectedDependencies.value
+            , toggler: toggleDependencySelected
+        }
     }
 }

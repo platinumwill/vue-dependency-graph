@@ -94,7 +94,7 @@ export default {
                 item.sortOrder = token.indexInSentence
                 segmentItems.push(item)
             }, this)
-            this.selectedDependencyIndices.forEach(function (dependencyIndex) {
+            this.dependencySelectionManager.selections.forEach(function (dependencyIndex) {
                 const item = new Piece()
                 const dependency = this.$parent.sentenceParse.arcs[dependencyIndex]
                 item.type = 'Dependency'
@@ -161,7 +161,7 @@ export default {
                 const token = this.$parent.sentenceParse.words[lemmaIndex]
                 console.log(token)
             }, this)
-            this.selectedDependencyIndices.forEach(function (dependencyIndex) {
+            this.dependencySelectionManager.selections.forEach(function (dependencyIndex) {
                 const dependency = this.$parent.sentenceParse.arcs[dependencyIndex]
                 let startVPrefix = undefined
                 if (this.posSelectionManager.selections.includes(dependency.trueStart)) {
@@ -220,7 +220,7 @@ export default {
     , inject: [
         'posSelectionManager'
         , 'lemmaSelectionManager'
-        , 'selectedDependencyIndices'
+        , 'dependencySelectionManager'
     ]
 }
 </script>

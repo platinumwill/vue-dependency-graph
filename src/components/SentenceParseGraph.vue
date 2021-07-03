@@ -146,14 +146,12 @@ export default {
         const {
             posSelectionManager
             , lemmaSelectionManager
-            , selectedDependencies
-            , toggleDependencySelected
+            , dependencySelectionManager
         } = selectionManager()
 
         provide('posSelectionManager', posSelectionManager)
         provide('lemmaSelectionManager', lemmaSelectionManager)
-        provide('selectedDependencyIndices', selectedDependencies.value)
-        provide('toggleDependencySelected', toggleDependencySelected)
+        provide('dependencySelectionManager', dependencySelectionManager)
     }
     , provide() {
         return {
