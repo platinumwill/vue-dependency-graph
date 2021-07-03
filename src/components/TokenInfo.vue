@@ -32,11 +32,6 @@ export default {
             this.toggleSelectionAction(this.token.indexInSentence)
         }
     }
-    , watch: {
-        currentSentenceIndex () {
-            this.selected = false
-        }
-    }
     , computed: {
         color: function() {
             return this.selected ? this.config.selectedForegroundColor : 'currentColor'
