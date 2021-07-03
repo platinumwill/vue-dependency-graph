@@ -149,17 +149,28 @@ export default {
         }
         , savePattern() {
             console.log('savePattern...')
+            function appendAddPropertyCommand(name, value) {
+                return ".property('" + name + "', " + JSON.stringify(value) + ")" 
+            }
 
-            let command = "g.addV('SourcePatternHandle').property('owner', 'Chin').as('sourceHandle')"
+            let command = "g"
+            let vCount = 0
             this.posSelectionManager.selections.forEach(function (posIndex) {
                 command += ".addV('POS').as('pos_" + posIndex + "')"
+                if (vCount === 0) {
+                    command += ".as('sourceBeginning')"
+                    command += appendAddPropertyCommand('isBeginning', true)
+                    command += appendAddPropertyCommand('owner', 'Chin')
+                }
                 const token = this.$parent.sentenceParse.words[posIndex]
                 console.log(token)
+                vCount++
             }, this)
             this.lemmaSelectionManager.selections.forEach(function (lemmaIndex){
                 command += ".addV('Lemma').as('lemma_" + lemmaIndex + "')"
                 const token = this.$parent.sentenceParse.words[lemmaIndex]
                 console.log(token)
+                vCount++
             }, this)
             this.dependencySelectionManager.selections.forEach(function (dependencyIndex) {
                 const dependency = this.$parent.sentenceParse.arcs[dependencyIndex]
@@ -189,8 +200,6 @@ export default {
             }, this)
             
             console.log(this.segmentPieces)
-            command += ".addV('SimpleTargetPatternHandle').property('owner', 'Chin').as('targetHandle')"
-            command += ".addE('applicable').to('sourceHandle')"
             let lastAddedPieceAlias
             this.segmentPieces.forEach((piece, pieceIdx) => {
                 const currentPieceAlias = 'v' + pieceIdx
@@ -198,7 +207,7 @@ export default {
                 if (lastAddedPieceAlias) {
                     command += ".addE('follows').to('" + lastAddedPieceAlias + "')"
                 } else {
-                    command += ".addE('represents').from('targetHandle')"
+                    command += ".addE('applicable').to('sourceBeginning')"
                 }
                 lastAddedPieceAlias = currentPieceAlias
             });
