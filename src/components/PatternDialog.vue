@@ -76,7 +76,7 @@ export default {
         }
         , generateSegmentItems: function() {
             const segmentItems = []
-            this.selectedPOSIndices.forEach(function (posIndex) {
+            this.posSelectionManager.selections.forEach(function (posIndex) {
                 const item = new Piece()
                 const token = this.$parent.sentenceParse.words[posIndex]
                 item.type = 'POS'
@@ -85,7 +85,7 @@ export default {
                 item.sortOrder = token.indexInSentence
                 segmentItems.push(item)
             }, this)
-            this.selectedLemmaIndices.forEach(function (lemmaIndex){
+            this.lemmaSelectionManager.selections.forEach(function (lemmaIndex){
                 const item = new Piece()
                 const token = this.$parent.sentenceParse.words[lemmaIndex]
                 item.type = 'Lemma'
@@ -94,7 +94,7 @@ export default {
                 item.sortOrder = token.indexInSentence
                 segmentItems.push(item)
             }, this)
-            this.selectedDependencyIndices.forEach(function (dependencyIndex) {
+            this.dependencySelectionManager.selections.forEach(function (dependencyIndex) {
                 const item = new Piece()
                 const dependency = this.$parent.sentenceParse.arcs[dependencyIndex]
                 item.type = 'Dependency'
@@ -140,8 +140,8 @@ export default {
         }
         , isDependencyPlaceholder(dependency) {
             console.log(dependency)
-            const startConnected = (this.selectedPOSIndices.indexOf(dependency.trueStart) >= 0) || (this.selectedLemmaIndices.indexOf(dependency.trueStart) >= 0)
-            const endConnected = (this.selectedPOSIndices.indexOf(dependency.trueEnd) >= 0) || (this.selectedLemmaIndices.indexOf(dependency.trueEnd) >= 0)
+            const startConnected = (this.posSelectionManager.selections.indexOf(dependency.trueStart) >= 0) || (this.lemmaSelectionManager.selections.indexOf(dependency.trueStart) >= 0)
+            const endConnected = (this.posSelectionManager.selections.indexOf(dependency.trueEnd) >= 0) || (this.lemmaSelectionManager.selections.indexOf(dependency.trueEnd) >= 0)
             if (startConnected && !endConnected) {
                 return true
             }
@@ -151,22 +151,22 @@ export default {
             console.log('savePattern...')
 
             let command = "g.addV('SourcePatternHandle').property('owner', 'Chin').as('sourceHandle')"
-            this.selectedPOSIndices.forEach(function (posIndex) {
+            this.posSelectionManager.selections.forEach(function (posIndex) {
                 command += ".addV('POS').as('pos_" + posIndex + "')"
                 const token = this.$parent.sentenceParse.words[posIndex]
                 console.log(token)
             }, this)
-            this.selectedLemmaIndices.forEach(function (lemmaIndex){
+            this.lemmaSelectionManager.selections.forEach(function (lemmaIndex){
                 command += ".addV('Lemma').as('lemma_" + lemmaIndex + "')"
                 const token = this.$parent.sentenceParse.words[lemmaIndex]
                 console.log(token)
             }, this)
-            this.selectedDependencyIndices.forEach(function (dependencyIndex) {
+            this.dependencySelectionManager.selections.forEach(function (dependencyIndex) {
                 const dependency = this.$parent.sentenceParse.arcs[dependencyIndex]
                 let startVPrefix = undefined
-                if (this.selectedPOSIndices.includes(dependency.trueStart)) {
+                if (this.posSelectionManager.selections.includes(dependency.trueStart)) {
                     startVPrefix = "pos_"
-                } else if (this.selectedLemmaIndices.includes(dependency.trueStart)) {
+                } else if (this.lemmaSelectionManager.selections.includes(dependency.trueStart)) {
                     startVPrefix = "lemma_"
                 } else {
                     const error = "dependency 起點沒被選取"
@@ -179,9 +179,9 @@ export default {
                 if (this.isDependencyPlaceholder(dependency)) {
                     command += ".addV('Connector').as('" + connectorVName + "')"
                     endVName = connectorVName
-                } else if (this.selectedPOSIndices.includes(dependency.trueEnd)) {
+                } else if (this.posSelectionManager.selections.includes(dependency.trueEnd)) {
                     endVName = "pos_" + dependency.trueEnd
-                } else if (this.selectedLemmaIndices.includes(dependency.trueEnd)) {
+                } else if (this.lemmaSelectionManager.selections.includes(dependency.trueEnd)) {
                     endVName = "lemma_" + dependency.trueEnd
                 }
                 command += ".addE('" + dependency.label + "').from('" + startVName + "').to('" + endVName + "')"
@@ -218,9 +218,9 @@ export default {
         }
     }
     , inject: [
-            'selectedPOSIndices'
-            , 'selectedLemmaIndices'
-            , 'selectedDependencyIndices'
+        'posSelectionManager'
+        , 'lemmaSelectionManager'
+        , 'dependencySelectionManager'
     ]
 }
 </script>

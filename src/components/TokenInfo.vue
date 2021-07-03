@@ -3,7 +3,7 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapState } from 'vuex'
 
 export default {
     name: 'TokenInfo'
@@ -13,14 +13,11 @@ export default {
             type: String
             , default: ''
         }
-        , selectedIndices: {
-            type: Array
+        , selectionManager: {
+            type: Object
         }
         , token: {
             type: Object
-        }
-        , toggleSelectionAction: {
-            type: Function
         }
     }
     , data() {
@@ -29,23 +26,18 @@ export default {
     }
     , methods: {
         posClicked: function() {
-            this.toggleSelectionAction(this.token.indexInSentence)
-        }
-    }
-    , watch: {
-        currentSentenceIndex () {
-            this.selected = false
+            this.selectionManager.toggler(this.token.indexInSentence)
         }
     }
     , computed: {
         color: function() {
             return this.selected ? this.config.selectedForegroundColor : 'currentColor'
         }
-        , ...mapGetters([
+        , ...mapState([
             'currentSentenceIndex'
             ])
         , selected: function() {
-            return this.selectedIndices.indexOf(this.token.indexInSentence) >= 0
+            return this.selectionManager.selections.indexOf(this.token.indexInSentence) >= 0
         }
 
     }

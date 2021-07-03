@@ -24,8 +24,8 @@ const store = createStore({
         , tempSpacyParse: undefined
       })
       , mutations: {
-        saveTempSpacyParse (state, tempSpacyParse) {
-          state.tempSpacyParse = tempSpacyParse
+        saveTempSpacyParse (state, parse) {
+          state.tempSpacyParse = parse
         }
       }
     }
@@ -39,9 +39,9 @@ const store = createStore({
       params.append('text', documentText);
       await axios.post('http://localhost:5000/spacy/parse', params).then(function(response) {
         const parsedDocument = response.data
-        const spacySentences = parsedDocument.spacy_sents
-        spacySentences.forEach((spacySentence) => spacySentence.indexInDocument = spacySentences.indexOf(spacySentence))
-        commit('storeSpacySentences', spacySentences)
+        const sentences = parsedDocument.spacy_sents
+        sentences.forEach((spacySentence) => spacySentence.indexInDocument = sentences.indexOf(spacySentence))
+        commit('storeSpacySentences', sentences)
         commit('baseline/saveTempSpacyParse', parsedDocument)
       }).catch(function(error) {
         console.log(error)
@@ -52,11 +52,8 @@ const store = createStore({
     storeOriginalText (state, documentText) {
         state.originalText = documentText
     }
-    , storeSpacySentences (state, spacySentences) {
-        state.spacySentences = spacySentences
-    }
-    , storeGoogleParse (state, googleParsedResult) {
-        state.googleParse = googleParsedResult
+    , storeSpacySentences (state, sentences) {
+        state.spacySentences = sentences
     }
     , shiftSentence(state, offset) {
         const newIndex = state.currentSentenceIndex + offset
@@ -71,32 +68,17 @@ const store = createStore({
       // TODO to be removed
       return state.baseline.tempSpacyParse
     }
-    , originalText (state) {
-      return state.originalText
+    , isDocumentReady(state) {
+      return (state.spacySentences.length > 0)
     }
-    , googleParse (state) {
-      return state.googleParse
-    }
-    , spacySentences (state) {
-      return state.spacySentences
-    }
-    , isGoogleParseReady (state) {
-      return (state.googleParse.words !== undefined)
-    }
-    , isDocumentReady(state, getters) {
-      return (getters.spacySentences.length > 0)
-    }
-    , maxSentenceIndex(state, getters) {
-      if (! getters.isDocumentReady) {
+    , maxSentenceIndex(state) {
+      if (! state.spacySentences.length > 0) {
         return -1 
       }
-      return getters.spacySentences.length - 1
+      return state.spacySentences.length - 1
     }
-    , currentSentenceIndex(state) {
-      return state.currentSentenceIndex
-    }
-    , currentSentence (state, getters) {
-      return getters.spacySentences[getters.currentSentenceIndex]
+    , currentSentence (state) {
+      return state.spacySentences[state.currentSentenceIndex]
     }
   }
 })

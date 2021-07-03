@@ -38,12 +38,11 @@ export default {
     }
     , inject: [
         'config'
-        , 'selectedDependencyIndices'
-        , 'toggleDependencySelected'
+        , 'dependencySelectionManager'
     ]
     , methods: {
         edgeLabelClicked: function() {
-            this.toggleDependencySelected(this.arc.indexInSentence)
+            this.dependencySelectionManager.toggler(this.arc.indexInSentence)
         }
     }
     , computed: {
@@ -91,7 +90,7 @@ export default {
             return this.selected ? this.config.selectedForegroundColor : 'currentColor'
         }
         , selected: function() {
-            return this.selectedDependencyIndices.indexOf(this.arc.indexInSentence) >= 0
+            return this.dependencySelectionManager.selections.indexOf(this.arc.indexInSentence) >= 0
         }
    }
 }

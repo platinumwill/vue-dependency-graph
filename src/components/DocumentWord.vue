@@ -3,7 +3,6 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
 
 export default {
     computed: {
@@ -13,9 +12,6 @@ export default {
             }
             return 'currentSentence' 
         }
-        , ...mapGetters([
-            'documentParse'
-        ])
     }
     , props: ['word', 'wordIndex', 'sentence']
 }
