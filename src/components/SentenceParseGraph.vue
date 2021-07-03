@@ -144,11 +144,13 @@ export default {
             posSelectionManager
             , lemmaSelectionManager
             , dependencySelectionManager
+            , selectionHelper
         } = selectionManager()
 
         provide('posSelectionManager', posSelectionManager)
         provide('lemmaSelectionManager', lemmaSelectionManager)
         provide('dependencySelectionManager', dependencySelectionManager)
+        provide('selectionHelper', selectionHelper)
     }
     , provide() {
         return {

@@ -101,7 +101,7 @@ export default {
                 item.content = dependency.label
                 item.vueKey = 'sentence-' + this.$parent.currentSentence.indexInDocument + "_dependency-" + dependency.indexInSentence
                 item.sortOrder = (dependency.trueStart + dependency.trueEnd) / 2
-                if (this.isDependencyPlaceholder(dependency)) {
+                if (this.selectionHelper.isDependencyPlaceholder(dependency)) {
                     item.isPlaceholder = true
                     item.appliedText = '{' + dependency.label + ' 連接處}'
                 }
@@ -137,15 +137,6 @@ export default {
         , changeIsOptional(pieceAndValue) {
             // 是 child component 的事件，但物件的值不能在 child component 修改，要在這裡才能修改
             pieceAndValue.piece.isOptional = pieceAndValue.value
-        }
-        , isDependencyPlaceholder(dependency) {
-            console.log(dependency)
-            const startConnected = (this.posSelectionManager.selections.indexOf(dependency.trueStart) >= 0) || (this.lemmaSelectionManager.selections.indexOf(dependency.trueStart) >= 0)
-            const endConnected = (this.posSelectionManager.selections.indexOf(dependency.trueEnd) >= 0) || (this.lemmaSelectionManager.selections.indexOf(dependency.trueEnd) >= 0)
-            if (startConnected && !endConnected) {
-                return true
-            }
-            return false
         }
         , savePattern() {
             console.log('savePattern...')
@@ -187,7 +178,7 @@ export default {
                 let startVName = startVPrefix + dependency.trueStart
                 let endVName = undefined
                 const connectorVName = "connector_" + dependency.trueStart + "-" + dependency.trueEnd + ""
-                if (this.isDependencyPlaceholder(dependency)) {
+                if (this.selectionHelper.isDependencyPlaceholder(dependency)) {
                     command += ".addV('Connector').as('" + connectorVName + "')"
                     endVName = connectorVName
                 } else if (this.posSelectionManager.selections.includes(dependency.trueEnd)) {
@@ -228,6 +219,7 @@ export default {
         'posSelectionManager'
         , 'lemmaSelectionManager'
         , 'dependencySelectionManager'
+        , 'selectionHelper'
     ]
 }
 </script>

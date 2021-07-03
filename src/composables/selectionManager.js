@@ -36,6 +36,16 @@ export default function selectionManager() {
         }
     }
 
+    const isDependencyPlaceholder = (dependency) => {
+        console.log(dependency)
+        const startConnected = (selectedPOSs.value.indexOf(dependency.trueStart) >= 0) || (selectedLemmas.value.indexOf(dependency.trueStart) >= 0)
+        const endConnected = (selectedPOSs.value.indexOf(dependency.trueEnd) >= 0) || (selectedLemmas.value.indexOf(dependency.trueEnd) >= 0)
+        if (startConnected && !endConnected) {
+            return true
+        }
+        return false
+    }
+
     return {
         posSelectionManager: {
             selections: selectedPOSs.value
@@ -48,6 +58,9 @@ export default function selectionManager() {
         , dependencySelectionManager: {
             selections: selectedDependencies.value
             , toggler: toggleDependencySelected
+        }
+        , selectionHelper: {
+            isDependencyPlaceholder: isDependencyPlaceholder
         }
     }
 }
