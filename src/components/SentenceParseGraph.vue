@@ -147,16 +147,12 @@ export default {
             posSelectionManager
             , lemmaSelectionManager
             , selectedDependencies
-            , togglePOSSelected
-            , toggleLemmaSelected
             , toggleDependencySelected
         } = selectionManager()
 
         provide('posSelectionManager', posSelectionManager)
         provide('lemmaSelectionManager', lemmaSelectionManager)
         provide('selectedDependencyIndices', selectedDependencies.value)
-        provide('togglePOSSelected', togglePOSSelected)
-        provide('toggleLemmaSelected', toggleLemmaSelected)
         provide('toggleDependencySelected', toggleDependencySelected)
     }
     , provide() {

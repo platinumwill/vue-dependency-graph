@@ -39,13 +39,13 @@ export default function selectionManager() {
     return {
         posSelectionManager: {
             selections: selectedPOSs.value
+            , toggler: togglePOSSelected
         }
         , lemmaSelectionManager: {
             selections: selectedLemmas.value
+            , toggler: toggleLemmaSelected
         }
         , selectedDependencies
-        , togglePOSSelected
-        , toggleLemmaSelected
         , toggleDependencySelected
     }
 }
