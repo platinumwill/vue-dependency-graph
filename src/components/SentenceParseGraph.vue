@@ -140,9 +140,6 @@ export default {
     } 
     , setup() {
 
-        // provide('posManager', {selections: selectedPOSs, toggler: togglePOSSelected})
-        // provide('lemmaManager', {selections: selectedLemmas, toggler: toggleLemmaSelected})
-
         const {
             posSelectionManager
             , lemmaSelectionManager
