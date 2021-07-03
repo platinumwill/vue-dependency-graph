@@ -12,7 +12,7 @@
 
 <script>
 import DocumentWord from "./DocumentWord.vue"
-import { mapGetters, mapMutations } from 'vuex'
+import { mapGetters, mapMutations, mapState } from 'vuex'
 import Button from 'primevue/button'
 
 export default {
@@ -29,12 +29,14 @@ export default {
             }
             return false
         }
+        , ...mapState([
+            'spacySentences'
+            , 'currentSentenceIndex'
+        ])
         , ...mapGetters([
             'documentParse'
             , 'isDocumentReady'
             , 'maxSentenceIndex'
-            , 'currentSentenceIndex'
-            , 'spacySentences'
         ])
     }
     , methods: {

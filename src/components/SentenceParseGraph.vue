@@ -1,5 +1,5 @@
 <template>
-    <div v-if="isParsedContentReady && isDocumentReady">
+    <div v-if="isParsedContentReady">
         <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:lang="en"
             id="displacy-svg" class="displacy" :width="width" :height="height" 
             :viewbox="viewbox" :data-format="config.format"
@@ -15,7 +15,7 @@
 <script>
 import DependencyEdge from "./DependencyEdge.vue";
 import DependencyNode from "./DependencyNode.vue";
-import { mapGetters } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 import { provide } from 'vue'
 import PatternDialog from "./PatternDialog.vue"
 import selectionManager from "@/composables/selectionManager"
@@ -23,6 +23,7 @@ import selectionManager from "@/composables/selectionManager"
 export default {
     data() {
         return {
+            // 這個變數最主要的特點是，每家的 dependency graph 都有自己一份（相對於 spacySentences 是統一一份的）
             spacyFormatDocumentParse: undefined
             , selectedDependencyIndices: []
         }
@@ -50,7 +51,7 @@ export default {
             return this.spacyFormatDocumentParse !== undefined
         }
         , sentenceParse: function() {
-            if (this.spacyFormatDocumentParse === undefined || !this.$store.getters.isDocumentReady) {
+            if (this.spacyFormatDocumentParse === undefined) {
                 return {}
             }
             const filteredArcs = this.spacyFormatDocumentParse.arcs.filter(
@@ -81,20 +82,21 @@ export default {
             }
             return sentenceParse
         }
+        , ...mapState({
+            originalText: 'originalText'
+        })
         , ...mapGetters({ 
-            isDocumentReady: 'isDocumentReady'
-            , isGoogleParseReady: 'isGoogleParseReady'
-            , originalText: 'originalText'
-            , currentSentence: 'currentSentence'
+            currentSentence: 'currentSentence'
         })
     }
     , watch: {
+        // 這裡是大部分流程的起頭
         originalText (newText) {
-            this.deletegateToSpaceFormatParserProvider(newText)
+            this.delegateToSpaceFormatParserProvider(newText)
         }
     }
     , methods: {
-        async deletegateToSpaceFormatParserProvider(documentText) {
+        async delegateToSpaceFormatParserProvider(documentText) {
             await this.spacyFormatParseProvider(documentText).then((spacyFormatParsedResult) => {
                 this.spacyFormatDocumentParse = spacyFormatParsedResult
             })

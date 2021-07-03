@@ -10,7 +10,6 @@
 import DocumentPanel from "./DocumentPanel.vue"
 import DocumentInput from "./DocumentInput.vue"
 import SentenceParseGraph from "./SentenceParseGraph.vue"
-import { mapGetters } from 'vuex'
 import spacyAgent from '@/composables/parse-providers/spacyAgent.js'
 import stanfordnlpAgent from '@/composables/parse-providers/stanfordnlpAgent.js'
 import googlenlpAgent from '@/composables/parse-providers/googleAgent.js'
@@ -22,11 +21,6 @@ export default {
       , DocumentPanel
       , DocumentInput
   } 
-  , computed: {
-    ...mapGetters([
-      'isDocumentReady'
-    ])
-  }
   , methods: {
     parseBySpacy: async function (documentText) {
       const result = await spacyAgent(documentText)
