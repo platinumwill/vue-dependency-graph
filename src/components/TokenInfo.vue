@@ -13,14 +13,11 @@ export default {
             type: String
             , default: ''
         }
-        , selectedIndices: {
-            type: Array
+        , selectionManager: {
+            type: Object
         }
         , token: {
             type: Object
-        }
-        , toggleSelectionAction: {
-            type: Function
         }
     }
     , data() {
@@ -29,7 +26,7 @@ export default {
     }
     , methods: {
         posClicked: function() {
-            this.toggleSelectionAction(this.token.indexInSentence)
+            this.selectionManager.toggler(this.token.indexInSentence)
         }
     }
     , computed: {
@@ -40,7 +37,7 @@ export default {
             'currentSentenceIndex'
             ])
         , selected: function() {
-            return this.selectedIndices.indexOf(this.token.indexInSentence) >= 0
+            return this.selectionManager.selections.indexOf(this.token.indexInSentence) >= 0
         }
 
     }

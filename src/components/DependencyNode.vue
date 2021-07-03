@@ -1,8 +1,8 @@
 <template>
     <text class="displacy-token" fill="currentColor" text-anchor="middle" :y="y">
         <tspan class="displacy-word" fill="currentColor" :x="x">{{ word.text }}</tspan>
-        <TokenInfo :token="word" :selectedIndices="lemmaSelectionManager.selections" :toggleSelectionAction="lemmaSelectionManager.toggler" :dy="'2em'">{{ word.lemma }}</TokenInfo>
-        <TokenInfo :token="word" :selectedIndices="posSelectionManager.selections" :toggleSelectionAction="posSelectionManager.toggler" :dy="'2em'">{{ word.tag }}</TokenInfo>
+        <TokenInfo :token="word" :selectionManager="lemmaSelectionManager" :dy="'2em'">{{ word.lemma }}</TokenInfo>
+        <TokenInfo :token="word" :selectionManager="posSelectionManager" :dy="'2em'">{{ word.tag }}</TokenInfo>
     </text>
 </template>
 
