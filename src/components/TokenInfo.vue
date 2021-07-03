@@ -3,7 +3,7 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapState } from 'vuex'
 
 export default {
     name: 'TokenInfo'
@@ -41,7 +41,7 @@ export default {
         color: function() {
             return this.selected ? this.config.selectedForegroundColor : 'currentColor'
         }
-        , ...mapGetters([
+        , ...mapState([
             'currentSentenceIndex'
             ])
         , selected: function() {

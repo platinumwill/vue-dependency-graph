@@ -86,8 +86,7 @@ export default {
             originalText: 'originalText'
         })
         , ...mapGetters({ 
-            isGoogleParseReady: 'isGoogleParseReady'
-            , currentSentence: 'currentSentence'
+            currentSentence: 'currentSentence'
         })
     }
     , watch: {

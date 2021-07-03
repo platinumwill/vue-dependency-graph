@@ -55,9 +55,6 @@ const store = createStore({
     , storeSpacySentences (state, sentences) {
         state.spacySentences = sentences
     }
-    , storeGoogleParse (state, googleParsedResult) {
-        state.googleParse = googleParsedResult
-    }
     , shiftSentence(state, offset) {
         const newIndex = state.currentSentenceIndex + offset
         if (newIndex < 0) {
@@ -71,29 +68,17 @@ const store = createStore({
       // TODO to be removed
       return state.baseline.tempSpacyParse
     }
-    , googleParse (state) {
-      return state.googleParse
+    , isDocumentReady(state) {
+      return (state.spacySentences.length > 0)
     }
-    , spacySentences (state) {
-      return state.spacySentences
-    }
-    , isGoogleParseReady (state) {
-      return (state.googleParse.words !== undefined)
-    }
-    , isDocumentReady(state, getters) {
-      return (getters.spacySentences.length > 0)
-    }
-    , maxSentenceIndex(state, getters) {
-      if (! getters.spacySentences.length > 0) {
+    , maxSentenceIndex(state) {
+      if (! state.spacySentences.length > 0) {
         return -1 
       }
-      return getters.spacySentences.length - 1
+      return state.spacySentences.length - 1
     }
-    , currentSentenceIndex(state) {
-      return state.currentSentenceIndex
-    }
-    , currentSentence (state, getters) {
-      return getters.spacySentences[getters.currentSentenceIndex]
+    , currentSentence (state) {
+      return state.spacySentences[state.currentSentenceIndex]
     }
   }
 })
