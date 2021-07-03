@@ -191,10 +191,9 @@ export default {
             console.log(this.segmentPieces)
             command += ".addV('SimpleTargetPatternHandle').property('owner', 'Chin').as('targetHandle')"
             command += ".addE('applicable').to('sourceHandle')"
-            let pieceSeq = 0;
             let lastAddedPieceAlias
-            this.segmentPieces.forEach((piece) => {
-                const currentPieceAlias = 'v' + pieceSeq
+            this.segmentPieces.forEach((piece, pieceIdx) => {
+                const currentPieceAlias = 'v' + pieceIdx
                 command += ".addV('SimpleTargetPatternPiece').property('sourceType', '" + piece.type + "').as('" + currentPieceAlias + "')"
                 if (lastAddedPieceAlias) {
                     command += ".addE('follows').to('" + lastAddedPieceAlias + "')"
@@ -202,7 +201,6 @@ export default {
                     command += ".addE('represents').from('targetHandle')"
                 }
                 lastAddedPieceAlias = currentPieceAlias
-                pieceSeq++;
             });
             console.log(command)
             let argument = {
