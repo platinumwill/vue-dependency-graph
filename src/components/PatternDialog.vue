@@ -44,7 +44,6 @@ import draggable from 'vuedraggable'
 import VueHorizontal from "vue-horizontal";
 import SegmentPiece from "./SegmentPiece.vue"
 import Button from 'primevue/button'
-import axios from 'axios'
 
 class Piece {
     constructor () {
@@ -139,80 +138,7 @@ export default {
             pieceAndValue.piece.isOptional = pieceAndValue.value
         }
         , savePattern() {
-            console.log('savePattern...')
-            function appendAddPropertyCommand(name, value) {
-                return ".property('" + name + "', " + JSON.stringify(value) + ")" 
-            }
-
-            let command = "g"
-            let vCount = 0
-            this.posSelectionManager.selections.forEach(function (posIndex) {
-                command += ".addV('POS').as('pos_" + posIndex + "')"
-                if (vCount === 0) {
-                    command += ".as('sourceBeginning')"
-                    command += appendAddPropertyCommand('isBeginning', true)
-                    command += appendAddPropertyCommand('owner', 'Chin')
-                }
-                const token = this.$parent.sentenceParse.words[posIndex]
-                console.log(token)
-                vCount++
-            }, this)
-            this.lemmaSelectionManager.selections.forEach(function (lemmaIndex){
-                command += ".addV('Lemma').as('lemma_" + lemmaIndex + "')"
-                const token = this.$parent.sentenceParse.words[lemmaIndex]
-                console.log(token)
-                vCount++
-            }, this)
-            this.dependencySelectionManager.selections.forEach(function (dependencyIndex) {
-                const dependency = this.$parent.sentenceParse.arcs[dependencyIndex]
-                let startVPrefix = undefined
-                if (this.posSelectionManager.selections.includes(dependency.trueStart)) {
-                    startVPrefix = "pos_"
-                } else if (this.lemmaSelectionManager.selections.includes(dependency.trueStart)) {
-                    startVPrefix = "lemma_"
-                } else {
-                    const error = "dependency 起點沒被選取"
-                    console.error(error)
-                    throw error
-                }
-                let startVName = startVPrefix + dependency.trueStart
-                let endVName = undefined
-                const connectorVName = "connector_" + dependency.trueStart + "-" + dependency.trueEnd + ""
-                if (this.selectionHelper.isDependencyPlaceholder(dependency)) {
-                    command += ".addV('Connector').as('" + connectorVName + "')"
-                    endVName = connectorVName
-                } else if (this.posSelectionManager.selections.includes(dependency.trueEnd)) {
-                    endVName = "pos_" + dependency.trueEnd
-                } else if (this.lemmaSelectionManager.selections.includes(dependency.trueEnd)) {
-                    endVName = "lemma_" + dependency.trueEnd
-                }
-                command += ".addE('" + dependency.label + "').from('" + startVName + "').to('" + endVName + "')"
-                
-            }, this)
-            
-            console.log(this.segmentPieces)
-            let lastAddedPieceAlias
-            this.segmentPieces.forEach((piece, pieceIdx) => {
-                const currentPieceAlias = 'v' + pieceIdx
-                command += ".addV('SimpleTargetPatternPiece').property('sourceType', '" + piece.type + "').as('" + currentPieceAlias + "')"
-                if (lastAddedPieceAlias) {
-                    command += ".addE('follows').to('" + lastAddedPieceAlias + "')"
-                } else {
-                    command += ".addE('applicable').to('sourceBeginning')"
-                }
-                lastAddedPieceAlias = currentPieceAlias
-            });
-            console.log(command)
-            let argument = {
-                gremlin: command
-            }
-            axios.post('http://stanford-local:8182/', JSON.stringify(argument)).then(function(response) {
-                console.log(response)
-                console.log(response.status)
-                console.log(response.data)
-            }).catch(function(error) {
-                console.log(error)
-            })
+            this.selectionHelper.saveSelectedPattern(this.$parent.sentenceParse, this.segmentPieces)
         }
     }
     , inject: [
