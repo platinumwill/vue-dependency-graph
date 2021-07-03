@@ -144,16 +144,16 @@ export default {
         // provide('lemmaManager', {selections: selectedLemmas, toggler: toggleLemmaSelected})
 
         const {
-            selectedPOSs
-            , selectedLemmas
+            posSelectionManager
+            , lemmaSelectionManager
             , selectedDependencies
             , togglePOSSelected
             , toggleLemmaSelected
             , toggleDependencySelected
         } = selectionManager()
 
-        provide('selectedPOSIndices', selectedPOSs.value)
-        provide('selectedLemmaIndices', selectedLemmas.value)
+        provide('posSelectionManager', posSelectionManager)
+        provide('lemmaSelectionManager', lemmaSelectionManager)
         provide('selectedDependencyIndices', selectedDependencies.value)
         provide('togglePOSSelected', togglePOSSelected)
         provide('toggleLemmaSelected', toggleLemmaSelected)

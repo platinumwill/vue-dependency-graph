@@ -36,11 +36,16 @@ export default function selectionManager() {
         }
     }
 
-    return {selectedPOSs
-    , selectedLemmas
-    , selectedDependencies
-    , togglePOSSelected
-    , toggleLemmaSelected
-    , toggleDependencySelected
+    return {
+        posSelectionManager: {
+            selections: selectedPOSs.value
+        }
+        , lemmaSelectionManager: {
+            selections: selectedLemmas.value
+        }
+        , selectedDependencies
+        , togglePOSSelected
+        , toggleLemmaSelected
+        , toggleDependencySelected
     }
 }
