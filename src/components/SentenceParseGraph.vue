@@ -90,6 +90,7 @@ export default {
         })
     }
     , watch: {
+        // 這裡是大部分流程的起頭
         originalText (newText) {
             this.delegateToSpaceFormatParserProvider(newText)
         }
