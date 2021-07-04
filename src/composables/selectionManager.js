@@ -164,6 +164,10 @@ export default function selectionManager() {
     }
     const spacyFormatSentenceParse = computed(spacyFormatSentenceParseFunction)
 
+    const spacyFormatHelper = ref({})
+    spacyFormatHelper.value.documentParse = spacyFormatDocumentParse
+    spacyFormatHelper.value.sentenceParse = spacyFormatSentenceParse
+
     return {
         posSelectionManager: {
             selections: selectedPOSs.value
@@ -181,7 +185,6 @@ export default function selectionManager() {
             isDependencyPlaceholder: isDependencyPlaceholder
             , saveSelectedPattern: saveSelectedPattern
         }
-        , spacyFormatDocumentParse: spacyFormatDocumentParse
-        , spacyFormatSentenceParse: spacyFormatSentenceParse
+        , spacyFormatHelper
     }
 }
