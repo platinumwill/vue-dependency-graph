@@ -30,13 +30,13 @@ export default {
     }
     , computed: {
         levels: function() {
-            return this.spacyFormatDocumentParse === undefined ? [] : [...new Set(this.spacyFormatDocumentParse.arcs.map(({ end, start }) => end - start).sort((a, b) => a - b))]
+            return this.sentenceParse === undefined ? [] : [...new Set(this.sentenceParse.arcs.map(({ end, start }) => end - start).sort((a, b) => a - b))]
         }
         , highestLevel: function() {
             return this.levels.indexOf(this.levels.slice(-1)[0]) + 1
         } 
         , width: function() {
-            return this.spacyFormatDocumentParse === undefined ? 0 : this.config.offsetX + this.spacyFormatDocumentParse.words.length * this.config.distance
+            return this.sentenceParse === undefined ? 0 : this.config.offsetX + this.sentenceParse.words.length * this.config.distance
         }
         , height: function() {
             return this.offsetY + 3 * this.config.wordSpacing
@@ -48,11 +48,11 @@ export default {
             return this.config.distance / 2 * this.highestLevel
         }
         , isParsedContentReady() {
-            return this.spacyFormatDocumentParse !== undefined
+            return this.sentenceParse !== undefined
         }
         , sentenceParse: function() {
             if (this.spacyFormatDocumentParse === undefined) {
-                return {}
+                return undefined
             }
             const filteredArcs = this.spacyFormatDocumentParse.arcs.filter(
                 arc =>
