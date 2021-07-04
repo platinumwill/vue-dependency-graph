@@ -2,6 +2,7 @@ import { ref } from 'vue'
 import axios from 'axios'
 
 export default function selectionManager() {
+    const spacyFormatDocumentParse = ref({})
     const selectedPOSs = ref([])
     const selectedLemmas = ref([])
     const selectedDependencies = ref([])
@@ -144,5 +145,6 @@ export default function selectionManager() {
             isDependencyPlaceholder: isDependencyPlaceholder
             , saveSelectedPattern: saveSelectedPattern
         }
+        , spacyFormatDocumentParse: spacyFormatDocumentParse
     }
 }

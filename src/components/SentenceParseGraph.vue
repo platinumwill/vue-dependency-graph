@@ -24,8 +24,7 @@ export default {
     data() {
         return {
             // 這個變數最主要的特點是，每家的 dependency graph 都有自己一份（相對於 spacySentences 是統一一份的）
-            spacyFormatDocumentParse: undefined
-            , selectedDependencyIndices: []
+            selectedDependencyIndices: []
         }
     }
     , computed: {
@@ -51,7 +50,7 @@ export default {
             return this.sentenceParse !== undefined
         }
         , sentenceParse: function() {
-            if (this.spacyFormatDocumentParse === undefined) {
+            if (this.spacyFormatDocumentParse == undefined || ! this.spacyFormatDocumentParse.words) {
                 return undefined
             }
             const filteredArcs = this.spacyFormatDocumentParse.arcs.filter(
@@ -145,12 +144,15 @@ export default {
             , lemmaSelectionManager
             , dependencySelectionManager
             , selectionHelper
+            , spacyFormatDocumentParse
         } = selectionManager()
 
         provide('posSelectionManager', posSelectionManager)
         provide('lemmaSelectionManager', lemmaSelectionManager)
         provide('dependencySelectionManager', dependencySelectionManager)
         provide('selectionHelper', selectionHelper)
+
+        return { spacyFormatDocumentParse }
     }
     , provide() {
         return {
