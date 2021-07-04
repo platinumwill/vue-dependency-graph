@@ -67,6 +67,11 @@ export default function selectionManager() {
         })
         selectedLemmas.value.forEach(function (lemmaIndex){
             command += ".addV('Lemma').as('lemma_" + lemmaIndex + "')"
+            if (vCount === 0) {
+                command += ".as('sourceBeginning')"
+                command += appendAddPropertyCommand('isBeginning', true)
+                command += appendAddPropertyCommand('owner', 'Chin')
+            }
             const token = sentenceParse.words[lemmaIndex]
             console.log(token)
             vCount++
