@@ -45,6 +45,8 @@ import VueHorizontal from "vue-horizontal";
 import SegmentPiece from "./SegmentPiece.vue"
 import Button from 'primevue/button'
 
+import { inject } from "vue"
+
 class Piece {
     constructor () {
 
@@ -141,11 +143,15 @@ export default {
             this.selectionHelper.saveSelectedPattern(this.$parent.spacyFormatHelper.sentenceParse, this.segmentPieces)
         }
     }
+    , setup() {
+        const selectionHelper = inject('selectionHelper')
+
+        return { selectionHelper }
+    }
     , inject: [
         'posSelectionManager'
         , 'lemmaSelectionManager'
         , 'dependencySelectionManager'
-        , 'selectionHelper'
     ]
 }
 </script>
