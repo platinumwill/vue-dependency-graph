@@ -5,8 +5,8 @@
             :viewbox="viewbox" :data-format="config.format"
             :style="{color: config.foregroundColor, background: config.backgroundColor, fontFamily: config.fontFamily}" 
             preserveAspectRatio="xMinYMax meet">
-            <DependencyNode v-for="(word, index) in sentenceParse.words" :word="word" :index="index" :key="index"></DependencyNode>
-            <DependencyEdge v-for="arc in sentenceParse.arcs" :arc="arc" :key="arc.key"></DependencyEdge>
+            <DependencyNode v-for="(word, index) in spacyFormatSentenceParse.words" :word="word" :index="index" :key="index"></DependencyNode>
+            <DependencyEdge v-for="arc in spacyFormatSentenceParse.arcs" :arc="arc" :key="arc.key"></DependencyEdge>
         </svg>
         <PatternDialog></PatternDialog>
     </div>
@@ -29,13 +29,13 @@ export default {
     }
     , computed: {
         levels: function() {
-            return this.sentenceParse === undefined ? [] : [...new Set(this.sentenceParse.arcs.map(({ end, start }) => end - start).sort((a, b) => a - b))]
+            return this.spacyFormatSentenceParse.words === undefined ? [] : [...new Set(this.spacyFormatSentenceParse.arcs.map(({ end, start }) => end - start).sort((a, b) => a - b))]
         }
         , highestLevel: function() {
             return this.levels.indexOf(this.levels.slice(-1)[0]) + 1
         } 
         , width: function() {
-            return this.sentenceParse === undefined ? 0 : this.config.offsetX + this.sentenceParse.words.length * this.config.distance
+            return this.spacyFormatSentenceParse.words === undefined ? 0 : this.config.offsetX + this.spacyFormatSentenceParse.words.length * this.config.distance
         }
         , height: function() {
             return this.offsetY + 3 * this.config.wordSpacing
@@ -47,39 +47,7 @@ export default {
             return this.config.distance / 2 * this.highestLevel
         }
         , isParsedContentReady() {
-            return this.sentenceParse !== undefined
-        }
-        , sentenceParse: function() {
-            if (this.spacyFormatDocumentParse == undefined || ! this.spacyFormatDocumentParse.words) {
-                return undefined
-            }
-            const filteredArcs = this.spacyFormatDocumentParse.arcs.filter(
-                arc =>
-                arc.start >= this.currentSentence.start 
-                && arc.end >= this.currentSentence.start
-                && arc.start < this.currentSentence.end 
-                && arc.end < this.currentSentence.end 
-                )
-            let arcsClone = JSON.parse(JSON.stringify(filteredArcs.slice(0)))
-            arcsClone.forEach(function (arc, index) {
-                arc.start -= (this.currentSentence.start)
-                arc.end -= (this.currentSentence.start)
-                // Chin format property
-                arc.indexInSentence = index
-                arc.trueStart = arc.dir == 'right' ? arc.start : arc.end
-                arc.trueEnd = arc.dir == 'right' ? arc.end : arc.start
-            }, this)
-            // Chin format property
-            this.spacyFormatDocumentParse.words.forEach((word, index) => word.indexInSentence = index - this.currentSentence.start, this)            
-            const sentenceParse = {
-                words: this.spacyFormatDocumentParse.words.filter(
-                (word, index) =>
-                    index >= this.currentSentence.start 
-                    && index < this.currentSentence.end
-                )
-                , arcs: arcsClone
-            }
-            return sentenceParse
+            return this.spacyFormatSentenceParse.words !== undefined
         }
         , ...mapState({
             originalText: 'originalText'
@@ -145,6 +113,7 @@ export default {
             , dependencySelectionManager
             , selectionHelper
             , spacyFormatDocumentParse
+            , spacyFormatSentenceParse
         } = selectionManager()
 
         provide('posSelectionManager', posSelectionManager)
@@ -152,7 +121,10 @@ export default {
         provide('dependencySelectionManager', dependencySelectionManager)
         provide('selectionHelper', selectionHelper)
 
-        return { spacyFormatDocumentParse }
+        return {
+            spacyFormatDocumentParse
+            , spacyFormatSentenceParse
+        }
     }
     , provide() {
         return {

@@ -77,7 +77,7 @@ export default {
             const segmentItems = []
             this.posSelectionManager.selections.forEach(function (posIndex) {
                 const item = new Piece()
-                const token = this.$parent.sentenceParse.words[posIndex]
+                const token = this.$parent.spacyFormatSentenceParse.words[posIndex]
                 item.type = 'POS'
                 item.content = token.tag + ' (' + token.lemma + ')'
                 item.vueKey = 'sentence-' + this.$parent.currentSentence.indexInDocument + "_pos-" + token.indexInSentence
@@ -86,7 +86,7 @@ export default {
             }, this)
             this.lemmaSelectionManager.selections.forEach(function (lemmaIndex){
                 const item = new Piece()
-                const token = this.$parent.sentenceParse.words[lemmaIndex]
+                const token = this.$parent.spacyFormatSentenceParse.words[lemmaIndex]
                 item.type = 'Lemma'
                 item.content = token.lemma
                 item.vueKey = 'sentence-' + this.$parent.currentSentence.indexInDocument + "_lemma-" + token.indexInSentence
@@ -95,7 +95,7 @@ export default {
             }, this)
             this.dependencySelectionManager.selections.forEach(function (dependencyIndex) {
                 const item = new Piece()
-                const dependency = this.$parent.sentenceParse.arcs[dependencyIndex]
+                const dependency = this.$parent.spacyFormatSentenceParse.arcs[dependencyIndex]
                 item.type = 'Dependency'
                 item.content = dependency.label
                 item.vueKey = 'sentence-' + this.$parent.currentSentence.indexInDocument + "_dependency-" + dependency.indexInSentence
@@ -138,7 +138,7 @@ export default {
             pieceAndValue.piece.isOptional = pieceAndValue.value
         }
         , savePattern() {
-            this.selectionHelper.saveSelectedPattern(this.$parent.sentenceParse, this.segmentPieces)
+            this.selectionHelper.saveSelectedPattern(this.$parent.spacyFormatSentenceParse, this.segmentPieces)
         }
     }
     , inject: [

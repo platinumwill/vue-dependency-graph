@@ -1,8 +1,8 @@
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
+import { useStore } from 'vuex'
 import axios from 'axios'
 
 export default function selectionManager() {
-    const spacyFormatDocumentParse = ref({})
     const selectedPOSs = ref([])
     const selectedLemmas = ref([])
     const selectedDependencies = ref([])
@@ -128,6 +128,42 @@ export default function selectionManager() {
         })
     }
 
+    const spacyFormatDocumentParse = ref({})
+    const spacyFormatSentenceParseFunction = () => {
+        if (spacyFormatDocumentParse.value == undefined || ! spacyFormatDocumentParse.value.words) {
+            return {}
+        }
+        const store = useStore()
+        const filteredArcs = spacyFormatDocumentParse.value.arcs.filter(
+            arc =>
+            arc.start >= store.getters.currentSentence.start 
+            && arc.end >= store.getters.currentSentence.start
+            && arc.start < store.getters.currentSentence.end 
+            && arc.end < store.getters.currentSentence.end 
+            )
+        let arcsClone = JSON.parse(JSON.stringify(filteredArcs.slice(0)))
+        arcsClone.forEach(function (arc, index) {
+            arc.start -= (store.getters.currentSentence.start)
+            arc.end -= (store.getters.currentSentence.start)
+            // Chin format property
+            arc.indexInSentence = index
+            arc.trueStart = arc.dir == 'right' ? arc.start : arc.end
+            arc.trueEnd = arc.dir == 'right' ? arc.end : arc.start
+        })
+        // Chin format property
+        spacyFormatDocumentParse.value.words.forEach((word, index) => word.indexInSentence = index - store.getters.currentSentence.start)            
+        const sentenceParse = {
+            words: spacyFormatDocumentParse.value.words.filter(
+            (word, index) =>
+                index >= store.getters.currentSentence.start 
+                && index < store.getters.currentSentence.end
+            )
+            , arcs: arcsClone
+        }
+        return sentenceParse
+    }
+    const spacyFormatSentenceParse = computed(spacyFormatSentenceParseFunction)
+
     return {
         posSelectionManager: {
             selections: selectedPOSs.value
@@ -146,5 +182,6 @@ export default function selectionManager() {
             , saveSelectedPattern: saveSelectedPattern
         }
         , spacyFormatDocumentParse: spacyFormatDocumentParse
+        , spacyFormatSentenceParse: spacyFormatSentenceParse
     }
 }
