@@ -5,8 +5,8 @@
             :viewbox="viewbox" :data-format="config.format"
             :style="{color: config.foregroundColor, background: config.backgroundColor, fontFamily: config.fontFamily}" 
             preserveAspectRatio="xMinYMax meet">
-            <DependencyNode v-for="(word, index) in sentenceParse.words" :word="word" :index="index" :key="index"></DependencyNode>
-            <DependencyEdge v-for="arc in sentenceParse.arcs" :arc="arc" :key="arc.key"></DependencyEdge>
+            <DependencyNode v-for="(word, index) in spacyFormatHelper.sentenceParse.words" :word="word" :index="index" :key="index"></DependencyNode>
+            <DependencyEdge v-for="arc in spacyFormatHelper.sentenceParse.arcs" :arc="arc" :key="arc.key"></DependencyEdge>
         </svg>
         <PatternDialog></PatternDialog>
     </div>
@@ -24,19 +24,18 @@ export default {
     data() {
         return {
             // 這個變數最主要的特點是，每家的 dependency graph 都有自己一份（相對於 spacySentences 是統一一份的）
-            spacyFormatDocumentParse: undefined
-            , selectedDependencyIndices: []
+            selectedDependencyIndices: []
         }
     }
     , computed: {
         levels: function() {
-            return this.spacyFormatDocumentParse === undefined ? [] : [...new Set(this.spacyFormatDocumentParse.arcs.map(({ end, start }) => end - start).sort((a, b) => a - b))]
+            return this.spacyFormatHelper.sentenceParse.words === undefined ? [] : [...new Set(this.spacyFormatHelper.sentenceParse.arcs.map(({ end, start }) => end - start).sort((a, b) => a - b))]
         }
         , highestLevel: function() {
             return this.levels.indexOf(this.levels.slice(-1)[0]) + 1
         } 
         , width: function() {
-            return this.spacyFormatDocumentParse === undefined ? 0 : this.config.offsetX + this.spacyFormatDocumentParse.words.length * this.config.distance
+            return this.spacyFormatHelper.sentenceParse.words === undefined ? 0 : this.config.offsetX + this.spacyFormatHelper.sentenceParse.words.length * this.config.distance
         }
         , height: function() {
             return this.offsetY + 3 * this.config.wordSpacing
@@ -48,39 +47,7 @@ export default {
             return this.config.distance / 2 * this.highestLevel
         }
         , isParsedContentReady() {
-            return this.spacyFormatDocumentParse !== undefined
-        }
-        , sentenceParse: function() {
-            if (this.spacyFormatDocumentParse === undefined) {
-                return {}
-            }
-            const filteredArcs = this.spacyFormatDocumentParse.arcs.filter(
-                arc =>
-                arc.start >= this.currentSentence.start 
-                && arc.end >= this.currentSentence.start
-                && arc.start < this.currentSentence.end 
-                && arc.end < this.currentSentence.end 
-                )
-            let arcsClone = JSON.parse(JSON.stringify(filteredArcs.slice(0)))
-            arcsClone.forEach(function (arc, index) {
-                arc.start -= (this.currentSentence.start)
-                arc.end -= (this.currentSentence.start)
-                // Chin format property
-                arc.indexInSentence = index
-                arc.trueStart = arc.dir == 'right' ? arc.start : arc.end
-                arc.trueEnd = arc.dir == 'right' ? arc.end : arc.start
-            }, this)
-            // Chin format property
-            this.spacyFormatDocumentParse.words.forEach((word, index) => word.indexInSentence = index - this.currentSentence.start, this)            
-            const sentenceParse = {
-                words: this.spacyFormatDocumentParse.words.filter(
-                (word, index) =>
-                    index >= this.currentSentence.start 
-                    && index < this.currentSentence.end
-                )
-                , arcs: arcsClone
-            }
-            return sentenceParse
+            return this.spacyFormatHelper.sentenceParse.words !== undefined
         }
         , ...mapState({
             originalText: 'originalText'
@@ -98,7 +65,7 @@ export default {
     , methods: {
         async delegateToSpaceFormatParserProvider(documentText) {
             await this.spacyFormatParseProvider(documentText).then((spacyFormatParsedResult) => {
-                this.spacyFormatDocumentParse = spacyFormatParsedResult
+                this.spacyFormatHelper.documentParse = spacyFormatParsedResult
             })
         }
         , toggleDependencyIndexSelected(dependencyIndex) {
@@ -145,12 +112,17 @@ export default {
             , lemmaSelectionManager
             , dependencySelectionManager
             , selectionHelper
+            , spacyFormatHelper
         } = selectionManager()
 
         provide('posSelectionManager', posSelectionManager)
         provide('lemmaSelectionManager', lemmaSelectionManager)
         provide('dependencySelectionManager', dependencySelectionManager)
         provide('selectionHelper', selectionHelper)
+
+        return {
+            spacyFormatHelper
+        }
     }
     , provide() {
         return {
