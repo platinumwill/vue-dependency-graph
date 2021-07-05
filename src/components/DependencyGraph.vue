@@ -1,4 +1,5 @@
 <template>
+    <DocumentPanel></DocumentPanel>
     <SentenceParseGraph v-for="(provider, index) in spacyFormatParseProviders" :key="index" :spacyFormatParseProvider="provider"></SentenceParseGraph>
     <DocumentInput></DocumentInput>
     <DocumentPanel></DocumentPanel>
