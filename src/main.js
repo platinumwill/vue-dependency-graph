@@ -1,7 +1,7 @@
 import { createApp } from 'vue'
 import { createStore } from 'vuex'
 import App from './App.vue'
-import axios from 'axios'
+import spacyAgent from '@/composables/parse-providers/spacyAgent'
 import PrimeVue from 'primevue/config'
 
 const app = createApp(App)
@@ -32,20 +32,16 @@ const store = createStore({
   }
   , actions: {
     async parseAndStoreDocument({commit}, documentText) {
-      commit('storeOriginalText', documentText)
-
       // 這是為了要拿句子的拆分
       const params = new URLSearchParams();
       params.append('text', documentText);
-      await axios.post('http://localhost:5000/spacy/parse', params).then(function(response) {
-        const parsedDocument = response.data
-        const sentences = parsedDocument.spacy_sents
+      spacyAgent(documentText).then((documentParse) => {
+        const sentences = documentParse.spacy_sents
         sentences.forEach((spacySentence) => spacySentence.indexInDocument = sentences.indexOf(spacySentence))
         commit('storeSpacySentences', sentences)
-        commit('baseline/saveSpacyFormatParse', parsedDocument)
-      }).catch(function(error) {
-        console.log(error)
+        commit('baseline/saveSpacyFormatParse', documentParse)
       })
+      commit('storeOriginalText', documentText)
     }
   }
   , mutations: {
