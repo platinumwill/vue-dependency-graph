@@ -21,11 +21,11 @@ const store = createStore({
       , state: () => ({
         tokens: []
         , sentences: []
-        , tempSpacyParse: undefined
+        , spacyFormatParse: undefined
       })
       , mutations: {
-        saveTempSpacyParse (state, parse) {
-          state.tempSpacyParse = parse
+        saveSpacyFormatParse (state, parse) {
+          state.spacyFormatParse = parse
         }
       }
     }
@@ -42,7 +42,7 @@ const store = createStore({
         const sentences = parsedDocument.spacy_sents
         sentences.forEach((spacySentence) => spacySentence.indexInDocument = sentences.indexOf(spacySentence))
         commit('storeSpacySentences', sentences)
-        commit('baseline/saveTempSpacyParse', parsedDocument)
+        commit('baseline/saveSpacyFormatParse', parsedDocument)
       }).catch(function(error) {
         console.log(error)
       })
@@ -64,9 +64,8 @@ const store = createStore({
     }
   }
   , getters: {
-    documentParse (state) {
-      // TODO to be removed
-      return state.baseline.tempSpacyParse
+    baselineParse (state) {
+      return state.baseline.spacyFormatParse
     }
     , isDocumentReady(state) {
       return (state.spacySentences.length > 0)

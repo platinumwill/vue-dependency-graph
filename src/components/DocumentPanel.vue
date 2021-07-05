@@ -1,7 +1,7 @@
 <template>
     <div v-if="isDocumentReady">
         <div>
-            <DocumentWord v-for="(word, index) in documentParse.words" :word="word" :key="index" :wordIndex="index" :sentence="spacySentences[currentSentenceIndex]"></DocumentWord>
+            <DocumentWord v-for="(word, index) in baselineParse.words" :word="word" :key="index" :wordIndex="index" :sentence="spacySentences[currentSentenceIndex]"></DocumentWord>
         </div>
         <div>
             <Button label="<" @click="previousSentence" :disabled="previousSentenceButtonDisabled" />
@@ -34,7 +34,7 @@ export default {
             , 'currentSentenceIndex'
         ])
         , ...mapGetters([
-            'documentParse'
+            'baselineParse'
             , 'isDocumentReady'
             , 'maxSentenceIndex'
         ])
