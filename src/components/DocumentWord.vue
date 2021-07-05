@@ -7,7 +7,7 @@
 export default {
     computed: {
         wordClass: function() {
-            if (this.wordIndex < this.sentence.start -1 || this.wordIndex >= this.sentence.end) {
+            if (this.wordIndex <= this.sentence.start -1 || this.wordIndex >= this.sentence.end) {
                 return 'document'
             }
             return 'currentSentence' 
