@@ -2,6 +2,7 @@
     <div v-if="isDocumentReady">
         <div>
             <DocumentWord v-for="(word, index) in sentenceNavigatorDoc.words" :word="word" :key="index" :wordIndex="index" :sentence="sentences[currentSentenceIndex]"></DocumentWord>
+            <DocumentSentence v-for="(sentence, index) in newSentences" :sentence="sentence" :key="index" :sentenceIndex="index"></DocumentSentence>
         </div>
         <div>
             <Button label="<" @click="previousSentence" :disabled="previousSentenceButtonDisabled" />
@@ -12,6 +13,7 @@
 
 <script>
 import DocumentWord from "./DocumentWord.vue"
+import DocumentSentence from "./DocumentSentence.vue"
 import { mapGetters, mapMutations, mapState } from 'vuex'
 import Button from 'primevue/button'
 
@@ -32,6 +34,7 @@ export default {
         , ...mapState({ 
             sentences: state => state.sentenceNavigator.sentences
             , currentSentenceIndex: state => state.currentSentenceIndex
+            , newSentences: state => state.newSentenceNavigator.sentences
          })
         , ...mapGetters([
             'sentenceNavigatorDoc'
@@ -42,14 +45,20 @@ export default {
     , methods: {
         nextSentence() {
             this.shiftSentence(1)
+            this.shiftNewSentence(1)
         }
         , previousSentence() {
             this.shiftSentence(-1)
+            this.shiftNewSentence(-1)
         }
-        , ...mapMutations(['shiftSentence'])
+        , ...mapMutations({
+            shiftSentence: 'shiftSentence'
+            , shiftNewSentence: 'newSentenceNavigator/shiftSentence'
+        })
     }
     , components: {
-        DocumentWord
+        DocumentSentence
+        , DocumentWord
         , Button
     }
 }

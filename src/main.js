@@ -32,12 +32,29 @@ const store = createStore({
         }
       }
     }
+    , newSentenceNavigator: {
+      namespaced: true
+      , state: () => ({
+        sentences: []
+        , currentSentenceIndex: 0
+      })
+      , mutations: {
+        storeSentences (state, sentences) {
+          state.sentences = sentences
+        }
+        , shiftSentence(state, offset) {
+            const newIndex = state.currentSentenceIndex + offset
+            if (newIndex < 0) return
+            state.currentSentenceIndex = newIndex
+        }
+      }
+    }
   }
   , actions: {
     async parseAndStoreDocument({commit}, documentText) {
       // 這是為了要拿句子的拆分
       googleApi(documentText).then((parse) => {
-        console.log('google: ', parse)
+        commit('newSentenceNavigator/storeSentences', parse.sentences.map(sentence => sentence.text.content))
       })
       spacyAgent(documentText).then((documentParse) => {
         const sentences = documentParse.spacy_sents
