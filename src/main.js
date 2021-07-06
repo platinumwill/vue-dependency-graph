@@ -55,15 +55,14 @@ const store = createStore({
       // 這是為了要拿句子的拆分
       googleApi(documentText).then((parse) => {
         const newSentences = parse.sentences.map(({ text: {content: text} }) => ({text}))
+        newSentences.forEach((sentence, index) => {sentence.index = index})
         spacyAgent(documentText).then((documentParse) => {
           const sentences = documentParse.spacy_sents
           // 句子的屬性（以後準備拿掉）
           sentences.forEach((spacySentence, index) => {
-            newSentences[index].indexInDocument = sentences.indexOf(spacySentence)
             newSentences[index].start = spacySentence.start
             newSentences[index].end = spacySentence.end
           })
-          sentences.forEach((spacySentence) => spacySentence.indexInDocument = sentences.indexOf(spacySentence))
           commit('sentenceNavigator/saveSentences', sentences)
           commit('sentenceNavigator/saveSpacyFormatParse', documentParse)
         })

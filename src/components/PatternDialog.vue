@@ -82,7 +82,7 @@ export default {
                 const token = this.$parent.spacyFormatHelper.sentenceParse.words[posIndex]
                 item.type = 'POS'
                 item.content = token.tag + ' (' + token.lemma + ')'
-                item.vueKey = 'sentence-' + this.$parent.currentSentence.indexInDocument + "_pos-" + token.indexInSentence
+                item.vueKey = 'sentence-' + this.$parent.currentSentence.index + "_pos-" + token.indexInSentence
                 item.sortOrder = token.indexInSentence
                 segmentItems.push(item)
             }, this)
@@ -91,7 +91,7 @@ export default {
                 const token = this.$parent.spacyFormatHelper.sentenceParse.words[lemmaIndex]
                 item.type = 'Lemma'
                 item.content = token.lemma
-                item.vueKey = 'sentence-' + this.$parent.currentSentence.indexInDocument + "_lemma-" + token.indexInSentence
+                item.vueKey = 'sentence-' + this.$parent.currentSentence.index + "_lemma-" + token.indexInSentence
                 item.sortOrder = token.indexInSentence
                 segmentItems.push(item)
             }, this)
@@ -100,7 +100,7 @@ export default {
                 const dependency = this.$parent.spacyFormatHelper.sentenceParse.arcs[dependencyIndex]
                 item.type = 'Dependency'
                 item.content = dependency.label
-                item.vueKey = 'sentence-' + this.$parent.currentSentence.indexInDocument + "_dependency-" + dependency.indexInSentence
+                item.vueKey = 'sentence-' + this.$parent.currentSentence.index + "_dependency-" + dependency.indexInSentence
                 item.sortOrder = (dependency.trueStart + dependency.trueEnd) / 2
                 if (this.selectionHelper.isDependencyPlaceholder(dependency)) {
                     item.isPlaceholder = true
