@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import { createStore } from 'vuex'
 import App from './App.vue'
 import spacyAgent from '@/composables/parse-providers/spacyAgent'
+import googleApi from '@/composables/google-api'
 import PrimeVue from 'primevue/config'
 
 const app = createApp(App)
@@ -35,8 +36,9 @@ const store = createStore({
   , actions: {
     async parseAndStoreDocument({commit}, documentText) {
       // 這是為了要拿句子的拆分
-      const params = new URLSearchParams();
-      params.append('text', documentText);
+      googleApi(documentText).then((parse) => {
+        console.log('google: ', parse)
+      })
       spacyAgent(documentText).then((documentParse) => {
         const sentences = documentParse.spacy_sents
         sentences.forEach((spacySentence) => spacySentence.indexInDocument = sentences.indexOf(spacySentence))
