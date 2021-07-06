@@ -1,5 +1,5 @@
 <template>
-    <span :class="sentenceClass">{{ sentence }} &nbsp;</span>
+    <span :class="sentenceClass">{{ sentence.text }} &nbsp;</span>
 </template>
 
 

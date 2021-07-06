@@ -54,15 +54,22 @@ const store = createStore({
     async parseAndStoreDocument({commit}, documentText) {
       // 這是為了要拿句子的拆分
       googleApi(documentText).then((parse) => {
-        commit('newSentenceNavigator/storeSentences', parse.sentences.map(sentence => sentence.text.content))
+        const newSentences = parse.sentences.map(({ text: {content: text} }) => ({text}))
+        spacyAgent(documentText).then((documentParse) => {
+          const sentences = documentParse.spacy_sents
+          // 句子的屬性（以後準備拿掉）
+          sentences.forEach((spacySentence, index) => {
+            newSentences[index].indexInDocument = sentences.indexOf(spacySentence)
+            newSentences[index].start = spacySentence.start
+            newSentences[index].end = spacySentence.end
+          })
+          sentences.forEach((spacySentence) => spacySentence.indexInDocument = sentences.indexOf(spacySentence))
+          commit('sentenceNavigator/saveSentences', sentences)
+          commit('sentenceNavigator/saveSpacyFormatParse', documentParse)
+        })
+        commit('newSentenceNavigator/storeSentences', newSentences)
+        commit('storeOriginalText', documentText)
       })
-      spacyAgent(documentText).then((documentParse) => {
-        const sentences = documentParse.spacy_sents
-        sentences.forEach((spacySentence) => spacySentence.indexInDocument = sentences.indexOf(spacySentence))
-        commit('sentenceNavigator/saveSentences', sentences)
-        commit('sentenceNavigator/saveSpacyFormatParse', documentParse)
-      })
-      commit('storeOriginalText', documentText)
     }
   }
   , mutations: {
@@ -91,7 +98,7 @@ const store = createStore({
       return state.sentenceNavigator.sentences.length - 1
     }
     , currentSentence (state) {
-      return state.sentenceNavigator.sentences[state.currentSentenceIndex]
+      return state.newSentenceNavigator.sentences[state.currentSentenceIndex]
     }
   }
 })
