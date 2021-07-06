@@ -130,10 +130,10 @@ export default function selectionManager() {
 
     const spacyFormatDocumentParse = ref({})
     const spacyFormatSentenceParseFunction = () => {
-        if (spacyFormatDocumentParse.value == undefined || ! spacyFormatDocumentParse.value.words) {
+        const store = useStore()
+        if (spacyFormatDocumentParse.value == undefined || !spacyFormatDocumentParse.value.words || !store.getters.isDocumentReady) {
             return {}
         }
-        const store = useStore()
         const filteredArcs = spacyFormatDocumentParse.value.arcs.filter(
             arc =>
             arc.start >= store.getters.currentSentence.start 

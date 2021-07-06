@@ -12,11 +12,10 @@ const store = createStore({
     return {
         currentSentenceIndex: 0
         , originalText : ''
-        , spacySentences: []
     }
   }
   , modules: {
-    baseline: {
+    sentenceNavigator: {
       namespaced: true
       , state: () => ({
         tokens: []
@@ -26,6 +25,9 @@ const store = createStore({
       , mutations: {
         saveSpacyFormatParse (state, parse) {
           state.spacyFormatParse = parse
+        }
+        , saveSentences (state, sentences) {
+          state.sentences = sentences
         }
       }
     }
@@ -38,8 +40,8 @@ const store = createStore({
       spacyAgent(documentText).then((documentParse) => {
         const sentences = documentParse.spacy_sents
         sentences.forEach((spacySentence) => spacySentence.indexInDocument = sentences.indexOf(spacySentence))
-        commit('storeSpacySentences', sentences)
-        commit('baseline/saveSpacyFormatParse', documentParse)
+        commit('sentenceNavigator/saveSentences', sentences)
+        commit('sentenceNavigator/saveSpacyFormatParse', documentParse)
       })
       commit('storeOriginalText', documentText)
     }
@@ -47,9 +49,6 @@ const store = createStore({
   , mutations: {
     storeOriginalText (state, documentText) {
         state.originalText = documentText
-    }
-    , storeSpacySentences (state, sentences) {
-        state.spacySentences = sentences
     }
     , shiftSentence(state, offset) {
         const newIndex = state.currentSentenceIndex + offset
@@ -60,20 +59,20 @@ const store = createStore({
     }
   }
   , getters: {
-    baselineParse (state) {
-      return state.baseline.spacyFormatParse
+    sentenceNavigatorDoc (state) {
+      return state.sentenceNavigator.spacyFormatParse
     }
     , isDocumentReady(state) {
-      return (state.spacySentences.length > 0)
+      return (state.sentenceNavigator.sentences.length > 0)
     }
     , maxSentenceIndex(state) {
-      if (! state.spacySentences.length > 0) {
+      if (! state.sentenceNavigator.sentences.length > 0) {
         return -1 
       }
-      return state.spacySentences.length - 1
+      return state.sentenceNavigator.sentences.length - 1
     }
     , currentSentence (state) {
-      return state.spacySentences[state.currentSentenceIndex]
+      return state.sentenceNavigator.sentences[state.currentSentenceIndex]
     }
   }
 })
