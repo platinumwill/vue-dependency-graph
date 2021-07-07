@@ -1,7 +1,7 @@
 <template>
     <div v-if="isDocumentReady">
         <div>
-            <DocumentSentence v-for="(sentence, index) in newSentences" :sentence="sentence" :key="index" :sentenceIndex="index"></DocumentSentence>
+            <DocumentSentence v-for="(sentence, index) in sentences" :sentence="sentence" :key="index" :sentenceIndex="index"></DocumentSentence>
         </div>
         <div>
             <Button label="<" @click="previousSentence" :disabled="previousSentenceButtonDisabled" />
@@ -31,7 +31,7 @@ export default {
         }
         , ...mapState({ 
             currentSentenceIndex: state => state.currentSentenceIndex
-            , newSentences: state => state.newSentenceNavigator.sentences
+            , sentences: state => state.sentenceNavigator.sentences
          })
         , ...mapGetters([
             'isDocumentReady'
@@ -49,7 +49,7 @@ export default {
         }
         , ...mapMutations({
             shiftSentence: 'shiftSentence'
-            , shiftNewSentence: 'newSentenceNavigator/shiftSentence'
+            , shiftNewSentence: 'sentenceNavigator/shiftSentence'
         })
     }
     , components: {

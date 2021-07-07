@@ -16,7 +16,7 @@ const store = createStore({
     }
   }
   , modules: {
-    newSentenceNavigator: {
+    sentenceNavigator: {
       namespaced: true
       , state: () => ({
         sentences: []
@@ -48,7 +48,7 @@ const store = createStore({
             newSentences[index].end = spacySentence.end
           })
         })
-        commit('newSentenceNavigator/storeSentences', newSentences)
+        commit('sentenceNavigator/storeSentences', newSentences)
         commit('storeOriginalText', documentText)
       })
     }
@@ -67,16 +67,16 @@ const store = createStore({
   }
   , getters: {
     isDocumentReady(state) {
-      return (state.newSentenceNavigator.sentences.length > 0)
+      return (state.sentenceNavigator.sentences.length > 0)
     }
     , maxSentenceIndex(state) {
-      if (! state.newSentenceNavigator.sentences.length > 0) {
+      if (! state.sentenceNavigator.sentences.length > 0) {
         return -1 
       }
-      return state.newSentenceNavigator.sentences.length - 1
+      return state.sentenceNavigator.sentences.length - 1
     }
     , currentSentence (state) {
-      return state.newSentenceNavigator.sentences[state.currentSentenceIndex]
+      return state.sentenceNavigator.sentences[state.currentSentenceIndex]
     }
   }
 })

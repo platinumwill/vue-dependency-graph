@@ -14,7 +14,7 @@ export default {
             return 'document' 
         }
         , ...mapState({
-            currentSentenceIndex: state => state.newSentenceNavigator.currentSentenceIndex
+            currentSentenceIndex: state => state.sentenceNavigator.currentSentenceIndex
         })
     }
     , props: [
