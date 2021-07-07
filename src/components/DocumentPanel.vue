@@ -1,7 +1,6 @@
 <template>
     <div v-if="isDocumentReady">
         <div>
-            <DocumentWord v-for="(word, index) in sentenceNavigatorDoc.words" :word="word" :key="index" :wordIndex="index" :sentence="sentences[currentSentenceIndex]"></DocumentWord>
             <DocumentSentence v-for="(sentence, index) in newSentences" :sentence="sentence" :key="index" :sentenceIndex="index"></DocumentSentence>
         </div>
         <div>
@@ -12,7 +11,6 @@
 </template>
 
 <script>
-import DocumentWord from "./DocumentWord.vue"
 import DocumentSentence from "./DocumentSentence.vue"
 import { mapGetters, mapMutations, mapState } from 'vuex'
 import Button from 'primevue/button'
@@ -32,13 +30,11 @@ export default {
             return false
         }
         , ...mapState({ 
-            sentences: state => state.sentenceNavigator.sentences
-            , currentSentenceIndex: state => state.currentSentenceIndex
+            currentSentenceIndex: state => state.currentSentenceIndex
             , newSentences: state => state.newSentenceNavigator.sentences
          })
         , ...mapGetters([
-            'sentenceNavigatorDoc'
-            , 'isDocumentReady'
+            'isDocumentReady'
             , 'maxSentenceIndex'
         ])
     }
@@ -58,7 +54,6 @@ export default {
     }
     , components: {
         DocumentSentence
-        , DocumentWord
         , Button
     }
 }

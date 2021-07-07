@@ -16,23 +16,7 @@ const store = createStore({
     }
   }
   , modules: {
-    sentenceNavigator: {
-      namespaced: true
-      , state: () => ({
-        tokens: []
-        , sentences: []
-        , spacyFormatParse: undefined
-      })
-      , mutations: {
-        saveSpacyFormatParse (state, parse) {
-          state.spacyFormatParse = parse
-        }
-        , saveSentences (state, sentences) {
-          state.sentences = sentences
-        }
-      }
-    }
-    , newSentenceNavigator: {
+    newSentenceNavigator: {
       namespaced: true
       , state: () => ({
         sentences: []
@@ -63,8 +47,6 @@ const store = createStore({
             newSentences[index].start = spacySentence.start
             newSentences[index].end = spacySentence.end
           })
-          commit('sentenceNavigator/saveSentences', sentences)
-          commit('sentenceNavigator/saveSpacyFormatParse', documentParse)
         })
         commit('newSentenceNavigator/storeSentences', newSentences)
         commit('storeOriginalText', documentText)
@@ -84,17 +66,14 @@ const store = createStore({
     }
   }
   , getters: {
-    sentenceNavigatorDoc (state) {
-      return state.sentenceNavigator.spacyFormatParse
-    }
-    , isDocumentReady(state) {
-      return (state.sentenceNavigator.sentences.length > 0)
+    isDocumentReady(state) {
+      return (state.newSentenceNavigator.sentences.length > 0)
     }
     , maxSentenceIndex(state) {
-      if (! state.sentenceNavigator.sentences.length > 0) {
+      if (! state.newSentenceNavigator.sentences.length > 0) {
         return -1 
       }
-      return state.sentenceNavigator.sentences.length - 1
+      return state.newSentenceNavigator.sentences.length - 1
     }
     , currentSentence (state) {
       return state.newSentenceNavigator.sentences[state.currentSentenceIndex]
