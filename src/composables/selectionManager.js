@@ -130,33 +130,34 @@ export default function selectionManager() {
 
     const spacyFormatDocumentParse = ref({})
     const spacyFormatSentenceParseFunction = () => {
-        if (spacyFormatDocumentParse.value == undefined || ! spacyFormatDocumentParse.value.words) {
+        const store = useStore()
+        if (spacyFormatDocumentParse.value == undefined || !spacyFormatDocumentParse.value.words || !store.getters.isDocumentReady) {
             return {}
         }
-        const store = useStore()
         const filteredArcs = spacyFormatDocumentParse.value.arcs.filter(
             arc =>
-            arc.start >= store.getters.currentSentence.start 
-            && arc.end >= store.getters.currentSentence.start
-            && arc.start < store.getters.currentSentence.end 
-            && arc.end < store.getters.currentSentence.end 
+            // 這裡應該要準備換掉吧
+            arc.start >= store.state.sentenceNavigator.sentences[store.state.sentenceNavigator.currentSentenceIndex].start
+            && arc.end >= store.state.sentenceNavigator.sentences[store.state.sentenceNavigator.currentSentenceIndex].start
+            && arc.start < store.state.sentenceNavigator.sentences[store.state.sentenceNavigator.currentSentenceIndex].end 
+            && arc.end < store.state.sentenceNavigator.sentences[store.state.sentenceNavigator.currentSentenceIndex].end
             )
         let arcsClone = JSON.parse(JSON.stringify(filteredArcs.slice(0)))
         arcsClone.forEach(function (arc, index) {
-            arc.start -= (store.getters.currentSentence.start)
-            arc.end -= (store.getters.currentSentence.start)
+            arc.start -= (store.state.sentenceNavigator.sentences[store.state.sentenceNavigator.currentSentenceIndex].start)
+            arc.end -= (store.state.sentenceNavigator.sentences[store.state.sentenceNavigator.currentSentenceIndex].start)
             // Chin format property
             arc.indexInSentence = index
             arc.trueStart = arc.dir == 'right' ? arc.start : arc.end
             arc.trueEnd = arc.dir == 'right' ? arc.end : arc.start
         })
         // Chin format property
-        spacyFormatDocumentParse.value.words.forEach((word, index) => word.indexInSentence = index - store.getters.currentSentence.start)            
+        spacyFormatDocumentParse.value.words.forEach((word, index) => word.indexInSentence = index - store.state.sentenceNavigator.sentences[store.state.sentenceNavigator.currentSentenceIndex].start)
         const sentenceParse = {
             words: spacyFormatDocumentParse.value.words.filter(
             (word, index) =>
-                index >= store.getters.currentSentence.start 
-                && index < store.getters.currentSentence.end
+                index >= store.state.sentenceNavigator.sentences[store.state.sentenceNavigator.currentSentenceIndex].start
+                && index < store.state.sentenceNavigator.sentences[store.state.sentenceNavigator.currentSentenceIndex].end
             )
             , arcs: arcsClone
         }

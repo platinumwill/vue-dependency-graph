@@ -1,7 +1,8 @@
 import { createApp } from 'vue'
 import { createStore } from 'vuex'
 import App from './App.vue'
-import axios from 'axios'
+import spacyAgent from '@/composables/parse-providers/spacyAgent'
+import googleApi from '@/composables/google-api'
 import PrimeVue from 'primevue/config'
 
 const app = createApp(App)
@@ -10,50 +11,50 @@ const app = createApp(App)
 const store = createStore({
   state () {
     return {
-        currentSentenceIndex: 0
-        , originalText : ''
-        , spacySentences: []
+        originalText : ''
     }
   }
   , modules: {
-    baseline: {
+    sentenceNavigator: {
       namespaced: true
       , state: () => ({
-        tokens: []
-        , sentences: []
-        , tempSpacyParse: undefined
+        sentences: []
+        , currentSentenceIndex: 0
       })
       , mutations: {
-        saveTempSpacyParse (state, parse) {
-          state.tempSpacyParse = parse
+        storeSentences (state, sentences) {
+          state.sentences = sentences
+        }
+        , shiftSentence(state, offset) {
+            const newIndex = state.currentSentenceIndex + offset
+            if (newIndex < 0) return
+            state.currentSentenceIndex = newIndex
         }
       }
     }
   }
   , actions: {
     async parseAndStoreDocument({commit}, documentText) {
-      commit('storeOriginalText', documentText)
-
       // 這是為了要拿句子的拆分
-      const params = new URLSearchParams();
-      params.append('text', documentText);
-      await axios.post('http://localhost:5000/spacy/parse', params).then(function(response) {
-        const parsedDocument = response.data
-        const sentences = parsedDocument.spacy_sents
-        sentences.forEach((spacySentence) => spacySentence.indexInDocument = sentences.indexOf(spacySentence))
-        commit('storeSpacySentences', sentences)
-        commit('baseline/saveTempSpacyParse', parsedDocument)
-      }).catch(function(error) {
-        console.log(error)
+      googleApi(documentText).then((parse) => {
+        const newSentences = parse.sentences.map(({ text: {content: text} }) => ({text}))
+        newSentences.forEach((sentence, index) => {sentence.index = index})
+        spacyAgent(documentText).then((documentParse) => {
+          const sentences = documentParse.spacy_sents
+          // 句子的屬性（以後準備拿掉）
+          sentences.forEach((spacySentence, index) => {
+            newSentences[index].start = spacySentence.start
+            newSentences[index].end = spacySentence.end
+          })
+        })
+        commit('sentenceNavigator/storeSentences', newSentences)
+        commit('storeOriginalText', documentText)
       })
     }
   }
   , mutations: {
     storeOriginalText (state, documentText) {
         state.originalText = documentText
-    }
-    , storeSpacySentences (state, sentences) {
-        state.spacySentences = sentences
     }
     , shiftSentence(state, offset) {
         const newIndex = state.currentSentenceIndex + offset
@@ -64,21 +65,17 @@ const store = createStore({
     }
   }
   , getters: {
-    documentParse (state) {
-      // TODO to be removed
-      return state.baseline.tempSpacyParse
-    }
-    , isDocumentReady(state) {
-      return (state.spacySentences.length > 0)
+    isDocumentReady(state) {
+      return (state.sentenceNavigator.sentences.length > 0)
     }
     , maxSentenceIndex(state) {
-      if (! state.spacySentences.length > 0) {
+      if (! state.sentenceNavigator.sentences.length > 0) {
         return -1 
       }
-      return state.spacySentences.length - 1
+      return state.sentenceNavigator.sentences.length - 1
     }
     , currentSentence (state) {
-      return state.spacySentences[state.currentSentenceIndex]
+      return state.sentenceNavigator.sentences[state.sentenceNavigator.currentSentenceIndex]
     }
   }
 })
