@@ -33,9 +33,9 @@ export default {
         color: function() {
             return this.selected ? this.config.selectedForegroundColor : 'currentColor'
         }
-        , ...mapState([
-            'currentSentenceIndex'
-            ])
+        , ...mapState({ 
+            currentSentenceIndex: state => state.sentenceNavigator.currentSentenceIndex
+             })
         , selected: function() {
             return this.selectionManager.selections.indexOf(this.token.indexInSentence) >= 0
         }

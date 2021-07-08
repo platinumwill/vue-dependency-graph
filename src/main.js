@@ -11,8 +11,7 @@ const app = createApp(App)
 const store = createStore({
   state () {
     return {
-        currentSentenceIndex: 0
-        , originalText : ''
+        originalText : ''
     }
   }
   , modules: {
@@ -76,7 +75,7 @@ const store = createStore({
       return state.sentenceNavigator.sentences.length - 1
     }
     , currentSentence (state) {
-      return state.sentenceNavigator.sentences[state.currentSentenceIndex]
+      return state.sentenceNavigator.sentences[state.sentenceNavigator.currentSentenceIndex]
     }
   }
 })

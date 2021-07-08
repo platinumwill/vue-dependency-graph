@@ -30,7 +30,7 @@ export default {
             return false
         }
         , ...mapState({ 
-            currentSentenceIndex: state => state.currentSentenceIndex
+            currentSentenceIndex: state => state.sentenceNavigator.currentSentenceIndex
             , sentences: state => state.sentenceNavigator.sentences
          })
         , ...mapGetters([
@@ -41,15 +41,12 @@ export default {
     , methods: {
         nextSentence() {
             this.shiftSentence(1)
-            this.shiftNewSentence(1)
         }
         , previousSentence() {
             this.shiftSentence(-1)
-            this.shiftNewSentence(-1)
         }
         , ...mapMutations({
-            shiftSentence: 'shiftSentence'
-            , shiftNewSentence: 'sentenceNavigator/shiftSentence'
+            shiftSentence: 'sentenceNavigator/shiftSentence'
         })
     }
     , components: {
