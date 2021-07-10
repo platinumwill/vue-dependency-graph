@@ -139,8 +139,8 @@ export default function selectionManager() {
             // 這裡應該要準備換掉吧
             arc.start >= store.state.sentenceNavigator.sentences[store.state.sentenceNavigator.currentSentenceIndex].start
             && arc.end >= store.state.sentenceNavigator.sentences[store.state.sentenceNavigator.currentSentenceIndex].start
-            && arc.start < store.state.sentenceNavigator.sentences[store.state.sentenceNavigator.currentSentenceIndex].end 
-            && arc.end < store.state.sentenceNavigator.sentences[store.state.sentenceNavigator.currentSentenceIndex].end
+            && arc.start <= store.state.sentenceNavigator.sentences[store.state.sentenceNavigator.currentSentenceIndex].end 
+            && arc.end <= store.state.sentenceNavigator.sentences[store.state.sentenceNavigator.currentSentenceIndex].end
             )
         let arcsClone = JSON.parse(JSON.stringify(filteredArcs.slice(0)))
         arcsClone.forEach(function (arc, index) {
@@ -157,7 +157,7 @@ export default function selectionManager() {
             words: spacyFormatDocumentParse.value.words.filter(
             (word, index) =>
                 index >= store.state.sentenceNavigator.sentences[store.state.sentenceNavigator.currentSentenceIndex].start
-                && index < store.state.sentenceNavigator.sentences[store.state.sentenceNavigator.currentSentenceIndex].end
+                && index <= store.state.sentenceNavigator.sentences[store.state.sentenceNavigator.currentSentenceIndex].end
             )
             , arcs: arcsClone
         }

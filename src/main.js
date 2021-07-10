@@ -44,7 +44,7 @@ const store = createStore({
           // 句子的屬性（以後準備拿掉）
           sentences.forEach((spacySentence, index) => {
             newSentences[index].start = spacySentence.start
-            newSentences[index].end = spacySentence.end
+            newSentences[index].end = spacySentence.end - 1
           })
         })
         commit('sentenceNavigator/storeSentences', newSentences)
