@@ -1,8 +1,8 @@
 import { createApp } from 'vue'
 import { createStore } from 'vuex'
 import App from './App.vue'
-import spacyAgent from '@/composables/parse-providers/spacyAgent'
 import googleApi from '@/composables/google-api'
+import stanfordnlpApi from '@/composables/stanfordnlp-api'
 import PrimeVue from 'primevue/config'
 
 const app = createApp(App)
@@ -37,17 +37,18 @@ const store = createStore({
     async parseAndStoreDocument({commit}, documentText) {
       // 這是為了要拿句子的拆分
       googleApi(documentText).then((parse) => {
-        const newSentences = parse.sentences.map(({ text: {content: text} }) => ({text}))
-        newSentences.forEach((sentence, index) => {sentence.index = index})
-        spacyAgent(documentText).then((documentParse) => {
-          const sentences = documentParse.spacy_sents
+        const sentences = parse.sentences.map(({ text: {content: text} }) => ({text}))
+        sentences.forEach((sentence, index) => {sentence.index = index})
+        stanfordnlpApi(documentText).then((stanfordnlpParse) => {
           // 句子的屬性（以後準備拿掉）
-          sentences.forEach((spacySentence, index) => {
-            newSentences[index].start = spacySentence.start
-            newSentences[index].end = spacySentence.end - 1
+          let start = 0
+          sentences.forEach((sentence, index) => {
+            sentence.start = start
+            sentence.end = start + stanfordnlpParse.sentences[index].tokens.length - 1
+            start += stanfordnlpParse.sentences[index].tokens.length
           })
         })
-        commit('sentenceNavigator/storeSentences', newSentences)
+        commit('sentenceNavigator/storeSentences', sentences)
         commit('storeOriginalText', documentText)
       })
     }
