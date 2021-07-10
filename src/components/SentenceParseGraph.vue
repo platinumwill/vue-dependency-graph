@@ -5,8 +5,8 @@
             :viewbox="viewbox" :data-format="config.format"
             :style="{color: config.foregroundColor, background: config.backgroundColor, fontFamily: config.fontFamily}" 
             preserveAspectRatio="xMinYMax meet">
-            <DependencyNode v-for="(word, index) in spacyFormatHelper.sentenceParse.words" :word="word" :index="index" :key="index"></DependencyNode>
-            <DependencyEdge v-for="arc in spacyFormatHelper.sentenceParse.arcs" :arc="arc" :key="arc.key"></DependencyEdge>
+            <DependencyNode v-for="(word, index) in currentSpacyFormatSentence.words" :word="word" :index="index" :key="index"></DependencyNode>
+            <DependencyEdge v-for="arc in currentSpacyFormatSentence.arcs" :arc="arc" :key="arc.key"></DependencyEdge>
         </svg>
         <PatternDialog></PatternDialog>
     </div>
@@ -31,9 +31,7 @@ export default {
     }
     , computed: {
         levels: function() {
-            return this.spacyFormatHelper.sentenceParse.words === undefined 
-            ? [] 
-            : [...new Set(this.spacyFormatHelper.sentenceParse.arcs
+            return [...new Set(this.currentSpacyFormatSentence.arcs
                 .map(({ end, start }) => end - start)
                 .sort((a, b) => a - b))]
         }
@@ -41,7 +39,7 @@ export default {
             return this.levels.indexOf(this.levels.slice(-1)[0]) + 1
         } 
         , width: function() {
-            return this.spacyFormatHelper.sentenceParse.words === undefined ? 0 : this.config.offsetX + this.spacyFormatHelper.sentenceParse.words.length * this.config.distance
+            return this.config.offsetX + this.currentSpacyFormatSentence.words.length * this.config.distance
         }
         , height: function() {
             return this.offsetY + 3 * this.config.wordSpacing
