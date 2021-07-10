@@ -137,27 +137,27 @@ export default function selectionManager() {
         const filteredArcs = spacyFormatDocumentParse.value.arcs.filter(
             arc =>
             // 這裡應該要準備換掉吧
-            arc.start >= store.getters.sentences[store.getters.currentSentenceIndex].start
-            && arc.end >= store.getters.sentences[store.getters.currentSentenceIndex].start
-            && arc.start <= store.getters.sentences[store.getters.currentSentenceIndex].end 
-            && arc.end <= store.getters.sentences[store.getters.currentSentenceIndex].end
+            arc.start >= store.getters.currentSentence.start
+            && arc.end >= store.getters.currentSentence.start
+            && arc.start <= store.getters.currentSentence.end 
+            && arc.end <= store.getters.currentSentence.end
             )
         let arcsClone = JSON.parse(JSON.stringify(filteredArcs.slice(0)))
         arcsClone.forEach(function (arc, index) {
-            arc.start -= (store.getters.sentences[store.getters.currentSentenceIndex].start)
-            arc.end -= (store.getters.sentences[store.getters.currentSentenceIndex].start)
+            arc.start -= (store.getters.currentSentence.start)
+            arc.end -= (store.getters.currentSentence.start)
             // Chin format property
             arc.indexInSentence = index
             arc.trueStart = arc.dir == 'right' ? arc.start : arc.end
             arc.trueEnd = arc.dir == 'right' ? arc.end : arc.start
         })
         // Chin format property
-        spacyFormatDocumentParse.value.words.forEach((word, index) => word.indexInSentence = index - store.getters.sentences[store.getters.currentSentenceIndex].start)
+        spacyFormatDocumentParse.value.words.forEach((word, index) => word.indexInSentence = index - store.getters.currentSentence.start)
         const sentenceParse = {
             words: spacyFormatDocumentParse.value.words.filter(
             (word, index) =>
-                index >= store.getters.sentences[store.getters.currentSentenceIndex].start
-                && index <= store.getters.sentences[store.getters.currentSentenceIndex].end
+                index >= store.getters.currentSentence.start
+                && index <= store.getters.currentSentence.end
             )
             , arcs: arcsClone
         }
