@@ -19,6 +19,7 @@ import { mapGetters, mapState } from 'vuex'
 import { provide } from 'vue'
 import PatternDialog from "./PatternDialog.vue"
 import selectionManager from "@/composables/selectionManager"
+import spacyFormatManager from "@/composables/spacyFormatManager"
 
 export default {
     data() {
@@ -112,13 +113,16 @@ export default {
             , lemmaSelectionManager
             , dependencySelectionManager
             , selectionHelper
-            , spacyFormatHelper
         } = selectionManager()
 
         provide('posSelectionManager', posSelectionManager)
         provide('lemmaSelectionManager', lemmaSelectionManager)
         provide('dependencySelectionManager', dependencySelectionManager)
         provide('selectionHelper', selectionHelper)
+
+        const {
+            spacyFormatHelper
+        } = spacyFormatManager()
 
         return {
             spacyFormatHelper
