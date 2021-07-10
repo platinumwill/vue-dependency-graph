@@ -26,6 +26,7 @@ export default {
         return {
             // 這個變數最主要的特點是，每家的 dependency graph 都有自己一份（相對於 spacySentences 是統一一份的）
             selectedDependencyIndices: []
+            , spacyFormatSentences: []
         }
     }
     , computed: {
@@ -48,7 +49,7 @@ export default {
             return this.config.distance / 2 * this.highestLevel
         }
         , isParsedContentReady() {
-            return this.spacyFormatHelper.sentenceParse.words !== undefined
+            return this.spacyFormatHelper.sentenceParse.words !== undefined && this.spacyFormatSentences.length > 0
         }
         , ...mapState({
             originalText: 'originalText'
@@ -67,6 +68,8 @@ export default {
         async delegateToSpaceFormatParserProvider(documentText) {
             await this.spacyFormatParseProvider(documentText).then((spacyFormatParsedResult) => {
                 this.spacyFormatHelper.documentParse = spacyFormatParsedResult
+                const sentences = this.spacyFormatHelper.generateSentences()
+                this.spacyFormatSentences = sentences
             })
         }
         , toggleDependencyIndexSelected(dependencyIndex) {
