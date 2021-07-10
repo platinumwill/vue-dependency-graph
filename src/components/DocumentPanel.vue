@@ -12,7 +12,7 @@
 
 <script>
 import DocumentSentence from "./DocumentSentence.vue"
-import { mapGetters, mapMutations, mapState } from 'vuex'
+import { mapGetters, mapMutations } from 'vuex'
 import Button from 'primevue/button'
 
 export default {
@@ -29,14 +29,12 @@ export default {
             }
             return false
         }
-        , ...mapState({ 
-            currentSentenceIndex: state => state.sentenceNavigator.currentSentenceIndex
-            , sentences: state => state.sentenceNavigator.sentences
+        , ...mapGetters({ 
+            isDocumentReady: 'isDocumentReady'
+            , maxSentenceIndex: 'maxSentenceIndex'
+            , currentSentenceIndex: 'currentSentenceIndex'
+            , sentences: 'sentences'
          })
-        , ...mapGetters([
-            'isDocumentReady'
-            , 'maxSentenceIndex'
-        ])
     }
     , methods: {
         nextSentence() {

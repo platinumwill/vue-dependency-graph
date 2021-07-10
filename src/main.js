@@ -18,17 +18,24 @@ const store = createStore({
     sentenceNavigator: {
       namespaced: true
       , state: () => ({
+        currentSentenceIndex: 0
+      })
+      , mutations: {
+        shiftSentence(state, offset) {
+            const newIndex = state.currentSentenceIndex + offset
+            if (newIndex < 0) return
+            state.currentSentenceIndex = newIndex
+        }
+      }
+    }
+    , baseline: {
+      namespaced: true
+      , state: () => ({
         sentences: []
-        , currentSentenceIndex: 0
       })
       , mutations: {
         storeSentences (state, sentences) {
           state.sentences = sentences
-        }
-        , shiftSentence(state, offset) {
-            const newIndex = state.currentSentenceIndex + offset
-            if (newIndex < 0) return
-            state.currentSentenceIndex = newIndex
         }
       }
     }
@@ -48,7 +55,7 @@ const store = createStore({
             start += stanfordnlpParse.sentences[index].tokens.length
           })
         })
-        commit('sentenceNavigator/storeSentences', sentences)
+        commit('baseline/storeSentences', sentences)
         commit('storeOriginalText', documentText)
       })
     }
@@ -66,17 +73,23 @@ const store = createStore({
     }
   }
   , getters: {
-    isDocumentReady(state) {
-      return (state.sentenceNavigator.sentences.length > 0)
+    isDocumentReady(state, getters) {
+      return (getters.sentences.length > 0)
     }
-    , maxSentenceIndex(state) {
-      if (! state.sentenceNavigator.sentences.length > 0) {
+    , sentences(state) {
+      return state.baseline.sentences
+    }
+    , maxSentenceIndex(state, getters) {
+      if (! getters.sentences.length > 0) {
         return -1 
       }
-      return state.sentenceNavigator.sentences.length - 1
+      return getters.sentences.length - 1
     }
-    , currentSentence (state) {
-      return state.sentenceNavigator.sentences[state.sentenceNavigator.currentSentenceIndex]
+    , currentSentenceIndex (state) {
+      return state.sentenceNavigator.currentSentenceIndex
+    }
+    , currentSentence (state, getters) {
+      return getters.sentences[getters.currentSentenceIndex]
     }
   }
 })

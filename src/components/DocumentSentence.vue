@@ -4,7 +4,7 @@
 
 
 <script>
-import { mapState } from "vuex"
+import { mapGetters } from "vuex"
 export default {
     computed: {
         sentenceClass: function() {
@@ -13,8 +13,8 @@ export default {
             }
             return 'document' 
         }
-        , ...mapState({
-            currentSentenceIndex: state => state.sentenceNavigator.currentSentenceIndex
+        , ...mapGetters({
+            currentSentenceIndex: 'currentSentenceIndex'
         })
     }
     , props: [

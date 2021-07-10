@@ -3,7 +3,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapGetters } from 'vuex'
 
 export default {
     name: 'TokenInfo'
@@ -33,9 +33,9 @@ export default {
         color: function() {
             return this.selected ? this.config.selectedForegroundColor : 'currentColor'
         }
-        , ...mapState({ 
-            currentSentenceIndex: state => state.sentenceNavigator.currentSentenceIndex
-             })
+        , ...mapGetters({ 
+            currentSentenceIndex: 'currentSentenceIndex'
+        })
         , selected: function() {
             return this.selectionManager.selections.indexOf(this.token.indexInSentence) >= 0
         }
