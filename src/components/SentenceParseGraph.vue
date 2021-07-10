@@ -15,7 +15,7 @@
 <script>
 import DependencyEdge from "./DependencyEdge.vue";
 import DependencyNode from "./DependencyNode.vue";
-import { mapState } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 import { provide } from 'vue'
 import PatternDialog from "./PatternDialog.vue"
 import selectionManager from "@/composables/selectionManager"
@@ -31,7 +31,11 @@ export default {
     }
     , computed: {
         levels: function() {
-            return this.spacyFormatHelper.sentenceParse.words === undefined ? [] : [...new Set(this.spacyFormatHelper.sentenceParse.arcs.map(({ end, start }) => end - start).sort((a, b) => a - b))]
+            return this.spacyFormatHelper.sentenceParse.words === undefined 
+            ? [] 
+            : [...new Set(this.spacyFormatHelper.sentenceParse.arcs
+                .map(({ end, start }) => end - start)
+                .sort((a, b) => a - b))]
         }
         , highestLevel: function() {
             return this.levels.indexOf(this.levels.slice(-1)[0]) + 1
@@ -51,8 +55,14 @@ export default {
         , isParsedContentReady() {
             return this.spacyFormatHelper.sentenceParse.words !== undefined && this.spacyFormatSentences.length > 0
         }
+        , currentSpacyFormatSentence() {
+            return this.spacyFormatSentences[this.currentSentenceIndex]
+        }
         , ...mapState({
             originalText: 'originalText'
+        })
+        , ...mapGetters({ 
+            currentSentenceIndex: 'currentSentenceIndex'
         })
     }
     , watch: {
