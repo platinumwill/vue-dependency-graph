@@ -15,7 +15,7 @@
 <script>
 import DependencyEdge from "./DependencyEdge.vue";
 import DependencyNode from "./DependencyNode.vue";
-import { mapGetters, mapState } from 'vuex'
+import { mapState } from 'vuex'
 import { provide } from 'vue'
 import PatternDialog from "./PatternDialog.vue"
 import selectionManager from "@/composables/selectionManager"
@@ -53,9 +53,6 @@ export default {
         }
         , ...mapState({
             originalText: 'originalText'
-        })
-        , ...mapGetters({ 
-            currentSentence: 'currentSentence'
         })
     }
     , watch: {
