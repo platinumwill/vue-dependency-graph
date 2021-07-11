@@ -76,7 +76,7 @@ export default {
             await this.spacyFormatParseProvider(documentText).then((spacyFormatParsedResult) => {
                 this.spacyFormatHelper.documentParse = spacyFormatParsedResult
                 const sentences = this.spacyFormatHelper.generateSentences()
-                this.spacyFormatSentences = sentences
+                this.spacyFormatSentences.push(...sentences)
             })
         }
     }
@@ -128,7 +128,11 @@ export default {
 
         const {
             spacyFormatSentences
+            , toggleMorphologySelection
         } = graphSentenceManager()
+
+        provide('spacyFormatSentences', spacyFormatSentences.value)
+        provide('toggleMorphologySelection', toggleMorphologySelection)
 
         return {
             spacyFormatHelper

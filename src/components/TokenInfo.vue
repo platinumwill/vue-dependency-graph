@@ -7,7 +7,12 @@ import { mapGetters } from 'vuex'
 
 export default {
     name: 'TokenInfo'
-    , inject: ['config', 'tokenIndex']
+    , inject: [
+        'config'
+        , 'tokenIndex'
+        , 'toggleMorphologySelection'
+        , 'spacyFormatSentences'
+        ]
     , props: {
         dy: {
             type: String
@@ -19,6 +24,9 @@ export default {
         , token: {
             type: Object
         }
+        , morphologyInfoType: {
+            type: String
+        }
     }
     , data() {
         return {
@@ -27,6 +35,7 @@ export default {
     , methods: {
         posClicked: function() {
             this.selectionManager.toggler(this.token.indexInSentence)
+            this.toggleMorphologySelection(this.morphologyInfoType, this.token.indexInSentence)
         }
     }
     , computed: {
@@ -37,9 +46,8 @@ export default {
             currentSentenceIndex: 'currentSentenceIndex'
         })
         , selected: function() {
-            return this.selectionManager.selections.indexOf(this.token.indexInSentence) >= 0
+            return this.spacyFormatSentences[this.currentSentenceIndex].words[this.token.indexInSentence].selectedMorphologyInfoType === this.morphologyInfoType
         }
-
     }
 }
 </script>
