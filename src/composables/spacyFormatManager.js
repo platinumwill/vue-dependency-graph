@@ -36,13 +36,17 @@ export default function () {
             arc.trueEnd = arc.dir == 'right' ? arc.end : arc.start
         })
         // Chin format property
-        spacyFormatDocumentParse.value.words.forEach((word, index) => word.indexInSentence = index - sentence.start)
-        const sentenceParse = {
-            words: spacyFormatDocumentParse.value.words.filter(
+        // spacyFormatDocumentParse.value.words.filter()
+        const words = spacyFormatDocumentParse.value.words.filter(
             (word, index) =>
                 index >= sentence.start
                 && index <= sentence.end
             )
+        words.forEach((word, index) => {
+            word.indexInSentence = index
+        })
+        const sentenceParse = {
+            words: words
             , arcs: arcsClone
         }
         return sentenceParse

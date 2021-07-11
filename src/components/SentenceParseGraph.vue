@@ -26,7 +26,7 @@ export default {
         return {
             // 這個變數最主要的特點是，每家的 dependency graph 都有自己一份（相對於 spacySentences 是統一一份的）
             selectedDependencyIndices: []
-            , spacyFormatSentences: []
+            , spacyFormatSentences: undefined
         }
     }
     , computed: {
@@ -51,7 +51,8 @@ export default {
             return this.config.distance / 2 * this.highestLevel
         }
         , isParsedContentReady() {
-            return this.spacyFormatHelper.sentenceParse.words !== undefined && this.spacyFormatSentences.length > 0
+            return this.spacyFormatSentences !== undefined
+            && this.currentSpacyFormatSentence.words !== undefined
         }
         , currentSpacyFormatSentence() {
             return this.spacyFormatSentences[this.currentSentenceIndex]
