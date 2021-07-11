@@ -12,7 +12,7 @@ export default function () {
             || !store.getters.isDocumentReady) {
             return result
         }
-        store.getters.sentences.forEach((baselineSentence) => {
+        store.getters.baselineSentences.forEach((baselineSentence) => {
             result.push(generateSentence(baselineSentence))
         })
         return result

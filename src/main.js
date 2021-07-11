@@ -74,22 +74,22 @@ const store = createStore({
   }
   , getters: {
     isDocumentReady(state, getters) {
-      return (getters.sentences.length > 0)
+      return (getters.baselineSentences.length > 0)
     }
-    , sentences(state) {
+    , baselineSentences(state) {
       return state.baseline.sentences
     }
     , maxSentenceIndex(state, getters) {
-      if (! getters.sentences.length > 0) {
+      if (! getters.baselineSentences.length > 0) {
         return -1 
       }
-      return getters.sentences.length - 1
+      return getters.baselineSentences.length - 1
     }
     , currentSentenceIndex (state) {
       return state.sentenceNavigator.currentSentenceIndex
     }
     , currentSentence (state, getters) {
-      return getters.sentences[getters.currentSentenceIndex]
+      return getters.baselineSentences[getters.currentSentenceIndex]
     }
   }
 })

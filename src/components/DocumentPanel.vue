@@ -1,7 +1,7 @@
 <template>
     <div v-if="isDocumentReady">
         <div>
-            <DocumentSentence v-for="(sentence, index) in sentences" :sentence="sentence" :key="index" :sentenceIndex="index"></DocumentSentence>
+            <DocumentSentence v-for="(sentence, index) in baselineSentences" :sentence="sentence" :key="index" :sentenceIndex="index"></DocumentSentence>
         </div>
         <div>
             <Button label="<" @click="previousSentence" :disabled="previousSentenceButtonDisabled" />
@@ -33,7 +33,7 @@ export default {
             isDocumentReady: 'isDocumentReady'
             , maxSentenceIndex: 'maxSentenceIndex'
             , currentSentenceIndex: 'currentSentenceIndex'
-            , sentences: 'sentences'
+            , baselineSentences: 'baselineSentences'
          })
     }
     , methods: {
