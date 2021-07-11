@@ -45,11 +45,10 @@ export default function () {
         words.forEach((word, index) => {
             word.indexInSentence = index
         })
-        const sentenceParse = {
+        return  {
             words: words
             , arcs: arcsClone
         }
-        return sentenceParse
     }
 
     const spacyFormatHelper = ref({})
