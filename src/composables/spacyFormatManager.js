@@ -12,24 +12,24 @@ export default function () {
             || !store.getters.isDocumentReady) {
             return result
         }
-        store.getters.sentences.forEach((sentence) => {
-            result.push(generateSentence(sentence))
+        store.getters.sentences.forEach((baselineSentence) => {
+            result.push(generateSentence(baselineSentence))
         })
         return result
     }
 
-    const generateSentence = (sentence) => {
+    const generateSentence = (baselineSentence) => {
         const filteredArcs = spacyFormatDocumentParse.value.arcs.filter(
             arc =>
-            arc.start >= sentence.start
-            && arc.end >= sentence.start
-            && arc.start <= sentence.end 
-            && arc.end <= sentence.end
+            arc.start >= baselineSentence.start
+            && arc.end >= baselineSentence.start
+            && arc.start <= baselineSentence.end 
+            && arc.end <= baselineSentence.end
             )
         let arcsClone = JSON.parse(JSON.stringify(filteredArcs.slice(0)))
         arcsClone.forEach(function (arc, index) {
-            arc.start -= (sentence.start)
-            arc.end -= (sentence.start)
+            arc.start -= (baselineSentence.start)
+            arc.end -= (baselineSentence.start)
             // Chin format property
             arc.indexInSentence = index
             arc.trueStart = arc.dir == 'right' ? arc.start : arc.end
@@ -39,8 +39,8 @@ export default function () {
         // spacyFormatDocumentParse.value.words.filter()
         const words = spacyFormatDocumentParse.value.words.filter(
             (word, index) =>
-                index >= sentence.start
-                && index <= sentence.end
+                index >= baselineSentence.start
+                && index <= baselineSentence.end
             )
         words.forEach((word, index) => {
             word.indexInSentence = index

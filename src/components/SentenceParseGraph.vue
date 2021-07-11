@@ -78,14 +78,6 @@ export default {
                 this.spacyFormatSentences = sentences
             })
         }
-        , toggleDependencyIndexSelected(dependencyIndex) {
-            const indexOfDependencyIndex = this.selectedDependencyIndices.indexOf(dependencyIndex)
-            if (indexOfDependencyIndex >= 0) {
-                this.selectedDependencyIndices.splice(indexOfDependencyIndex, 1)
-            } else {
-                this.selectedDependencyIndices.push(dependencyIndex)
-            }
-        }
     }
     , props: {
         config: {
