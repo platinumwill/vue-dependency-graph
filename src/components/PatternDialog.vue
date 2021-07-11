@@ -44,6 +44,7 @@ import draggable from 'vuedraggable'
 import VueHorizontal from "vue-horizontal";
 import SegmentPiece from "./SegmentPiece.vue"
 import Button from 'primevue/button'
+import { mapGetters } from 'vuex'
 
 import { inject } from "vue"
 
@@ -71,6 +72,11 @@ export default {
             , segmentPiecesForRevert: []
         }
     }
+    , computed: {
+        ...mapGetters({ 
+            currentSentence: 'currentSentence'
+        })
+    }
     , methods: {
         openTranslationPatternWindow: function() {
             this.displayModal = !this.displayModal
@@ -79,28 +85,28 @@ export default {
             const segmentItems = []
             this.posSelectionManager.selections.forEach(function (posIndex) {
                 const item = new Piece()
-                const token = this.$parent.spacyFormatHelper.sentenceParse.words[posIndex]
+                const token = this.$parent.currentSpacyFormatSentence.words[posIndex]
                 item.type = 'POS'
                 item.content = token.tag + ' (' + token.lemma + ')'
-                item.vueKey = 'sentence-' + this.$parent.currentSentence.index + "_pos-" + token.indexInSentence
+                item.vueKey = 'sentence-' + this.currentSentence.index + "_pos-" + token.indexInSentence
                 item.sortOrder = token.indexInSentence
                 segmentItems.push(item)
             }, this)
             this.lemmaSelectionManager.selections.forEach(function (lemmaIndex){
                 const item = new Piece()
-                const token = this.$parent.spacyFormatHelper.sentenceParse.words[lemmaIndex]
+                const token = this.$parent.currentSpacyFormatSentence.words[lemmaIndex]
                 item.type = 'Lemma'
                 item.content = token.lemma
-                item.vueKey = 'sentence-' + this.$parent.currentSentence.index + "_lemma-" + token.indexInSentence
+                item.vueKey = 'sentence-' + this.currentSentence.index + "_lemma-" + token.indexInSentence
                 item.sortOrder = token.indexInSentence
                 segmentItems.push(item)
             }, this)
             this.dependencySelectionManager.selections.forEach(function (dependencyIndex) {
                 const item = new Piece()
-                const dependency = this.$parent.spacyFormatHelper.sentenceParse.arcs[dependencyIndex]
+                const dependency = this.$parent.currentSpacyFormatSentence.arcs[dependencyIndex]
                 item.type = 'Dependency'
                 item.content = dependency.label
-                item.vueKey = 'sentence-' + this.$parent.currentSentence.index + "_dependency-" + dependency.indexInSentence
+                item.vueKey = 'sentence-' + this.currentSentence.index + "_dependency-" + dependency.indexInSentence
                 item.sortOrder = (dependency.trueStart + dependency.trueEnd) / 2
                 if (this.selectionHelper.isDependencyPlaceholder(dependency)) {
                     item.isPlaceholder = true
@@ -140,7 +146,7 @@ export default {
             pieceAndValue.piece.isOptional = pieceAndValue.value
         }
         , savePattern() {
-            this.selectionHelper.saveSelectedPattern(this.$parent.spacyFormatHelper.sentenceParse, this.segmentPieces)
+            this.selectionHelper.saveSelectedPattern(this.$parent.currentSpacyFormatSentence, this.segmentPieces)
         }
     }
     , setup() {

@@ -47,7 +47,7 @@ export default function selectionManager() {
         return false
     }
 
-    const saveSelectedPattern = (sentenceParse, segmentPieces) => {
+    const saveSelectedPattern = (sentence, segmentPieces) => {
         function appendAddPropertyCommand(name, value) {
             return ".property('" + name + "', " + JSON.stringify(value) + ")" 
         }
@@ -61,7 +61,7 @@ export default function selectionManager() {
                 command += appendAddPropertyCommand('isBeginning', true)
                 command += appendAddPropertyCommand('owner', 'Chin')
             }
-            const token = sentenceParse.words[posIndex]
+            const token = sentence.words[posIndex]
             console.log(token)
             vCount++
         })
@@ -72,12 +72,12 @@ export default function selectionManager() {
                 command += appendAddPropertyCommand('isBeginning', true)
                 command += appendAddPropertyCommand('owner', 'Chin')
             }
-            const token = sentenceParse.words[lemmaIndex]
+            const token = sentence.words[lemmaIndex]
             console.log(token)
             vCount++
         })
         selectedDependencies.value.forEach(function (dependencyIndex) {
-            const dependency = sentenceParse.arcs[dependencyIndex]
+            const dependency = sentence.arcs[dependencyIndex]
             let startVPrefix = undefined
             if (selectedPOSs.value.includes(dependency.trueStart)) {
                 startVPrefix = "pos_"
