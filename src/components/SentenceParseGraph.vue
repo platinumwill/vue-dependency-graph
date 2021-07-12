@@ -129,10 +129,12 @@ export default {
         const {
             spacyFormatSentences
             , toggleMorphologySelection
+            , toggleDependencySelection
         } = graphSentenceManager()
 
         provide('spacyFormatSentences', spacyFormatSentences.value)
         provide('toggleMorphologySelection', toggleMorphologySelection)
+        provide('toggleDependencySelection', toggleDependencySelection)
 
         return {
             spacyFormatHelper

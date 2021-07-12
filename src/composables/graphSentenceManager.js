@@ -18,10 +18,15 @@ export default function() {
         }
         word.selectedMorphologyInfoType = morphInfoType
     }
+    const toggleDependencySelection = (dependencyIndex) => {
+        const dependency = spacyFormatSentences.value[store.getters.currentSentenceIndex].arcs[dependencyIndex]
+        dependency.selected = !dependency.selected
+    }
 
     return {
         spacyFormatSentences
         , toggleMorphologySelection
         , morphologyInfoType
+        , toggleDependencySelection
     }
 }
