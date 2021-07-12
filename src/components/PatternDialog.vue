@@ -74,7 +74,7 @@ export default {
     }
     , computed: {
         ...mapGetters({ 
-            currentSentence: 'currentSentence'
+            currentSentenceIndex: 'currentSentenceIndex'
         })
     }
     , methods: {
@@ -82,43 +82,41 @@ export default {
             this.displayModal = !this.displayModal
         }
         , generateSegmentItems: function() {
-            const segmentItems = []
-            this.posSelectionManager.selections.forEach(function (posIndex) {
+            const segmentPieces = []
+
+            this.$parent.currentSpacyFormatSentence.words.filter((word) => {
+                return word.selectedMorphologyInfoType
+            }).forEach((selectedWord) => {
+                console.log(selectedWord)
                 const item = new Piece()
-                const token = this.$parent.currentSpacyFormatSentence.words[posIndex]
-                item.type = 'POS'
-                item.content = token.tag + ' (' + token.lemma + ')'
-                item.vueKey = 'sentence-' + this.currentSentence.index + "_pos-" + token.indexInSentence
-                item.sortOrder = token.indexInSentence
-                segmentItems.push(item)
-            }, this)
-            this.lemmaSelectionManager.selections.forEach(function (lemmaIndex){
+                item.type = selectedWord.selectedMorphologyInfoType
+                item.content = selectedWord.tag + ' (' + selectedWord.lemma + ')'
+                item.vueKey = 'sentence-' + this.currentSentenceIndex + "_" + selectedWord.selectedMorphologyInfoType + "-" + selectedWord.indexInSentence
+                item.sortOrder = selectedWord.indexInSentence
+                segmentPieces.push(item)
+            })
+            this.$parent.currentSpacyFormatSentence.arcs.filter((arc) => {
+                return arc.selected
+            }).forEach((selectedArc) => {
+                console.log(selectedArc)
                 const item = new Piece()
-                const token = this.$parent.currentSpacyFormatSentence.words[lemmaIndex]
-                item.type = 'Lemma'
-                item.content = token.lemma
-                item.vueKey = 'sentence-' + this.currentSentence.index + "_lemma-" + token.indexInSentence
-                item.sortOrder = token.indexInSentence
-                segmentItems.push(item)
-            }, this)
-            this.dependencySelectionManager.selections.forEach(function (dependencyIndex) {
-                const item = new Piece()
-                const dependency = this.$parent.currentSpacyFormatSentence.arcs[dependencyIndex]
                 item.type = 'Dependency'
-                item.content = dependency.label
-                item.vueKey = 'sentence-' + this.currentSentence.index + "_dependency-" + dependency.indexInSentence
-                item.sortOrder = (dependency.trueStart + dependency.trueEnd) / 2
-                if (this.selectionHelper.isDependencyPlaceholder(dependency)) {
+                item.content = selectedArc.label
+                item.vueKey = 'sentence-' + this.currentSentenceIndex + "_dependency-" + selectedArc.indexInSentence
+
+                item.sortOrder = (selectedArc.trueStart + selectedArc.trueEnd) / 2
+                if (this.selectionHelper.isDependencyPlaceholder(selectedArc)) {
                     item.isPlaceholder = true
-                    item.appliedText = '{' + dependency.label + ' 連接處}'
+                    item.appliedText = '{' + selectedArc.label + ' 連接處}'
                 }
-                segmentItems.push(item)
-            }, this)
-            segmentItems.sort(function(a, b) {
+                segmentPieces.push(item)
+            })
+
+            segmentPieces.sort(function(a, b) {
                 return a.sortOrder - b.sortOrder
             })
-            this.segmentPieces = segmentItems
-            this.segmentPiecesForRevert = [...segmentItems]
+            this.segmentPieces = segmentPieces
+            this.segmentPiecesForRevert = [...segmentPieces]
         }
         , addFixedTextPiece() {
             const fixedTextPiece = new Piece()
