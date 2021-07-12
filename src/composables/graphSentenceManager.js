@@ -2,8 +2,8 @@ import { ref } from 'vue'
 import { useStore } from "vuex"
 
 const morphologyInfoType = Object.freeze({
-    pos: 'pos'
-    , lemma: 'lemma'
+    pos: 'POS'
+    , lemma: 'Lemma'
 })
 
 export default function() {
