@@ -1,8 +1,8 @@
 <template>
     <text class="displacy-token" fill="currentColor" text-anchor="middle" :y="y">
         <tspan class="displacy-word" fill="currentColor" :x="x">{{ word.text }}</tspan>
-        <TokenInfo :token="word" :morphologyInfoType="this.morphologyInfoType.lemma" :selectionManager="lemmaSelectionManager" :dy="'2em'">{{ word.lemma }}</TokenInfo>
-        <TokenInfo :token="word" :morphologyInfoType="this.morphologyInfoType.pos" :selectionManager="posSelectionManager" :dy="'2em'">{{ word.tag }}</TokenInfo>
+        <TokenInfo :token="word" :morphologyInfoType="this.morphologyInfoType.lemma" :dy="'2em'">{{ word.lemma }}</TokenInfo>
+        <TokenInfo :token="word" :morphologyInfoType="this.morphologyInfoType.pos" :dy="'2em'">{{ word.tag }}</TokenInfo>
     </text>
 </template>
 
@@ -46,8 +46,6 @@ export default {
     }
     , inject: [
         'config'
-        , 'posSelectionManager'
-        , 'lemmaSelectionManager'
     ]
     , setup() {
         const {

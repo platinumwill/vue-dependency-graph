@@ -84,9 +84,10 @@ export default {
         , generateSegmentItems: function() {
             const segmentPieces = []
 
-            this.$parent.currentSpacyFormatSentence.words.filter((word) => {
+            const selectedWords = this.$parent.currentSpacyFormatSentence.words.filter((word) => {
                 return word.selectedMorphologyInfoType
-            }).forEach((selectedWord) => {
+            })
+            selectedWords.forEach((selectedWord) => {
                 console.log(selectedWord)
                 const item = new Piece()
                 item.type = selectedWord.selectedMorphologyInfoType
@@ -105,7 +106,7 @@ export default {
                 item.vueKey = 'sentence-' + this.currentSentenceIndex + "_dependency-" + selectedArc.indexInSentence
 
                 item.sortOrder = (selectedArc.trueStart + selectedArc.trueEnd) / 2
-                if (this.selectionHelper.isDependencyPlaceholder(selectedArc)) {
+                if (this.selectionHelper.isDependencyPlaceholder(selectedArc, selectedWords)) {
                     item.isPlaceholder = true
                     item.appliedText = '{' + selectedArc.label + ' 連接處}'
                 }
@@ -158,11 +159,6 @@ export default {
 
         return { selectionHelper }
     }
-    , inject: [
-        'posSelectionManager'
-        , 'lemmaSelectionManager'
-        , 'dependencySelectionManager'
-    ]
 }
 </script>
 <style>

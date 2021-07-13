@@ -111,15 +111,9 @@ export default {
     , setup() {
 
         const {
-            posSelectionManager
-            , lemmaSelectionManager
-            , dependencySelectionManager
-            , selectionHelper
+            selectionHelper
         } = selectionManager()
 
-        provide('posSelectionManager', posSelectionManager)
-        provide('lemmaSelectionManager', lemmaSelectionManager)
-        provide('dependencySelectionManager', dependencySelectionManager)
         provide('selectionHelper', selectionHelper)
 
         const {

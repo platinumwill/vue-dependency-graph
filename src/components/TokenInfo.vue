@@ -18,9 +18,6 @@ export default {
             type: String
             , default: ''
         }
-        , selectionManager: {
-            type: Object
-        }
         , token: {
             type: Object
         }
@@ -34,7 +31,6 @@ export default {
     }
     , methods: {
         posClicked: function() {
-            this.selectionManager.toggler(this.token.indexInSentence)
             this.toggleMorphologySelection(this.morphologyInfoType, this.token.indexInSentence)
         }
     }

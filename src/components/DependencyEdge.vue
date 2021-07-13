@@ -40,13 +40,11 @@ export default {
     }
     , inject: [
         'config'
-        , 'dependencySelectionManager'
         , 'toggleDependencySelection'
         , 'spacyFormatSentences'
     ]
     , methods: {
         edgeLabelClicked: function() {
-            this.dependencySelectionManager.toggler(this.arc.indexInSentence)
             this.toggleDependencySelection(this.arc.indexInSentence)
         }
     }
