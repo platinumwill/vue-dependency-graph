@@ -144,7 +144,13 @@ export default {
             pieceAndValue.piece.isOptional = pieceAndValue.value
         }
         , savePattern() {
-            this.selectionHelper.saveSelectedPattern(this.$parent.currentSpacyFormatSentence, this.segmentPieces)
+            const selectedWords = this.$parent.currentSpacyFormatSentence.words.filter((word) => {
+                return word.selectedMorphologyInfoType
+            })
+            const selectedArcs = this.$parent.currentSpacyFormatSentence.arcs.filter((arc) => {
+                return arc.selected
+            })
+            this.selectionHelper.saveSelectedPattern(selectedWords, selectedArcs, this.segmentPieces)
         }
     }
     , setup() {
