@@ -1,106 +1,59 @@
-import { ref } from 'vue'
 import axios from 'axios'
 
 export default function selectionManager() {
-    const selectedPOSs = ref([])
-    const selectedLemmas = ref([])
-    const selectedDependencies = ref([])
 
-    const togglePOSSelected = (posIndex) => {
-        const indexOfPOS = selectedPOSs.value.indexOf(posIndex)
-        if (indexOfPOS >= 0) {
-            selectedPOSs.value.splice(indexOfPOS, 1)
-        } else {
-            selectedPOSs.value.push(posIndex)
-        }
-        if (selectedLemmas.value.indexOf(posIndex) >= 0) {
-            selectedLemmas.value.splice(selectedLemmas.value.indexOf(posIndex), 1)
-        }
-    }
-    const toggleLemmaSelected = (lemmaIndex) => {
-        const indexOfLemma = selectedLemmas.value.indexOf(lemmaIndex)
-        if (indexOfLemma >= 0) {
-            selectedLemmas.value.splice(indexOfLemma, 1)
-        } else {
-            selectedLemmas.value.push(lemmaIndex)
-        }
-        if (selectedPOSs.value.indexOf(lemmaIndex) >= 0) {
-            selectedPOSs.value.splice(indexOfLemma, 1)
-        }
-    }
-    const toggleDependencySelected = (dependencyIndex) => {
-        const indexOfDependency = selectedDependencies.value.indexOf(dependencyIndex)
-        if (indexOfDependency >= 0) {
-            selectedDependencies.value.splice(indexOfDependency, 1)
-        } else {
-            selectedDependencies.value.push(dependencyIndex)
-        }
-    }
-
-    const isDependencyPlaceholder = (dependency) => {
-        console.log(dependency)
-        const startConnected = (selectedPOSs.value.indexOf(dependency.trueStart) >= 0) || (selectedLemmas.value.indexOf(dependency.trueStart) >= 0)
-        const endConnected = (selectedPOSs.value.indexOf(dependency.trueEnd) >= 0) || (selectedLemmas.value.indexOf(dependency.trueEnd) >= 0)
+    const isDependencyPlaceholder = (arc, selectedWords) => {
+        const startConnected = (selectedWords.find( word => word.indexInSentence == arc.trueStart) !== undefined)
+        const endConnected = (selectedWords.find( word => word.indexInSentence == arc.trueEnd) !== undefined)
         if (startConnected && !endConnected) {
             return true
         }
         return false
     }
 
-    const saveSelectedPattern = (sentence, segmentPieces) => {
+    const saveSelectedPattern = (selectedWords, selectedArcs, segmentPieces) => {
         function appendAddPropertyCommand(name, value) {
             return ".property('" + name + "', " + JSON.stringify(value) + ")" 
         }
+        function singleQuotedVectorAlias(word) {
+            return "'" + word.selectedMorphologyInfoType + word.indexInSentence + "'"
+        }
 
         let command = "g"
-        let vCount = 0
-        selectedPOSs.value.forEach(function (posIndex) {
-            command += ".addV('POS').as('pos_" + posIndex + "')"
-            if (vCount === 0) {
+
+        selectedWords.forEach( (word, index) => {
+            command = command.concat(".addV(", JSON.stringify(word.selectedMorphologyInfoType), ")")
+            command = command.concat(".as(", singleQuotedVectorAlias(word), ")")
+            if (index === 0) {
                 command += ".as('sourceBeginning')"
                 command += appendAddPropertyCommand('isBeginning', true)
                 command += appendAddPropertyCommand('owner', 'Chin')
             }
-            const token = sentence.words[posIndex]
-            console.log(token)
-            vCount++
         })
-        selectedLemmas.value.forEach(function (lemmaIndex){
-            command += ".addV('Lemma').as('lemma_" + lemmaIndex + "')"
-            if (vCount === 0) {
-                command += ".as('sourceBeginning')"
-                command += appendAddPropertyCommand('isBeginning', true)
-                command += appendAddPropertyCommand('owner', 'Chin')
-            }
-            const token = sentence.words[lemmaIndex]
-            console.log(token)
-            vCount++
-        })
-        selectedDependencies.value.forEach(function (dependencyIndex) {
-            const dependency = sentence.arcs[dependencyIndex]
-            let startVPrefix = undefined
-            if (selectedPOSs.value.includes(dependency.trueStart)) {
-                startVPrefix = "pos_"
-            } else if (selectedLemmas.value.includes(dependency.trueStart)) {
-                startVPrefix = "lemma_"
+
+        selectedArcs.forEach( (arc) => {
+            const startWord = selectedWords.find( word => word.indexInSentence == arc.trueStart )
+            console.log(selectedWords)
+            console.log(arc.trueStart)
+            if (startWord === undefined
+                || startWord.selectedMorphologyInfoType === undefined 
+                || startWord.selectedMorphologyInfoType === ''
+                ) {
+                    const error = "dependency 起點沒被選取"
+                    console.error(error)
+                    throw error
+                }
+            let startVName = singleQuotedVectorAlias(startWord)
+            let quotedEndVName = undefined
+            if (isDependencyPlaceholder(arc, selectedWords)) { // 這個 dependency 後面連著連接處
+                const quotedConnectorVName = "'connector_" + arc.trueStart + "-" + arc.trueEnd + "'"
+                quotedEndVName = quotedConnectorVName
+                command += ".addV('Connector').as(" + quotedConnectorVName + ")"
             } else {
-                const error = "dependency 起點沒被選取"
-                console.error(error)
-                throw error
+                const endWord = selectedWords.find( word => word.indexInSentence == arc.trueEnd ) 
+                quotedEndVName = singleQuotedVectorAlias(endWord)
             }
-            let startVName = startVPrefix + dependency.trueStart
-            let endVName = undefined
-            const connectorVName = "connector_" + dependency.trueStart + "-" + dependency.trueEnd + ""
-            if (isDependencyPlaceholder(dependency)) {
-                command += ".addV('Connector').as('" + connectorVName + "')"
-                endVName = connectorVName
-            } else if (selectedPOSs.value.includes(dependency.trueEnd)) {
-                endVName = "pos_" + dependency.trueEnd
-            } else if (selectedLemmas.value.includes(dependency.trueEnd)) {
-                endVName = "lemma_" + dependency.trueEnd
-            }
-            command += ".addE('" + dependency.label + "').from('" + startVName + "').to('" + endVName + "')"
-            
+            command += ".addE('" + arc.label + "').from(" + startVName + ").to(" + quotedEndVName + ")"
         })
         
         let lastAddedPieceAlias
@@ -129,19 +82,7 @@ export default function selectionManager() {
 
 
     return {
-        posSelectionManager: {
-            selections: selectedPOSs.value
-            , toggler: togglePOSSelected
-        }
-        , lemmaSelectionManager: {
-            selections: selectedLemmas.value
-            , toggler: toggleLemmaSelected
-        }
-        , dependencySelectionManager: {
-            selections: selectedDependencies.value
-            , toggler: toggleDependencySelected
-        }
-        , selectionHelper: {
+        selectionHelper: {
             isDependencyPlaceholder: isDependencyPlaceholder
             , saveSelectedPattern: saveSelectedPattern
         }

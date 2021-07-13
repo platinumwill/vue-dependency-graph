@@ -27,6 +27,8 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex'
+
 export default {
     name: 'DependencyEdge'
     , data() {
@@ -38,11 +40,12 @@ export default {
     }
     , inject: [
         'config'
-        , 'dependencySelectionManager'
+        , 'toggleDependencySelection'
+        , 'spacyFormatSentences'
     ]
     , methods: {
         edgeLabelClicked: function() {
-            this.dependencySelectionManager.toggler(this.arc.indexInSentence)
+            this.toggleDependencySelection(this.arc.indexInSentence)
         }
     }
     , computed: {
@@ -90,8 +93,11 @@ export default {
             return this.selected ? this.config.selectedForegroundColor : 'currentColor'
         }
         , selected: function() {
-            return this.dependencySelectionManager.selections.indexOf(this.arc.indexInSentence) >= 0
+            return this.spacyFormatSentences[this.currentSentenceIndex].arcs[this.arc.indexInSentence].selected
         }
+        , ...mapGetters({ 
+            currentSentenceIndex: 'currentSentenceIndex'
+        })
    }
 }
 </script>

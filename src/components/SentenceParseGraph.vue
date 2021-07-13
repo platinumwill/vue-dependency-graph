@@ -18,15 +18,16 @@ import DependencyNode from "./DependencyNode.vue";
 import { mapGetters, mapState } from 'vuex'
 import { provide } from 'vue'
 import PatternDialog from "./PatternDialog.vue"
+
 import selectionManager from "@/composables/selectionManager"
 import spacyFormatManager from "@/composables/spacyFormatManager"
+import graphSentenceManager from "@/composables/graphSentenceManager"
 
 export default {
     data() {
         return {
             // 這個變數最主要的特點是，每家的 dependency graph 都有自己一份（相對於 spacySentences 是統一一份的）
             selectedDependencyIndices: []
-            , spacyFormatSentences: undefined
         }
     }
     , computed: {
@@ -51,8 +52,8 @@ export default {
             return this.config.distance / 2 * this.highestLevel
         }
         , isParsedContentReady() {
-            return this.spacyFormatSentences !== undefined
-            && this.currentSpacyFormatSentence.words !== undefined
+            return this.spacyFormatSentences.length > 0 &&
+            this.currentSpacyFormatSentence.words !== undefined
         }
         , currentSpacyFormatSentence() {
             return this.spacyFormatSentences[this.currentSentenceIndex]
@@ -75,7 +76,7 @@ export default {
             await this.spacyFormatParseProvider(documentText).then((spacyFormatParsedResult) => {
                 this.spacyFormatHelper.documentParse = spacyFormatParsedResult
                 const sentences = this.spacyFormatHelper.generateSentences()
-                this.spacyFormatSentences = sentences
+                this.spacyFormatSentences.push(...sentences)
             })
         }
     }
@@ -110,23 +111,28 @@ export default {
     , setup() {
 
         const {
-            posSelectionManager
-            , lemmaSelectionManager
-            , dependencySelectionManager
-            , selectionHelper
+            selectionHelper
         } = selectionManager()
 
-        provide('posSelectionManager', posSelectionManager)
-        provide('lemmaSelectionManager', lemmaSelectionManager)
-        provide('dependencySelectionManager', dependencySelectionManager)
         provide('selectionHelper', selectionHelper)
 
         const {
             spacyFormatHelper
         } = spacyFormatManager()
 
+        const {
+            spacyFormatSentences
+            , toggleMorphologySelection
+            , toggleDependencySelection
+        } = graphSentenceManager()
+
+        provide('spacyFormatSentences', spacyFormatSentences.value)
+        provide('toggleMorphologySelection', toggleMorphologySelection)
+        provide('toggleDependencySelection', toggleDependencySelection)
+
         return {
             spacyFormatHelper
+            , spacyFormatSentences
         }
     }
     , provide() {
