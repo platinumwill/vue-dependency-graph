@@ -57,8 +57,10 @@ export default function selectionManager() {
         })
         
         let lastAddedPieceAlias
+        let firstPieceAlias = undefined
         segmentPieces.forEach((piece, pieceIdx) => {
             const currentPieceAlias = 'v' + pieceIdx
+            if (pieceIdx === 0) firstPieceAlias = currentPieceAlias
             command += ".addV('SimpleTargetPatternPiece').property('sourceType', '" + piece.type + "').as('" + currentPieceAlias + "')"
             if (lastAddedPieceAlias) {
                 command += ".addE('follows').to('" + lastAddedPieceAlias + "')"
@@ -66,15 +68,16 @@ export default function selectionManager() {
                 command += ".addE('applicable').to('sourceBeginning')"
             }
             lastAddedPieceAlias = currentPieceAlias
-        });
+        })
+        command = command.concat(".select('", firstPieceAlias, "')")
+
         console.log(command)
         let argument = {
             gremlin: command
         }
         axios.post('http://stanford-local:8182/', JSON.stringify(argument)).then(function(response) {
-            console.log(response)
-            console.log(response.status)
-            console.log(response.data)
+            const result = response.data.result
+            console.log(result.data)
         }).catch(function(error) {
             console.log(error)
         })
