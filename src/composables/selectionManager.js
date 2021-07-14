@@ -1,4 +1,4 @@
-import axios from 'axios'
+import gremlinApi from "@/composables/gremlin-api"
 
 export default function selectionManager() {
 
@@ -70,13 +70,8 @@ export default function selectionManager() {
         command = command.concat(".select('", firstPieceAlias, "')")
 
         console.log(command)
-        let argument = {
-            gremlin: command
-        }
-        axios.post('http://stanford-local:8182/', JSON.stringify(argument)).then(function(response) {
-            const result = response.data.result
-            console.log(result.data)
-            const targetPatterBeginPieceVId = result.data['@value'][0]['@value'].id
+        gremlinApi(command).then((resultData) => {
+            const targetPatterBeginPieceVId = resultData['@value'][0]['@value'].id
             console.log(targetPatterBeginPieceVId)
         }).catch(function(error) {
             console.log(error)
