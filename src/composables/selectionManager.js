@@ -55,8 +55,10 @@ export default function selectionManager() {
         })
         
         let lastAddedPieceAlias
+        let firstPieceAlias = undefined
         segmentPieces.forEach((piece, pieceIdx) => {
             const currentPieceAlias = 'v' + pieceIdx
+            if (pieceIdx === 0) firstPieceAlias = currentPieceAlias
             command += ".addV('SimpleTargetPatternPiece').property('sourceType', '" + piece.type + "').as('" + currentPieceAlias + "')"
             if (lastAddedPieceAlias) {
                 command += ".addE('follows').to('" + lastAddedPieceAlias + "')"
@@ -65,7 +67,7 @@ export default function selectionManager() {
             }
             lastAddedPieceAlias = currentPieceAlias
         })
-        command = command.concat(".select('", sourcePatternBeginningAlias, "')")
+        command = command.concat(".select('", firstPieceAlias, "')")
 
         console.log(command)
         let argument = {
