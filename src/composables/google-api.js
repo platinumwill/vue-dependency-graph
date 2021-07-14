@@ -1,7 +1,6 @@
 import axios from 'axios'
 export default async function (documentText) {
     return new Promise((resolve, reject) => {
-        setTimeout(() => {
             const google_url = 'https://language.googleapis.com/v1/documents:analyzeSyntax?key=AIzaSyAxueNH_QGMkUSVBse8VSzfOTUUZ1oRfxM';
             let google_param = {};
             let document = {};
@@ -16,6 +15,5 @@ export default async function (documentText) {
                 console.log(error)
                 reject(error)
             })
-        }, 1000)
     })
 }
