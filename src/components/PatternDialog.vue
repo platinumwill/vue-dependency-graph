@@ -46,8 +46,7 @@ import SegmentPiece from "./SegmentPiece.vue"
 import Button from 'primevue/button'
 import { mapGetters } from 'vuex'
 
-import selectionManager from "@/composables/selectionManager"
-
+import patternManager from "@/composables/patternManager"
 
 class Piece {
     constructor () {
@@ -105,7 +104,7 @@ export default {
                 item.vueKey = 'sentence-' + this.currentSentenceIndex + "_dependency-" + selectedArc.indexInSentence
 
                 item.sortOrder = (selectedArc.trueStart + selectedArc.trueEnd) / 2
-                if (this.selectionHelper.isDependencyPlaceholder(selectedArc, selectedWords)) {
+                if (this.patternHelper.isDependencyPlaceholder(selectedArc, selectedWords)) {
                     item.isPlaceholder = true
                     item.appliedText = '{' + selectedArc.label + ' 連接處}'
                 }
@@ -150,15 +149,15 @@ export default {
             const selectedArcs = this.$parent.currentSpacyFormatSentence.arcs.filter((arc) => {
                 return arc.selected
             })
-            this.selectionHelper.saveSelectedPattern(selectedWords, selectedArcs, this.segmentPieces)
+            this.patternHelper.saveSelectedPattern(selectedWords, selectedArcs, this.segmentPieces)
         }
     }
     , setup() {
         const {
-            selectionHelper
-        } = selectionManager()
+            patternHelper
+        } = patternManager()
 
-        return { selectionHelper }
+        return { patternHelper }
     }
 }
 </script>

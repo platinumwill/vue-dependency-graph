@@ -80,7 +80,7 @@ export default function selectionManager() {
 
 
     return {
-        selectionHelper: {
+        patternHelper: {
             isDependencyPlaceholder: isDependencyPlaceholder
             , saveSelectedPattern: saveSelectedPattern
         }
