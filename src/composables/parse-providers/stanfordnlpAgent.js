@@ -1,4 +1,4 @@
-import stanfordnlpApi from '@/composables/stanfordnlp-api'
+import stanfordnlpApi from '@/composables/api/stanfordnlp-api'
 
 export default async function (documentText) {
     return new Promise((resolve, reject) => {

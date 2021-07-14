@@ -1,4 +1,4 @@
-import gremlinApi from "@/composables/gremlin-api"
+import gremlinApi from "@/composables/api/gremlin-api"
 
 export default function selectionManager() {
 

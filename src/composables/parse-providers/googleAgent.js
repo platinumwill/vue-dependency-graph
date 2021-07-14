@@ -1,4 +1,4 @@
-import googleApi from "@/composables/google-api"
+import googleApi from "@/composables/api/google-api"
 export default async function (documentText) {
     return new Promise((resolve, reject) => {
         setTimeout(() => {

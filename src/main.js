@@ -1,8 +1,8 @@
 import { createApp } from 'vue'
 import { createStore } from 'vuex'
 import App from './App.vue'
-import googleApi from '@/composables/google-api'
-import stanfordnlpApi from '@/composables/stanfordnlp-api'
+import googleApi from '@/composables/api/google-api'
+import stanfordnlpApi from '@/composables/api/stanfordnlp-api'
 import PrimeVue from 'primevue/config'
 
 const app = createApp(App)
