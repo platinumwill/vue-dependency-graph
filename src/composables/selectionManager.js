@@ -20,12 +20,12 @@ export default function selectionManager() {
         }
 
         let command = "g"
-
+        const sourcePatternBeginningAlias = "sourceBeginning"
         selectedWords.forEach( (word, index) => {
             command = command.concat(".addV(", JSON.stringify(word.selectedMorphologyInfoType), ")")
             command = command.concat(".as(", singleQuotedVectorAlias(word), ")")
             if (index === 0) {
-                command += ".as('sourceBeginning')"
+                command += ".as('" + sourcePatternBeginningAlias + "')"
                 command += appendAddPropertyCommand('isBeginning', true)
                 command += appendAddPropertyCommand('owner', 'Chin')
             }
@@ -33,8 +33,6 @@ export default function selectionManager() {
 
         selectedArcs.forEach( (arc) => {
             const startWord = selectedWords.find( word => word.indexInSentence == arc.trueStart )
-            console.log(selectedWords)
-            console.log(arc.trueStart)
             if (startWord === undefined
                 || startWord.selectedMorphologyInfoType === undefined 
                 || startWord.selectedMorphologyInfoType === ''
@@ -57,10 +55,8 @@ export default function selectionManager() {
         })
         
         let lastAddedPieceAlias
-        let firstPieceAlias = undefined
         segmentPieces.forEach((piece, pieceIdx) => {
             const currentPieceAlias = 'v' + pieceIdx
-            if (pieceIdx === 0) firstPieceAlias = currentPieceAlias
             command += ".addV('SimpleTargetPatternPiece').property('sourceType', '" + piece.type + "').as('" + currentPieceAlias + "')"
             if (lastAddedPieceAlias) {
                 command += ".addE('follows').to('" + lastAddedPieceAlias + "')"
@@ -69,7 +65,7 @@ export default function selectionManager() {
             }
             lastAddedPieceAlias = currentPieceAlias
         })
-        command = command.concat(".select('", firstPieceAlias, "')")
+        command = command.concat(".select('", sourcePatternBeginningAlias, "')")
 
         console.log(command)
         let argument = {

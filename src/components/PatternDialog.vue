@@ -88,7 +88,6 @@ export default {
                 return word.selectedMorphologyInfoType
             })
             selectedWords.forEach((selectedWord) => {
-                console.log(selectedWord)
                 const item = new Piece()
                 item.type = selectedWord.selectedMorphologyInfoType
                 item.content = selectedWord.tag + ' (' + selectedWord.lemma + ')'
@@ -99,7 +98,6 @@ export default {
             this.$parent.currentSpacyFormatSentence.arcs.filter((arc) => {
                 return arc.selected
             }).forEach((selectedArc) => {
-                console.log(selectedArc)
                 const item = new Piece()
                 item.type = 'Dependency'
                 item.content = selectedArc.label
