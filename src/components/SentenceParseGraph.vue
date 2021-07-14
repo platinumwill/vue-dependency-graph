@@ -19,7 +19,6 @@ import { mapGetters, mapState } from 'vuex'
 import { provide } from 'vue'
 import PatternDialog from "./PatternDialog.vue"
 
-import selectionManager from "@/composables/selectionManager"
 import spacyFormatManager from "@/composables/spacyFormatManager"
 import graphSentenceManager from "@/composables/graphSentenceManager"
 
@@ -109,12 +108,6 @@ export default {
         , PatternDialog
     } 
     , setup() {
-
-        const {
-            selectionHelper
-        } = selectionManager()
-
-        provide('selectionHelper', selectionHelper)
 
         const {
             spacyFormatHelper

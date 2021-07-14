@@ -46,7 +46,8 @@ import SegmentPiece from "./SegmentPiece.vue"
 import Button from 'primevue/button'
 import { mapGetters } from 'vuex'
 
-import { inject } from "vue"
+import selectionManager from "@/composables/selectionManager"
+
 
 class Piece {
     constructor () {
@@ -153,7 +154,9 @@ export default {
         }
     }
     , setup() {
-        const selectionHelper = inject('selectionHelper')
+        const {
+            selectionHelper
+        } = selectionManager()
 
         return { selectionHelper }
     }
