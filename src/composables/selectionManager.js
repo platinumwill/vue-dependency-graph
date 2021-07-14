@@ -76,6 +76,8 @@ export default function selectionManager() {
         axios.post('http://stanford-local:8182/', JSON.stringify(argument)).then(function(response) {
             const result = response.data.result
             console.log(result.data)
+            const targetPatterBeginPieceVId = result.data['@value'][0]['@value'].id
+            console.log(targetPatterBeginPieceVId)
         }).catch(function(error) {
             console.log(error)
         })
