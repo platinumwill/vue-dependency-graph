@@ -100,7 +100,7 @@ export default function selectionManager() {
         gremlinApi(command)
         .then((resultData) => {
             const targetPatterBeginPieceVId = resultData['@value'][0]['@value'].id['@value']
-            console.log(targetPatterBeginPieceVId)
+            console.log('Target Pattern Begin Piece Id: ', targetPatterBeginPieceVId)
             return targetPatterBeginPieceVId
         }).then((targetPatterBeginPieceVId) => {
             gremlinApi(
