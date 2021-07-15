@@ -5,6 +5,26 @@ const vertexType = Object.freeze({
     , follows: 'follows'
 })
 
+class GremlinInvoke {
+    constructor() {
+        this.command = "g"
+    }
+
+    chain(method, values) {
+        this.command = this.command.concat(".")
+        this.command = this.command.concat(method, "(")
+        if (!Array.isArray(values)) {
+            this.command = this.command.concat(JSON.stringify(values))
+        }
+        this.command = this.command.concat(")")
+        return this
+    }
+
+    command() {
+        return this.command
+    }
+}
+
 export default function selectionManager() {
 
     const isDependencyPlaceholder = (arc, selectedWords) => {
@@ -23,16 +43,6 @@ export default function selectionManager() {
         function singleQuotedVectorAlias(word) {
             return "'" + word.selectedMorphologyInfoType + word.indexInSentence + "'"
         }
-        function chainedInvoke(method, values) {
-            let result = '.'
-            result = result.concat(method, "(")
-            if (!Array.isArray(values)) {
-                result = result.concat(JSON.stringify(values))
-            }
-            result = result.concat(")")
-            return result
-        }
-
         let command = "g"
         const sourcePatternBeginningAlias = "sourceBeginning"
         selectedWords.forEach( (word, index) => {
@@ -89,9 +99,13 @@ export default function selectionManager() {
             const targetPatterBeginPieceVId = resultData['@value'][0]['@value'].id['@value']
             console.log(targetPatterBeginPieceVId)
             return targetPatterBeginPieceVId
-            // PROGRESS
         }).then((targetPatterBeginPieceVId) => {
-            gremlinApi("g.V(" + targetPatterBeginPieceVId + ")" + chainedInvoke('out', vertexType.applicable))
+            gremlinApi(
+                new GremlinInvoke()
+                .chain('V', targetPatterBeginPieceVId)
+                .chain('out', vertexType.applicable)
+                .command
+            )
             .then((resultData) => {
                 console.log(resultData)
             })
