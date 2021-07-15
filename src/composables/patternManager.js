@@ -1,5 +1,10 @@
 import gremlinApi from "@/composables/api/gremlin-api"
 
+const vertexType = Object.freeze({
+    applicable: 'applicable'
+    , follows: 'follows'
+})
+
 export default function selectionManager() {
 
     const isDependencyPlaceholder = (arc, selectedWords) => {
@@ -17,6 +22,15 @@ export default function selectionManager() {
         }
         function singleQuotedVectorAlias(word) {
             return "'" + word.selectedMorphologyInfoType + word.indexInSentence + "'"
+        }
+        function chainedInvoke(method, values) {
+            let result = '.'
+            result = result.concat(method, "(")
+            if (!Array.isArray(values)) {
+                result = result.concat(JSON.stringify(values))
+            }
+            result = result.concat(")")
+            return result
         }
 
         let command = "g"
@@ -70,9 +84,17 @@ export default function selectionManager() {
         command = command.concat(".select('", firstPieceAlias, "')")
 
         console.log(command)
-        gremlinApi(command).then((resultData) => {
-            const targetPatterBeginPieceVId = resultData['@value'][0]['@value'].id
+        gremlinApi(command)
+        .then((resultData) => {
+            const targetPatterBeginPieceVId = resultData['@value'][0]['@value'].id['@value']
             console.log(targetPatterBeginPieceVId)
+            return targetPatterBeginPieceVId
+            // PROGRESS
+        }).then((targetPatterBeginPieceVId) => {
+            gremlinApi("g.V(" + targetPatterBeginPieceVId + ")" + chainedInvoke('out', vertexType.applicable))
+            .then((resultData) => {
+                console.log(resultData)
+            })
         }).catch(function(error) {
             console.log(error)
         })
