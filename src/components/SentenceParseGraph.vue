@@ -25,8 +25,6 @@ import graphSentenceManager from "@/composables/graphSentenceManager"
 export default {
     data() {
         return {
-            // 這個變數最主要的特點是，每家的 dependency graph 都有自己一份（相對於 spacySentences 是統一一份的）
-            selectedDependencyIndices: []
         }
     }
     , computed: {
