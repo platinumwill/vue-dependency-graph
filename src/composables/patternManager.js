@@ -10,11 +10,14 @@ class GremlinInvoke {
         this.command = "g"
     }
 
-    chain(method, values) {
+    chain(method, ...values) {
         this.command = this.command.concat(".")
         this.command = this.command.concat(method, "(")
-        if (!Array.isArray(values)) {
-            this.command = this.command.concat(JSON.stringify(values))
+        if (values !== undefined) {
+            values.forEach( (value, index) => {
+                if (index !== 0) this.command = this.command.concat(", ")
+                this.command = this.command.concat(JSON.stringify(value))
+            })
         }
         this.command = this.command.concat(")")
         return this
