@@ -42,10 +42,13 @@ export default {
             currentSentenceIndex: 'currentSentenceIndex'
         })
         , selected: function() {
-            return this.spacyFormatSentences[this.currentSentenceIndex].words[this.token.indexInSentence].selectedMorphologyInfoType === this.morphologyInfoType
+            return this.currentSpacyWord.selectedMorphologyInfoType === this.morphologyInfoType
         }
         , isBeginning: function() {
-            return this.spacyFormatSentences[this.currentSentenceIndex].words[this.token.indexInSentence].beginningMorphologyInfoType === this.morphologyInfoType
+            return this.currentSpacyWord.beginningMorphologyInfoType === this.morphologyInfoType
+        }
+        , currentSpacyWord: function() {
+            return this.spacyFormatSentences[this.currentSentenceIndex].words[this.token.indexInSentence]
         }
     }
 }
