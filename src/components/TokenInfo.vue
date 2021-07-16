@@ -1,5 +1,5 @@
 <template>
-    <tspan class="displacy-lemma" @click="posClicked" :dy="dy" :fill="color" :x="$parent.x"><slot></slot></tspan>
+    <tspan :class="{'morph-info-beginning': isBeginning}" @click="posClicked" :dy="dy" :fill="color" :x="$parent.x"><slot></slot></tspan>
 </template>
 
 <script>
@@ -44,6 +44,15 @@ export default {
         , selected: function() {
             return this.spacyFormatSentences[this.currentSentenceIndex].words[this.token.indexInSentence].selectedMorphologyInfoType === this.morphologyInfoType
         }
+        , isBeginning: function() {
+            return this.spacyFormatSentences[this.currentSentenceIndex].words[this.token.indexInSentence].beginningMorphologyInfoType === this.morphologyInfoType
+        }
     }
 }
 </script>
+
+<style>
+    .morph-info-beginning {
+        text-decoration: underline;
+    }
+</style>

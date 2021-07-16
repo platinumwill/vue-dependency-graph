@@ -11,16 +11,41 @@ export default function() {
     const store = useStore()
     const spacyFormatSentences = ref([])
     const toggleMorphologySelection = (morphInfoType, tokenIndex) => {
-        const word = spacyFormatSentences.value[store.getters.currentSentenceIndex].words[tokenIndex]
+        const word = currentSentence().words[tokenIndex]
         if (word.selectedMorphologyInfoType === morphInfoType) {
             word.selectedMorphologyInfoType = undefined
-            return
+        } else {
+            word.selectedMorphologyInfoType = morphInfoType
         }
-        word.selectedMorphologyInfoType = morphInfoType
+        updateBeginning()
     }
     const toggleDependencySelection = (dependencyIndex) => {
-        const dependency = spacyFormatSentences.value[store.getters.currentSentenceIndex].arcs[dependencyIndex]
+        const dependency = currentSentence().arcs[dependencyIndex]
         dependency.selected = !dependency.selected
+        updateBeginning()
+    }
+    const updateBeginning = () => {
+        currentSentence().words.forEach( (word) => {
+            word.beginningMorphologyInfoType = word.selectedMorphologyInfoType
+            if (word.selectedMorphologyInfoType === undefined) {
+                word.beginningMorphologyInfoType = undefined
+                return
+            }
+            selectedArcs().forEach( (arc) => {
+                if (arc.trueEnd === word.indexInSentence) {
+                    word.beginningMorphologyInfoType = undefined
+                    return
+                }
+            })
+        })
+    }
+    const currentSentence = () => {
+        return spacyFormatSentences.value[store.getters.currentSentenceIndex]
+    }
+    const selectedArcs = () => {
+        return currentSentence().arcs.filter( (arc) => {
+            return arc.selected
+        })
     }
 
     return {
