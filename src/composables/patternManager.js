@@ -48,10 +48,10 @@ export default function selectionManager() {
         }
         let command = "g"
         const sourcePatternBeginningAlias = "sourceBeginning"
-        selectedWords.forEach( (word, index) => {
+        selectedWords.forEach( (word) => {
             command = command.concat(".addV(", JSON.stringify(word.selectedMorphologyInfoType), ")")
             command = command.concat(".as(", singleQuotedVectorAlias(word), ")")
-            if (index === 0) {
+            if (word.beginningMorphologyInfoType !== undefined) {
                 command += ".as('" + sourcePatternBeginningAlias + "')"
                 command += appendAddPropertyCommand('isBeginning', true)
                 command += appendAddPropertyCommand('owner', 'Chin')
