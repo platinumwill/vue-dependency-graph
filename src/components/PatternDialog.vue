@@ -1,6 +1,6 @@
 <template>
     <div>
-        <button @click="openTranslationPatternWindow">Add Pattern Segment</button>
+        <Button @click="openTranslationPatternWindow" :disabled="!isPatternSavable" >Add Pattern Segment</Button>
         <Dialog header="Pattern Segment" 
             v-model:visible="displayModal" 
             :maximizable="true"
@@ -73,7 +73,17 @@ export default {
         }
     }
     , computed: {
-        ...mapGetters({ 
+        isPatternSavable: function() {
+            let selectedWordCount = 0
+            let beginningWordCount = 0
+            this.$parent.currentSpacyFormatSentence.words.forEach( (word) => {
+                if (word.selectedMorphologyInfoType !== undefined) selectedWordCount++
+                if (word.beginningMorphologyInfoType !== undefined) beginningWordCount++
+            })
+            if (selectedWordCount === 0 || beginningWordCount > 1) return false
+            return true
+        }
+        , ...mapGetters({ 
             currentSentenceIndex: 'currentSentenceIndex'
         })
     }
