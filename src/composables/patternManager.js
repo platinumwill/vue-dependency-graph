@@ -1,32 +1,10 @@
-import gremlinApi from "@/composables/api/gremlin-api"
+import gremlinApi, * as gremlinUtils from "@/composables/api/gremlin-api"
 
 const vertexType = Object.freeze({
     applicable: 'applicable'
     , follows: 'follows'
 })
 
-class GremlinInvoke {
-    constructor() {
-        this.command = "g"
-    }
-
-    chain(method, ...values) {
-        this.command = this.command.concat(".")
-        this.command = this.command.concat(method, "(")
-        if (values !== undefined) {
-            values.forEach( (value, index) => {
-                if (index !== 0) this.command = this.command.concat(", ")
-                this.command = this.command.concat(JSON.stringify(value))
-            })
-        }
-        this.command = this.command.concat(")")
-        return this
-    }
-
-    command() {
-        return this.command
-    }
-}
 
 export default function selectionManager() {
 
@@ -104,9 +82,9 @@ export default function selectionManager() {
             return targetPatterBeginPieceVId
         }).then((targetPatterBeginPieceVId) => {
             gremlinApi(
-                new GremlinInvoke()
-                .chain('V', targetPatterBeginPieceVId)
-                .chain('out', vertexType.applicable)
+                new gremlinUtils.GremlinInvoke()
+                .call('V', targetPatterBeginPieceVId)
+                .call('out', vertexType.applicable)
                 .command
             )
             .then((resultData) => {
