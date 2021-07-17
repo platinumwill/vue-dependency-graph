@@ -17,12 +17,18 @@ export default function(command) {
 
 }
 export class GremlinInvoke {
-    constructor() {
-        this.command = "g"
+    constructor(nested) {
+        if (! nested) {
+            this.command = "g"
+        } else {
+            this.command = ''
+        }
     }
 
     call(method, ...values) {
-        this.command = this.command.concat(".")
+        if (this.command !== '') {
+            this.command = this.command.concat(".")
+        }
         this.command = this.command.concat(method, "(")
         if (values !== undefined) {
             values.forEach( (value, index) => {
@@ -30,6 +36,14 @@ export class GremlinInvoke {
                 this.command = this.command.concat(JSON.stringify(value))
             })
         }
+        this.command = this.command.concat(")")
+        return this
+    }
+    nest(method, nested) {
+        if (this.command !== '') {
+            this.command = this.command.concat(".")
+        }
+        this.command = this.command.concat(method, "(", nested)
         this.command = this.command.concat(")")
         return this
     }

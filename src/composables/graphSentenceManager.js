@@ -19,13 +19,13 @@ export default function() {
             word.selectedMorphologyInfoType = morphInfoType
         }
         updateBeginning()
-        loadMatchingSourcePatternOptions()
+        reloadMatchingSourcePatternOptions()
     }
     const toggleDependencySelection = (dependencyIndex) => {
         const dependency = currentSentence().arcs[dependencyIndex]
         dependency.selected = !dependency.selected
         updateBeginning()
-        loadMatchingSourcePatternOptions()
+        reloadMatchingSourcePatternOptions()
     }
     const updateBeginning = () => {
         currentSentence().words.forEach( (word) => {
@@ -45,10 +45,10 @@ export default function() {
 
     const selectedSourcePattern = ref({})
     const sourcePatternOptions = ref([])
-    const loadMatchingSourcePatternOptions = () => {
+    const reloadMatchingSourcePatternOptions = () => {
+        sourcePatternOptions.value.splice(0, sourcePatternOptions.value.length)
         const beginWord = findBeginWord()
         if (! beginWord) {
-            sourcePatternOptions.value.splice(0, sourcePatternOptions.value.length)
             return
         }
         const gremlinCommand = new gremlinUtils.GremlinInvoke()
@@ -72,6 +72,7 @@ export default function() {
     const selectedSourcePatternChanged = function(event) {
         reloadTargetPatternOptions(event.value.id)
         selectedTargetPattern.value = {}
+        autoMarkSelectedPattern(event.value.id)
     }
     const reloadTargetPatternOptions = (sourcePatternBeginningId) => {
         targetPatternOptions.value.splice(0, sourcePatternOptions.value.length)
@@ -89,6 +90,19 @@ export default function() {
             })
         })
     }
+    const autoMarkSelectedPattern = (sourcePatternBeginningId) => {
+        let gremlinCommand = new gremlinUtils.GremlinInvoke()
+        .call("V", sourcePatternBeginningId)
+        .nest("repeat", new gremlinUtils.GremlinInvoke(true).call("outE").call("inV").command)
+        .nest("until", new gremlinUtils.GremlinInvoke(true).call("outE").call("count").call("is", 0).command)
+        .call("limit", 20)
+        .call("path")
+        .command
+        gremlinApi(gremlinCommand).then( (resultData) => {
+            console.log(resultData)
+        })
+    }
+
     const currentSentence = () => {
         return spacyFormatSentences.value[store.getters.currentSentenceIndex]
     }
