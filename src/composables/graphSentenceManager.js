@@ -19,13 +19,13 @@ export default function() {
             word.selectedMorphologyInfoType = morphInfoType
         }
         updateBeginning()
-        queryMathingSourcePatterns()
+        loadMatchingSourcePatternOptions()
     }
     const toggleDependencySelection = (dependencyIndex) => {
         const dependency = currentSentence().arcs[dependencyIndex]
         dependency.selected = !dependency.selected
         updateBeginning()
-        queryMathingSourcePatterns()
+        loadMatchingSourcePatternOptions()
     }
     const updateBeginning = () => {
         currentSentence().words.forEach( (word) => {
@@ -43,8 +43,9 @@ export default function() {
         })
     }
 
+    const selectedSourcePattern = ref({})
     const sourcePatternOptions = ref([])
-    const queryMathingSourcePatterns = () => {
+    const loadMatchingSourcePatternOptions = () => {
         const beginWord = findBeginWord()
         if (! beginWord) {
             sourcePatternOptions.value.splice(0, sourcePatternOptions.value.length)
@@ -55,13 +56,8 @@ export default function() {
         .call("hasLabel", beginWord.beginningMorphologyInfoType)
         .call("inE", 'applicable')
         .call("inV")
-        // .call("path")
         .command
-        console.log(gremlinCommand)
         gremlinApi(gremlinCommand).then( (resultData) => {
-            // const targetPatterBeginPieceVId = resultData['@value'][0]['@value'].id['@value']
-            console.log(resultData)
-            // console.log(resultData['@value'].objects['@value'][1]['@value'])
             resultData['@value'].forEach( (sourcePatternBeginning) => {
                 sourcePatternOptions.value.push({
                     id: sourcePatternBeginning['@value'].id['@value']
@@ -69,7 +65,27 @@ export default function() {
                 })
             })
         })
-        console.log(sourcePatternOptions)
+    }
+
+    const selectedTargetPattern = ref({})
+    const targetPatternOptions = ref([])
+    const selectedSourcePatternChanged = function(event) {
+        loadTargetPatternOptions(event.value.id)
+        return true
+    }
+    const loadTargetPatternOptions = (sourcePatternBeginningId) => {
+        const gremlinCommand = new gremlinUtils.GremlinInvoke()
+        .call("V", sourcePatternBeginningId)
+        .call("in", "applicable")
+        .command
+        gremlinApi(gremlinCommand).then( (resultData) => {
+            resultData['@value'].forEach( (targetPatternBeginning) => {
+                targetPatternOptions.value.push({
+                    id: targetPatternBeginning['@value'].id['@value'] 
+                    , label: targetPatternBeginning['@value'].label + '-' + targetPatternBeginning['@value'].id['@value']
+                })
+            })
+        })
     }
     const currentSentence = () => {
         return spacyFormatSentences.value[store.getters.currentSentenceIndex]
@@ -97,8 +113,14 @@ export default function() {
         , toggleMorphologySelection
         , morphologyInfoType
         , toggleDependencySelection
-        , optionHelper: {
-            sourcePatternOptions: sourcePatternOptions.value
+        , sourcePattern: {
+            selected: selectedSourcePattern
+            , options: sourcePatternOptions.value
+            , selectionChanged: selectedSourcePatternChanged
+        }
+        , targetPattern: {
+            selected: selectedTargetPattern
+            , options: targetPatternOptions.value
         }
     }
 }

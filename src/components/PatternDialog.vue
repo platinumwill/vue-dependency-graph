@@ -1,9 +1,18 @@
 <template>
     <div>
         <div>
-            <Dropdown v-model="selectedSourcePattern" :options="optionHelper.sourcePatternOptions" optionLabel="label"></Dropdown>
+            <Dropdown v-model="sourcePattern.selected.value"
+                :options="sourcePattern.options"
+                optionLabel="label"
+                @change="sourcePattern.selectionChanged"
+                >
+            </Dropdown>
             <br/>
-            <Dropdown v-model="selectedTargetPattern"></Dropdown>
+            <Dropdown v-model="targetPattern.selected.value"
+                :options="targetPattern.options"
+                optionLabel="label"
+            >
+            </Dropdown>
         </div>
 
         <Button @click="openTranslationPatternWindow" :disabled="!isPatternSavable" >Add Pattern Segment</Button>
@@ -81,8 +90,6 @@ export default {
             displayModal: false
             , segmentPieces: []
             , segmentPiecesForRevert: []
-            , selectedSourcePattern: undefined
-            , selectedTargetPattern: undefined
         }
     }
     , computed: {
@@ -180,11 +187,13 @@ export default {
             patternHelper
         } = patternManager()
 
-        const optionHelper = inject('optionHelper')
+        const sourcePattern = inject('sourcePattern')
+        const targetPattern = inject('targetPattern')
 
         return {
             patternHelper
-            , optionHelper
+            , sourcePattern
+            , targetPattern
         }
     }
 }
