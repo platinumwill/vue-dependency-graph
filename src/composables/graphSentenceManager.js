@@ -70,10 +70,12 @@ export default function() {
     const selectedTargetPattern = ref({})
     const targetPatternOptions = ref([])
     const selectedSourcePatternChanged = function(event) {
-        loadTargetPatternOptions(event.value.id)
-        return true
+        reloadTargetPatternOptions(event.value.id)
+        selectedTargetPattern.value = {}
     }
-    const loadTargetPatternOptions = (sourcePatternBeginningId) => {
+    const reloadTargetPatternOptions = (sourcePatternBeginningId) => {
+        targetPatternOptions.value.splice(0, sourcePatternOptions.value.length)
+
         const gremlinCommand = new gremlinUtils.GremlinInvoke()
         .call("V", sourcePatternBeginningId)
         .call("in", "applicable")
