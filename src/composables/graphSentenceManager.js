@@ -63,7 +63,10 @@ export default function() {
             console.log(resultData)
             // console.log(resultData['@value'].objects['@value'][1]['@value'])
             resultData['@value'].forEach( (sourcePatternBeginning) => {
-                sourcePatternOptions.value.push(sourcePatternBeginning['@value'].label + '-' + sourcePatternBeginning['@value'].id['@value'])
+                sourcePatternOptions.value.push({
+                    id: sourcePatternBeginning['@value'].id['@value']
+                    , label: sourcePatternBeginning['@value'].label + '-' + sourcePatternBeginning['@value'].id['@value']
+                })
             })
         })
         console.log(sourcePatternOptions)

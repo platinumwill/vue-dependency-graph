@@ -1,7 +1,7 @@
 <template>
     <div>
         <div>
-            <Dropdown v-model="selectedSourcePattern" :options="optionHelper.sourcePatternOptions"></Dropdown>
+            <Dropdown v-model="selectedSourcePattern" :options="optionHelper.sourcePatternOptions" optionLabel="label"></Dropdown>
             <br/>
             <Dropdown v-model="selectedTargetPattern"></Dropdown>
         </div>
