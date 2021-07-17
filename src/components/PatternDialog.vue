@@ -1,6 +1,13 @@
 <template>
     <div>
+        <div>
+            <Dropdown v-model="selectedSourcePattern" :options="optionHelper.sourcePatternOptions"></Dropdown>
+            <br/>
+            <Dropdown v-model="selectedTargetPattern"></Dropdown>
+        </div>
+
         <Button @click="openTranslationPatternWindow" :disabled="!isPatternSavable" >Add Pattern Segment</Button>
+
         <Dialog header="Pattern Segment" 
             v-model:visible="displayModal" 
             :maximizable="true"
@@ -40,11 +47,14 @@
 <script>
 // import PrimeVue from 'primevue/config';
 import Dialog from 'primevue/dialog'
+import Button from 'primevue/button'
+import Dropdown from 'primevue/dropdown'
+
 import draggable from 'vuedraggable'
 import VueHorizontal from "vue-horizontal";
 import SegmentPiece from "./SegmentPiece.vue"
-import Button from 'primevue/button'
 import { mapGetters } from 'vuex'
+import { inject } from 'vue'
 
 import patternManager from "@/composables/patternManager"
 
@@ -64,12 +74,15 @@ export default {
         , VueHorizontal
         , SegmentPiece
         , Button
+        , Dropdown
     }
     , data() {
         return {
             displayModal: false
             , segmentPieces: []
             , segmentPiecesForRevert: []
+            , selectedSourcePattern: undefined
+            , selectedTargetPattern: undefined
         }
     }
     , computed: {
@@ -167,7 +180,12 @@ export default {
             patternHelper
         } = patternManager()
 
-        return { patternHelper }
+        const optionHelper = inject('optionHelper')
+
+        return {
+            patternHelper
+            , optionHelper
+        }
     }
 }
 </script>
