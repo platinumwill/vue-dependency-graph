@@ -31,6 +31,8 @@ export default function() {
         reloadMatchingSourcePatternOptions()
     }
     const updateBeginning = () => {
+        const beginWord = findBeginWord()
+        if (beginWord) return
         currentSentence().words.forEach( (word) => {
             word.beginningMorphologyInfoType = word.selectedMorphologyInfoType
             if (word.selectedMorphologyInfoType === undefined) {
