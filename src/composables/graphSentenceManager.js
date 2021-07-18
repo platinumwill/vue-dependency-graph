@@ -22,9 +22,11 @@ export default function() {
                 selectedArc.trueStart === tokenIndex || selectedArc.trueEnd === tokenIndex
             }).length <= 0) return // 就不要選取
         }
+        // 執行選取
         const word = sentence.words[tokenIndex]
         if (word.selectedMorphologyInfoType === morphInfoType) {
             word.selectedMorphologyInfoType = undefined
+            word.beginningMorphologyInfoType = undefined
         } else {
             word.selectedMorphologyInfoType = morphInfoType
         }
