@@ -15,7 +15,14 @@ export default function() {
     const store = useStore()
     const spacyFormatSentences = ref([])
     const toggleMorphologySelection = (morphInfoType, tokenIndex) => {
-        const word = currentSentence().words[tokenIndex]
+        const sentence = currentSentence()
+        const selectedArcs = sentence.arcs.filter( arc => arc.selected)
+        if (selectedArcs.length > 0) { // 如果有選 dependency
+            if (selectedArcs.filter( (selectedArc) => { // 選起來的 dependency 又都沒有連著現在要選的 token
+                selectedArc.trueStart === tokenIndex || selectedArc.trueEnd === tokenIndex
+            }).length <= 0) return // 就不要選取
+        }
+        const word = sentence.words[tokenIndex]
         if (word.selectedMorphologyInfoType === morphInfoType) {
             word.selectedMorphologyInfoType = undefined
         } else {
