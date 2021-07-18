@@ -145,7 +145,6 @@ export default function() {
                         && arc.label === outELabel
                     )
                 })
-                matchingArc.selected = true // 不要用 selected
                 matchingArc.sourcePatternEdgeId = outEId
             })
         })
