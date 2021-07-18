@@ -68,7 +68,7 @@ export default function() {
         }
         const gremlinCommand = new gremlinUtils.GremlinInvoke()
         .call("V")
-        .call("hasLabel", beginWord.beginningMorphologyInfoType)
+        .call("has", beginWord.beginningMorphologyInfoType, beginWord.tag)
         .call("inE", 'applicable')
         .call("inV")
         .command

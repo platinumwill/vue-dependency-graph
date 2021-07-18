@@ -21,14 +21,18 @@ export default function selectionManager() {
         function appendAddPropertyCommand(name, value) {
             return ".property('" + name + "', " + JSON.stringify(value) + ")" 
         }
-        function singleQuotedVectorAlias(word) {
-            return "'" + word.selectedMorphologyInfoType + word.indexInSentence + "'"
+        function vertexAlias(word) {
+            return word.selectedMorphologyInfoType + word.indexInSentence
         }
-        let command = "g"
+        const gremlinInvoke = new gremlinUtils.GremlinInvoke()
         const sourcePatternBeginningAlias = "sourceBeginning"
+        let command = ""
         selectedWords.forEach( (word) => {
-            command = command.concat(".addV(", JSON.stringify(word.selectedMorphologyInfoType), ")")
-            command = command.concat(".as(", singleQuotedVectorAlias(word), ")")
+            gremlinInvoke
+                .call("addV", word.selectedMorphologyInfoType)
+                .call("property", word.selectedMorphologyInfoType, word.tag)
+                .call("as", vertexAlias(word))
+            command = gremlinInvoke.command
             if (word.beginningMorphologyInfoType !== undefined) {
                 command += ".as('" + sourcePatternBeginningAlias + "')"
                 command += appendAddPropertyCommand('isBeginning', true)
@@ -46,7 +50,7 @@ export default function selectionManager() {
                     console.error(error)
                     throw error
                 }
-            let startVName = singleQuotedVectorAlias(startWord)
+            let startVName = "'" + vertexAlias(startWord) + "'"
             let quotedEndVName = undefined
             if (isDependencyPlaceholder(arc, selectedWords)) { // 這個 dependency 後面連著連接處
                 const quotedConnectorVName = "'connector_" + arc.trueStart + "-" + arc.trueEnd + "'"
@@ -54,7 +58,7 @@ export default function selectionManager() {
                 command += ".addV('Connector').as(" + quotedConnectorVName + ")"
             } else {
                 const endWord = selectedWords.find( word => word.indexInSentence == arc.trueEnd ) 
-                quotedEndVName = singleQuotedVectorAlias(endWord)
+                quotedEndVName = "'" + vertexAlias(endWord) + "'"
             }
             command += ".addE('" + arc.label + "').from(" + startVName + ").to(" + quotedEndVName + ")"
         })
