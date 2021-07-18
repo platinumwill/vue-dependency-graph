@@ -22,6 +22,7 @@ export default function() {
                 return (selectedArc.trueStart === tokenIndex || selectedArc.trueEnd === tokenIndex)
             }).length <= 0) return // 就不要選取
         }
+        // TODO 選取還是都要連起來比較保險
         // 執行 toggle
         const word = sentence.words[tokenIndex]
         if (word.selectedMorphologyInfoType === morphInfoType) { // toggle off
@@ -37,12 +38,14 @@ export default function() {
         }
         updateBeginning()
         reloadMatchingSourcePatternOptions()
+        markExistingPattern()
     }
     const toggleDependencySelection = (dependencyIndex) => {
         const dependency = currentSentence().arcs[dependencyIndex]
         dependency.selected = !dependency.selected
         updateBeginning()
         reloadMatchingSourcePatternOptions()
+        markExistingPattern()
     }
     const updateBeginning = () => {
         currentSentence().words.forEach( (word) => {
@@ -63,6 +66,31 @@ export default function() {
                 word.sourcePatternVertexId = undefined
             })
         }
+    }
+
+    const markExistingPattern = () => { // 這個命名可能要調整一下，跟 automark 有可能混淆
+        if (!findBeginWord()) return
+        const selectedArcsFromBegin = currentSentence().arcs.filter( (arc) => {
+            return (arc.selected && arc.trueStart === findBeginWord().indexInSentence)
+        })
+        if (selectedArcsFromBegin.length === 0) return
+        const gremlinCommand = new gremlinUtils.GremlinInvoke()
+        .call("V")
+        .call("has", findBeginWord().selectedMorphologyInfoType, findBeginWord().tag)
+        .nest(
+            "where"
+            , new gremlinUtils.GremlinInvoke(true)
+            .call("outE")
+            .call("count")
+            .call("is", selectedArcsFromBegin.length)
+            .command
+            )
+        .command
+        console.log(gremlinCommand)
+        gremlinApi(gremlinCommand).then( (resultData) => {
+            console.log(resultData)
+            // 查詢結果超過 1 筆要丟例外
+        })
     }
 
     const selectedSourcePattern = ref({})
