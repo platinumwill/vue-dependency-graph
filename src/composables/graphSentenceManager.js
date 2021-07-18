@@ -6,6 +6,9 @@ const morphologyInfoType = Object.freeze({
     pos: 'POS'
     , lemma: 'Lemma'
 })
+// const vertextType = Object.freeze({
+//     connector: 'Connector'
+// })
 
 export default function() {
     
@@ -70,9 +73,18 @@ export default function() {
     const selectedTargetPattern = ref({})
     const targetPatternOptions = ref([])
     const selectedSourcePatternChanged = function(event) {
-        reloadTargetPatternOptions(event.value.id)
+        const sourcePatternBeginningId = event.value.id
+        const currentBeginWord = findBeginWord()
+        currentBeginWord.sourcePatternVertexId = sourcePatternBeginningId
+        reloadTargetPatternOptions(sourcePatternBeginningId)
+
+        // clear
+        const sentence = currentSentence()
+        sentence.arcs.forEach( arc => arc.sourcePatternEdgeId = undefined)
+        sentence.arcs.forEach( arc => arc.selected = false)
         selectedTargetPattern.value = {}
-        autoMarkSelectedPattern(event.value.id)
+
+        autoMarkSelectedPattern(sourcePatternBeginningId)
     }
     const reloadTargetPatternOptions = (sourcePatternBeginningId) => {
         targetPatternOptions.value.splice(0, sourcePatternOptions.value.length)
@@ -100,6 +112,22 @@ export default function() {
         .command
         gremlinApi(gremlinCommand).then( (resultData) => {
             console.log(resultData)
+            resultData['@value'].forEach( (path) => {
+                const outVId = path['@value'].objects['@value'][0]['@value'].id['@value']
+                const outELabel = path['@value'].objects['@value'][1]['@value'].label
+                const outEId = path['@value'].objects['@value'][1]['@value'].id['@value']
+                // const inVLabel = path['@value'].objects[2].label
+                // const beginWordIndex = beginWord().indexInSentence
+                const sentence = currentSentence()
+                const matchingArc = sentence.arcs.find( (arc) => {
+                    return (
+                        sentence.words[arc.trueStart].sourcePatternVertexId === outVId
+                        && arc.label === outELabel
+                    )
+                })
+                matchingArc.selected = true // 不要用 selected
+                matchingArc.sourcePatternEdgeId = outEId
+            })
         })
     }
 
