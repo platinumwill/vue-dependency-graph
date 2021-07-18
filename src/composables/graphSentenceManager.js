@@ -19,12 +19,12 @@ export default function() {
         const selectedArcs = sentence.arcs.filter( arc => arc.selected)
         if (selectedArcs.length > 0) { // 如果有選 dependency
             if (selectedArcs.filter( (selectedArc) => { // 選起來的 dependency 又都沒有連著現在要選的 token
-                selectedArc.trueStart === tokenIndex || selectedArc.trueEnd === tokenIndex
+                return (selectedArc.trueStart === tokenIndex || selectedArc.trueEnd === tokenIndex)
             }).length <= 0) return // 就不要選取
         }
-        // 執行選取
+        // 執行 toggle
         const word = sentence.words[tokenIndex]
-        if (word.selectedMorphologyInfoType === morphInfoType) {
+        if (word.selectedMorphologyInfoType === morphInfoType) { // toggle off
             word.selectedMorphologyInfoType = undefined
             word.beginningMorphologyInfoType = undefined
             word.sourcePatternVertexId = undefined
@@ -32,7 +32,7 @@ export default function() {
                 sourcePatternOptions.value.splice(0, sourcePatternOptions.value.length)
                 targetPatternOptions.value.splice(0, targetPatternOptions.value.length)
             }
-        } else {
+        } else { // toggle on
             word.selectedMorphologyInfoType = morphInfoType
         }
         updateBeginning()
@@ -45,21 +45,24 @@ export default function() {
         reloadMatchingSourcePatternOptions()
     }
     const updateBeginning = () => {
-        const beginWord = findBeginWord()
         currentSentence().words.forEach( (word) => {
             selectedArcs().forEach( (arc) => {
-                if (arc.trueEnd === word.indexInSentence) {
+                if (arc.trueEnd === word.indexInSentence) { // 在 edge 尾巴的標成不是 begin
                     word.beginningMorphologyInfoType = undefined
                     return
                 }
             })
-            if (beginWord) return
+            if (findBeginWord()) return
             word.beginningMorphologyInfoType = word.selectedMorphologyInfoType
-            if (word.selectedMorphologyInfoType === undefined) {
-                word.beginningMorphologyInfoType = undefined
-                return
-            }
         })
+        if (! findBeginWord()) return
+        if (findBeginWord().length > 1) { // 如果 begin word 超過 1 個
+            currentSentence().words.forEach( (word) => {
+                word.beginningMorphologyInfoType = undefined
+                word.selectedMorphologyInfoType = undefined
+                word.sourcePatternVertexId = undefined
+            })
+        }
     }
 
     const selectedSourcePattern = ref({})
