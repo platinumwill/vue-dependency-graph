@@ -27,6 +27,7 @@ export default function() {
         if (word.selectedMorphologyInfoType === morphInfoType) {
             word.selectedMorphologyInfoType = undefined
             word.beginningMorphologyInfoType = undefined
+            word.sourcePatternVertexId = undefined
             sourcePatternOptions.value.splice(0, sourcePatternOptions.value.length)
         } else {
             word.selectedMorphologyInfoType = morphInfoType
