@@ -27,6 +27,7 @@ export default function() {
         if (word.selectedMorphologyInfoType === morphInfoType) {
             word.selectedMorphologyInfoType = undefined
             word.beginningMorphologyInfoType = undefined
+            sourcePatternOptions.value.splice(0, sourcePatternOptions.value.length)
         } else {
             word.selectedMorphologyInfoType = morphInfoType
         }
@@ -84,18 +85,26 @@ export default function() {
     const selectedTargetPattern = ref({})
     const targetPatternOptions = ref([])
     const selectedSourcePatternChanged = function(event) {
+        if (event.value == undefined) {
+            clearSelectionAndMatching()
+            return
+        }
         const sourcePatternBeginningId = event.value.id
         const currentBeginWord = findBeginWord()
         currentBeginWord.sourcePatternVertexId = sourcePatternBeginningId
-        reloadTargetPatternOptions(sourcePatternBeginningId)
 
         // clear
+
+        // 處理 target pattern
+        selectedTargetPattern.value = {}
+        reloadTargetPatternOptions(sourcePatternBeginningId)
+
+        autoMarkMatchingPattern(sourcePatternBeginningId)
+    }
+    const clearSelectionAndMatching = () => {
         const sentence = currentSentence()
         sentence.arcs.forEach( arc => arc.sourcePatternEdgeId = undefined)
         sentence.arcs.forEach( arc => arc.selected = false)
-        selectedTargetPattern.value = {}
-
-        autoMarkMatchingPattern(sourcePatternBeginningId)
     }
     const reloadTargetPatternOptions = (sourcePatternBeginningId) => {
         targetPatternOptions.value.splice(0, sourcePatternOptions.value.length)

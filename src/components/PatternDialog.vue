@@ -5,12 +5,15 @@
                 :options="sourcePattern.options"
                 optionLabel="label"
                 @change="sourcePattern.selectionChanged"
+                placeholder="Existing source pattern"
+                :showClear="true"
                 >
             </Dropdown>
             <br/>
             <Dropdown v-model="targetPattern.selected.value"
                 :options="targetPattern.options"
                 optionLabel="label"
+                placeholder="Existing target pattern"
             >
             </Dropdown>
         </div>
