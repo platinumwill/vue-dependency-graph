@@ -28,7 +28,10 @@ export default function() {
             word.selectedMorphologyInfoType = undefined
             word.beginningMorphologyInfoType = undefined
             word.sourcePatternVertexId = undefined
-            sourcePatternOptions.value.splice(0, sourcePatternOptions.value.length)
+            if (findBeginWord.indexInSentence === tokenIndex) {
+                sourcePatternOptions.value.splice(0, sourcePatternOptions.value.length)
+                targetPatternOptions.value.splice(0, targetPatternOptions.value.length)
+            }
         } else {
             word.selectedMorphologyInfoType = morphInfoType
         }
@@ -87,7 +90,7 @@ export default function() {
     const targetPatternOptions = ref([])
     const selectedSourcePatternChanged = function(event) {
         if (event.value == undefined) {
-            clearSelectionAndMatching()
+            clearSelectionAndMatchingAndOptions()
             return
         }
         const sourcePatternBeginningId = event.value.id
@@ -102,13 +105,20 @@ export default function() {
 
         autoMarkMatchingPattern(sourcePatternBeginningId)
     }
-    const clearSelectionAndMatching = () => {
+    const clearSelectionAndMatchingAndOptions = () => {
         const sentence = currentSentence()
         sentence.arcs.forEach( arc => arc.sourcePatternEdgeId = undefined)
         sentence.arcs.forEach( arc => arc.selected = false)
+        sentence.words.forEach( (word) => {
+            word.selectedMorphologyInfoType = undefined
+            word.beginningMorphologyInfoType = undefined
+            word.sourcePatternVertexId = undefined
+        })
+        sourcePatternOptions.value.splice(0, sourcePatternOptions.value.length)
+        targetPatternOptions.value.splice(0, targetPatternOptions.value.length)
     }
     const reloadTargetPatternOptions = (sourcePatternBeginningId) => {
-        targetPatternOptions.value.splice(0, sourcePatternOptions.value.length)
+        targetPatternOptions.value.splice(0, targetPatternOptions.value.length)
 
         const gremlinCommand = new gremlinUtils.GremlinInvoke()
         .call("V", sourcePatternBeginningId)
