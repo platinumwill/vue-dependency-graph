@@ -100,7 +100,7 @@ export default {
                 if (word.selectedMorphologyInfoType !== undefined) selectedWordCount++
                 if (word.beginningMorphologyInfoType !== undefined) beginningWordCount++
             })
-            if (selectedWordCount === 0 || beginningWordCount > 1) return false
+            if (selectedWordCount === 0 || beginningWordCount != 1) return false
             return true
         }
         , ...mapGetters({ 

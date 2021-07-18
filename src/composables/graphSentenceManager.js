@@ -32,19 +32,19 @@ export default function() {
     }
     const updateBeginning = () => {
         const beginWord = findBeginWord()
-        if (beginWord) return
         currentSentence().words.forEach( (word) => {
-            word.beginningMorphologyInfoType = word.selectedMorphologyInfoType
-            if (word.selectedMorphologyInfoType === undefined) {
-                word.beginningMorphologyInfoType = undefined
-                return
-            }
             selectedArcs().forEach( (arc) => {
                 if (arc.trueEnd === word.indexInSentence) {
                     word.beginningMorphologyInfoType = undefined
                     return
                 }
             })
+            if (beginWord) return
+            word.beginningMorphologyInfoType = word.selectedMorphologyInfoType
+            if (word.selectedMorphologyInfoType === undefined) {
+                word.beginningMorphologyInfoType = undefined
+                return
+            }
         })
     }
 
