@@ -36,13 +36,21 @@ export default {
     }
     , computed: {
         color: function() {
-            return this.selected ? this.config.selectedForegroundColor : 'currentColor'
+            if (this.matchExisting) {
+                return "yellow"
+            } else if (this.selected) {
+                return this.config.selectedForegroundColor 
+            }
+            return 'currentColor'
         }
         , ...mapGetters({ 
             currentSentenceIndex: 'currentSentenceIndex'
         })
         , selected: function() {
             return this.currentSpacyWord.selectedMorphologyInfoType === this.morphologyInfoType
+        }
+        , matchExisting: function() {
+            return this.token.sourcePatternVertexId !== undefined && this.selected
         }
         , isBeginning: function() {
             return this.currentSpacyWord.beginningMorphologyInfoType === this.morphologyInfoType
