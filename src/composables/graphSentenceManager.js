@@ -95,7 +95,7 @@ export default function() {
         sentence.arcs.forEach( arc => arc.selected = false)
         selectedTargetPattern.value = {}
 
-        autoMarkSelectedPattern(sourcePatternBeginningId)
+        autoMarkMatchingPattern(sourcePatternBeginningId)
     }
     const reloadTargetPatternOptions = (sourcePatternBeginningId) => {
         targetPatternOptions.value.splice(0, sourcePatternOptions.value.length)
@@ -113,7 +113,7 @@ export default function() {
             })
         })
     }
-    const autoMarkSelectedPattern = (sourcePatternBeginningId) => {
+    const autoMarkMatchingPattern = (sourcePatternBeginningId) => {
         let gremlinCommand = new gremlinUtils.GremlinInvoke()
         .call("V", sourcePatternBeginningId)
         .nest("repeat", new gremlinUtils.GremlinInvoke(true).call("outE").call("inV").command)
@@ -122,7 +122,7 @@ export default function() {
         .call("path")
         .command
         gremlinApi(gremlinCommand).then( (resultData) => {
-            console.log(resultData)
+            findBeginWord().sourcePatternVertexId = sourcePatternBeginningId
             resultData['@value'].forEach( (path) => {
                 const outVId = path['@value'].objects['@value'][0]['@value'].id['@value']
                 const outELabel = path['@value'].objects['@value'][1]['@value'].label
