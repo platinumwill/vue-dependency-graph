@@ -42,7 +42,13 @@ export default function() {
     }
     const toggleDependencySelection = (dependencyIndex) => {
         const dependency = currentSentence().arcs[dependencyIndex]
-        dependency.selected = !dependency.selected
+        if (dependency.selected || dependency.sourcePatternEdgeId) {
+            dependency.selected = undefined
+            currentSentence().arcs.forEach( arc => arc.sourcePatternEdgeId = undefined)
+            currentSentence().words.forEach( word => word.sourcePatternVertexId = undefined)
+        } else {
+            dependency.selected = !dependency.selected
+        }
         updateBeginning()
         reloadMatchingSourcePatternOptions()
         markExistingPattern()
@@ -116,9 +122,8 @@ export default function() {
                 console.error(error, resultData)
                 throw error
             }
-            const patternInDb = resultData['@value'][0]['@value']
-            console.log(patternInDb)
-            // 標記符合的 token 和 depenedency
+            const sourcePatternBeginningId = resultData['@value'][0]['@value'].id['@value']
+            autoMarkMatchingPattern(sourcePatternBeginningId)
         })
     }
 
@@ -194,6 +199,12 @@ export default function() {
         })
     }
     const autoMarkMatchingPattern = (sourcePatternBeginningId) => {
+        // 這裡必須要用 ==，因為 Primevue 的值是存 null，不是存 undefined
+        if (selectedSourcePattern.value == undefined || selectedSourcePattern.value.id == undefined) {
+            selectedSourcePattern.value = sourcePatternOptions.value.find( (option) => {
+                return option.id == sourcePatternBeginningId
+            })
+        }
         let gremlinCommand = new gremlinUtils.GremlinInvoke()
         .call("V", sourcePatternBeginningId)
         .nest("repeat", new gremlinUtils.GremlinInvoke(true).call("outE").call("inV").command)
