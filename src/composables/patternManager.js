@@ -24,6 +24,7 @@ export default function selectionManager() {
         function vertexAlias(word) {
             return word.selectedMorphologyInfoType + word.indexInSentence
         }
+        // TODO 判斷現在的 pattern 是不是既有的，是的話就不要再存
         const gremlinInvoke = new gremlinUtils.GremlinInvoke()
         const sourcePatternBeginningAlias = "sourceBeginning"
         let command = ""
