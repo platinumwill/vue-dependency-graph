@@ -74,7 +74,7 @@ export default function() {
             return (arc.selected && arc.trueStart === findBeginWord().indexInSentence)
         })
         if (selectedArcsFromBegin.length === 0) return
-        const gremlinCommand = new gremlinUtils.GremlinInvoke()
+        let gremlinInvoke = new gremlinUtils.GremlinInvoke()
         .call("V")
         .call("has", findBeginWord().selectedMorphologyInfoType, findBeginWord().tag)
         .nest(
@@ -84,12 +84,41 @@ export default function() {
             .call("count")
             .call("is", selectedArcsFromBegin.length)
             .command
+        )
+        const arcSum = new Map();
+        selectedArcsFromBegin.forEach( (selectedArc) => {
+            console.log("label: ", selectedArc.label)
+            if ( arcSum.has(selectedArc.label) ) {
+                arcSum.set(selectedArc.label, arcSum.get(selectedArc.label) + 1)
+            } else {
+                arcSum.set(selectedArc.label, 1)
+            }
+            // gremlinInvoke = gremlinInvoke.command("and", new gremlin)
+        })
+        arcSum.forEach( (value, key) => {
+            gremlinInvoke = gremlinInvoke.nest("and"
+                , new gremlinUtils.GremlinInvoke(true)
+                .call("outE", key)
+                .call("count")
+                .call("is", value)
+                .command
             )
-        .command
+        })
+        // TODO 到這裡只完成第一層的 edge 判斷，還有後續的 vertex 和 edge 要查
+        const gremlinCommand = gremlinInvoke.command
         console.log(gremlinCommand)
         gremlinApi(gremlinCommand).then( (resultData) => {
-            console.log(resultData)
-            // 查詢結果超過 1 筆要丟例外
+            if (resultData['@value'].length === 0) {
+                return
+            }
+            if (resultData['@value'].length > 1) {
+                const error = "資料庫存的 pattern 重覆"
+                console.error(error, resultData)
+                throw error
+            }
+            const patternInDb = resultData['@value'][0]['@value']
+            console.log(patternInDb)
+            // 標記符合的 token 和 depenedency
         })
     }
 
