@@ -1,10 +1,15 @@
 import gremlinApi, * as gremlinUtils from "@/composables/api/gremlin-api"
 
-const vertexType = Object.freeze({
+const vertexLabels = Object.freeze({
+    targetPattern: "SimpleTargetPatternPiece"
+})
+const edgeLabels = Object.freeze({
     applicable: 'applicable'
     , follows: 'follows'
 })
-
+const aliases = Object.freeze({
+    sourcePatternBeginning: "sourcePatternBeginning"
+})
 
 export default function selectionManager() {
 
@@ -18,30 +23,14 @@ export default function selectionManager() {
     }
 
     const saveSelectedPattern = (selectedWords, selectedArcs, segmentPieces) => {
-        // TODO 判斷現在的 pattern 是不是既有的，是的話就不要再存
         let gremlinInvoke = new gremlinUtils.GremlinInvoke()
 
+        // TODO 判斷現在的 pattern 是不是既有的，是的話就不要再存
         gremlinInvoke = processSelectedNewSourcePatternStoring(selectedWords, selectedArcs, gremlinInvoke)
+        gremlinInvoke = processTargetPatternStoring(segmentPieces, gremlinInvoke)
 
-        let command = gremlinInvoke.command
-        // save target pattern
-        let lastAddedPieceAlias
-        let firstPieceAlias = undefined
-        segmentPieces.forEach((piece, pieceIdx) => {
-            const currentPieceAlias = 'v' + pieceIdx
-            if (pieceIdx === 0) firstPieceAlias = currentPieceAlias
-            command += ".addV('SimpleTargetPatternPiece').property('sourceType', '" + piece.type + "').as('" + currentPieceAlias + "')"
-            if (lastAddedPieceAlias) {
-                command += ".addE('follows').to('" + lastAddedPieceAlias + "')"
-            } else {
-                command += ".addE('applicable').to('sourceBeginning')"
-            }
-            lastAddedPieceAlias = currentPieceAlias
-        })
-        command = command.concat(".select('", firstPieceAlias, "')")
-
-        console.log(command)
-        gremlinApi(command)
+        console.log(gremlinInvoke.command)
+        gremlinApi(gremlinInvoke.command)
         .then((resultData) => {
             const targetPatterBeginPieceVId = resultData['@value'][0]['@value'].id['@value']
             console.log('Target Pattern Begin Piece Id: ', targetPatterBeginPieceVId)
@@ -50,7 +39,7 @@ export default function selectionManager() {
             gremlinApi(
                 new gremlinUtils.GremlinInvoke()
                 .call('V', targetPatterBeginPieceVId)
-                .call('out', vertexType.applicable)
+                .call('out', edgeLabels.applicable)
                 .command
             )
             .then((resultData) => {
@@ -65,7 +54,6 @@ export default function selectionManager() {
             return word.selectedMorphologyInfoType + word.indexInSentence
         }
 
-        const sourcePatternBeginningAlias = "sourceBeginning"
         selectedWords.forEach( (word) => {
             gremlinInvoke = gremlinInvoke
                 .call("addV", word.selectedMorphologyInfoType)
@@ -73,7 +61,7 @@ export default function selectionManager() {
                 .call("as", vertexAlias(word))
             if (word.beginningMorphologyInfoType !== undefined) {
                 gremlinInvoke = gremlinInvoke
-                .call("as", sourcePatternBeginningAlias)
+                .call("as", aliases.sourcePatternBeginning)
                 .call("property", "isBeginning", true)
                 .call("property", "owner", "Chin")
             }
@@ -105,6 +93,32 @@ export default function selectionManager() {
             .call("from", startVName)
             .call("to", endVName)
         })
+        return gremlinInvoke
+    }
+    const processTargetPatternStoring = (segmentPieces, gremlinInvoke) => {
+        // save target pattern
+        let lastAddedPieceAlias
+        let firstPieceAlias = undefined
+        segmentPieces.forEach((piece, pieceIdx) => {
+            const currentPieceAlias = 'v' + pieceIdx
+            if (pieceIdx === 0) firstPieceAlias = currentPieceAlias
+            gremlinInvoke = gremlinInvoke
+            .call("addV", vertexLabels.targetPattern)
+            .call("property", "sourceType", piece.type)
+            .call("as", currentPieceAlias)
+            if (lastAddedPieceAlias) {
+                gremlinInvoke = gremlinInvoke
+                .call("addE", edgeLabels.follows)
+                .call("to", lastAddedPieceAlias)
+            } else {
+                gremlinInvoke = gremlinInvoke
+                .call("addE", edgeLabels.applicable)
+                .call("to", aliases.sourcePatternBeginning)
+            }
+            lastAddedPieceAlias = currentPieceAlias
+        })
+        gremlinInvoke = gremlinInvoke
+        .call("select", firstPieceAlias)
         return gremlinInvoke
     }
 
