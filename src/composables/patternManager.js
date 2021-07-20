@@ -18,29 +18,26 @@ export default function selectionManager() {
     }
 
     const saveSelectedPattern = (selectedWords, selectedArcs, segmentPieces) => {
-        function appendAddPropertyCommand(name, value) {
-            return ".property('" + name + "', " + JSON.stringify(value) + ")" 
-        }
         function vertexAlias(word) {
             return word.selectedMorphologyInfoType + word.indexInSentence
         }
         // TODO 判斷現在的 pattern 是不是既有的，是的話就不要再存
-        const gremlinInvoke = new gremlinUtils.GremlinInvoke()
+        let gremlinInvoke = new gremlinUtils.GremlinInvoke()
         const sourcePatternBeginningAlias = "sourceBeginning"
-        let command = ""
         selectedWords.forEach( (word) => {
-            gremlinInvoke
+            gremlinInvoke = gremlinInvoke
                 .call("addV", word.selectedMorphologyInfoType)
                 .call("property", word.selectedMorphologyInfoType, word.tag)
                 .call("as", vertexAlias(word))
-            command = gremlinInvoke.command
             if (word.beginningMorphologyInfoType !== undefined) {
-                command += ".as('" + sourcePatternBeginningAlias + "')"
-                command += appendAddPropertyCommand('isBeginning', true)
-                command += appendAddPropertyCommand('owner', 'Chin')
+                gremlinInvoke = gremlinInvoke
+                .call("as", sourcePatternBeginningAlias)
+                .call("property", "isBeginning", true)
+                .call("property", "owner", "Chin")
             }
         })
 
+        let command = gremlinInvoke.command
         selectedArcs.forEach( (arc) => {
             const startWord = selectedWords.find( word => word.indexInSentence == arc.trueStart )
             if (startWord === undefined
@@ -63,7 +60,7 @@ export default function selectionManager() {
             }
             command += ".addE('" + arc.label + "').from(" + startVName + ").to(" + quotedEndVName + ")"
         })
-        
+        // save target pattern
         let lastAddedPieceAlias
         let firstPieceAlias = undefined
         segmentPieces.forEach((piece, pieceIdx) => {
