@@ -305,7 +305,12 @@ export default function() {
         function vertexAlias(word) {
             return word.selectedMorphologyInfoType + word.indexInSentence
         }
-
+        if (selectedSourcePattern.value != undefined && selectedSourcePattern.value.id != undefined) {
+            gremlinInvoke = gremlinInvoke
+            .call("V", selectedSourcePattern.value.id)
+            .call("as", aliases.sourcePatternBeginning)
+            return gremlinInvoke
+        }
         selectedWords.forEach( (word) => {
             gremlinInvoke = gremlinInvoke
                 .call("addV", word.selectedMorphologyInfoType)
