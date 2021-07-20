@@ -152,6 +152,7 @@ export default function() {
         .call("has", beginWord.beginningMorphologyInfoType, beginWord.tag)
         .call("inE", 'applicable')
         .call("inV")
+        .call("dedup")
         .command
         return new Promise((resolve, reject) => {
             gremlinApi(gremlinCommand).then( (resultData) => {
