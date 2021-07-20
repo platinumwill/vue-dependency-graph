@@ -18,48 +18,12 @@ export default function selectionManager() {
     }
 
     const saveSelectedPattern = (selectedWords, selectedArcs, segmentPieces) => {
-        function vertexAlias(word) {
-            return word.selectedMorphologyInfoType + word.indexInSentence
-        }
         // TODO 判斷現在的 pattern 是不是既有的，是的話就不要再存
         let gremlinInvoke = new gremlinUtils.GremlinInvoke()
-        const sourcePatternBeginningAlias = "sourceBeginning"
-        selectedWords.forEach( (word) => {
-            gremlinInvoke = gremlinInvoke
-                .call("addV", word.selectedMorphologyInfoType)
-                .call("property", word.selectedMorphologyInfoType, word.tag)
-                .call("as", vertexAlias(word))
-            if (word.beginningMorphologyInfoType !== undefined) {
-                gremlinInvoke = gremlinInvoke
-                .call("as", sourcePatternBeginningAlias)
-                .call("property", "isBeginning", true)
-                .call("property", "owner", "Chin")
-            }
-        })
+
+        gremlinInvoke = processSelectedNewSourcePatternStoring(selectedWords, selectedArcs, gremlinInvoke)
 
         let command = gremlinInvoke.command
-        selectedArcs.forEach( (arc) => {
-            const startWord = selectedWords.find( word => word.indexInSentence == arc.trueStart )
-            if (startWord === undefined
-                || startWord.selectedMorphologyInfoType === undefined 
-                || startWord.selectedMorphologyInfoType === ''
-                ) {
-                    const error = "dependency 起點沒被選取"
-                    console.error(error)
-                    throw error
-                }
-            let startVName = "'" + vertexAlias(startWord) + "'"
-            let quotedEndVName = undefined
-            if (isDependencyPlaceholder(arc, selectedWords)) { // 這個 dependency 後面連著連接處
-                const quotedConnectorVName = "'connector_" + arc.trueStart + "-" + arc.trueEnd + "'"
-                quotedEndVName = quotedConnectorVName
-                command += ".addV('Connector').as(" + quotedConnectorVName + ")"
-            } else {
-                const endWord = selectedWords.find( word => word.indexInSentence == arc.trueEnd ) 
-                quotedEndVName = "'" + vertexAlias(endWord) + "'"
-            }
-            command += ".addE('" + arc.label + "').from(" + startVName + ").to(" + quotedEndVName + ")"
-        })
         // save target pattern
         let lastAddedPieceAlias
         let firstPieceAlias = undefined
@@ -96,7 +60,53 @@ export default function selectionManager() {
             console.log(error)
         })
     }
+    const processSelectedNewSourcePatternStoring = (selectedWords, selectedArcs, gremlinInvoke) => {
+        function vertexAlias(word) {
+            return word.selectedMorphologyInfoType + word.indexInSentence
+        }
 
+        const sourcePatternBeginningAlias = "sourceBeginning"
+        selectedWords.forEach( (word) => {
+            gremlinInvoke = gremlinInvoke
+                .call("addV", word.selectedMorphologyInfoType)
+                .call("property", word.selectedMorphologyInfoType, word.tag)
+                .call("as", vertexAlias(word))
+            if (word.beginningMorphologyInfoType !== undefined) {
+                gremlinInvoke = gremlinInvoke
+                .call("as", sourcePatternBeginningAlias)
+                .call("property", "isBeginning", true)
+                .call("property", "owner", "Chin")
+            }
+        })
+        selectedArcs.forEach( (arc) => {
+            const startWord = selectedWords.find( word => word.indexInSentence == arc.trueStart )
+            if (startWord === undefined
+                || startWord.selectedMorphologyInfoType === undefined 
+                || startWord.selectedMorphologyInfoType === ''
+                ) {
+                    const error = "dependency 起點沒被選取"
+                    console.error(error)
+                    throw error
+                }
+            let startVName = vertexAlias(startWord)
+            let endVName = undefined
+            if (isDependencyPlaceholder(arc, selectedWords)) { // 這個 dependency 後面連著連接處
+                const connectorVName = "connector_" + arc.trueStart + "-" + arc.trueEnd
+                endVName = connectorVName
+                gremlinInvoke = gremlinInvoke
+                .call("addV", "Connector")
+                .call("as", connectorVName)
+            } else {
+                const endWord = selectedWords.find( word => word.indexInSentence == arc.trueEnd ) 
+                endVName = vertexAlias(endWord)
+            }
+            gremlinInvoke = gremlinInvoke
+            .call("addE", arc.label)
+            .call("from", startVName)
+            .call("to", endVName)
+        })
+        return gremlinInvoke
+    }
 
     return {
         patternHelper: {
