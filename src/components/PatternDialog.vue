@@ -68,8 +68,6 @@ import SegmentPiece from "./SegmentPiece.vue"
 import { mapGetters } from 'vuex'
 import { inject } from 'vue'
 
-import patternManager from "@/composables/patternManager"
-
 class Piece {
     constructor () {
 
@@ -186,12 +184,10 @@ export default {
         }
     }
     , setup() {
-        const {
-            patternHelper
-        } = patternManager()
 
         const sourcePattern = inject('sourcePattern')
         const targetPattern = inject('targetPattern')
+        const patternHelper = inject('patternHelper')
 
         return {
             patternHelper

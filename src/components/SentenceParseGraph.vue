@@ -117,6 +117,7 @@ export default {
             , toggleDependencySelection
             , sourcePattern
             , targetPattern
+            , patternHelper
         } = graphSentenceManager()
 
         provide('spacyFormatSentences', spacyFormatSentences.value)
@@ -124,6 +125,7 @@ export default {
         provide('toggleDependencySelection', toggleDependencySelection)
         provide('sourcePattern', sourcePattern)
         provide('targetPattern', targetPattern)
+        provide('patternHelper', patternHelper)
 
         return {
             spacyFormatHelper
