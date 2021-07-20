@@ -153,12 +153,18 @@ export default function() {
         .call("inE", 'applicable')
         .call("inV")
         .command
-        gremlinApi(gremlinCommand).then( (resultData) => {
-            resultData['@value'].forEach( (sourcePatternBeginning) => {
-                sourcePatternOptions.value.push({
-                    id: sourcePatternBeginning['@value'].id['@value']
-                    , label: sourcePatternBeginning['@value'].label + '-' + sourcePatternBeginning['@value'].id['@value']
+        return new Promise((resolve, reject) => {
+            gremlinApi(gremlinCommand).then( (resultData) => {
+                resultData['@value'].forEach( (sourcePatternBeginning) => {
+                    sourcePatternOptions.value.push({
+                        id: sourcePatternBeginning['@value'].id['@value']
+                        , label: sourcePatternBeginning['@value'].label + '-' + sourcePatternBeginning['@value'].id['@value']
+                    })
                 })
+                resolve(resultData)
+            }).catch ( function(error) {
+                console.error(error)
+                reject(error)
             })
         })
     }
@@ -210,12 +216,16 @@ export default function() {
             })
         })
     }
+    const setSelectedSourcePatternDropdownValue = (id) => {
+        selectedSourcePattern.value = sourcePatternOptions.value.find( (option) => {
+            return option.id == id
+        })
+    }
     const autoMarkMatchingPattern = (sourcePatternBeginningId) => {
+        setSelectedSourcePatternDropdownValue(sourcePatternBeginningId)
         // 這裡必須要用 ==，因為 Primevue 的值是存 null，不是存 undefined
         if (selectedSourcePattern.value == undefined || selectedSourcePattern.value.id == undefined) {
-            selectedSourcePattern.value = sourcePatternOptions.value.find( (option) => {
-                return option.id == sourcePatternBeginningId
-            })
+            setSelectedSourcePatternDropdownValue(sourcePatternBeginningId)
         }
         let gremlinCommand = new gremlinUtils.GremlinInvoke()
         .call("V", sourcePatternBeginningId)
@@ -296,6 +306,13 @@ export default function() {
             )
             .then((resultData) => {
                 console.log(resultData)
+                console.log(resultData['@value'][0]['@value'].id['@value'])
+                markExistingPattern()
+                const sourcePatternBeginningId = resultData['@value'][0]['@value'].id['@value']
+                reloadMatchingSourcePatternOptions().then(() => {
+                    console.log(sourcePatternOptions.value)
+                    setSelectedSourcePatternDropdownValue(sourcePatternBeginningId)
+                })
             })
         }).catch(function(error) {
             console.log(error)
