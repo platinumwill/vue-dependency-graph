@@ -294,25 +294,23 @@ export default function() {
         console.log(gremlinInvoke.command)
         gremlinApi(gremlinInvoke.command)
         .then((resultData) => {
-            const targetPatterBeginPieceVId = resultData['@value'][0]['@value'].id['@value']
-            console.log('Target Pattern Begin Piece Id: ', targetPatterBeginPieceVId)
-            return targetPatterBeginPieceVId
-        }).then((targetPatterBeginPieceVId) => {
+            const sourcePatternBeginningVertexId = resultData['@value'][0]['@value'].id['@value']
+            console.log('Source Pattern Begin Vertex Id: ', sourcePatternBeginningVertexId)
+            markExistingPattern()
+            reloadMatchingSourcePatternOptions().then(() => {
+                setSelectedSourcePatternDropdownValue(sourcePatternBeginningVertexId)
+            })
+            return sourcePatternBeginningVertexId
+        }).then((sourcePatternBeginningVertexId) => {
             gremlinApi(
                 new gremlinUtils.GremlinInvoke()
-                .call('V', targetPatterBeginPieceVId)
-                .call('out', edgeLabels.applicable)
+                .call('V', sourcePatternBeginningVertexId)
+                .call('in', edgeLabels.applicable)
                 .command
             )
             .then((resultData) => {
-                console.log(resultData)
-                console.log(resultData['@value'][0]['@value'].id['@value'])
-                markExistingPattern()
-                const sourcePatternBeginningId = resultData['@value'][0]['@value'].id['@value']
-                reloadMatchingSourcePatternOptions().then(() => {
-                    console.log(sourcePatternOptions.value)
-                    setSelectedSourcePatternDropdownValue(sourcePatternBeginningId)
-                })
+                const targetPatternBeginnningVertexId = resultData['@value'][0]['@value'].id['@value']
+                console.log(targetPatternBeginnningVertexId)
             })
         }).catch(function(error) {
             console.log(error)
@@ -372,10 +370,8 @@ export default function() {
     const processTargetPatternStoring = (segmentPieces, gremlinInvoke) => {
         // save target pattern
         let lastAddedPieceAlias
-        let firstPieceAlias = undefined
         segmentPieces.forEach((piece, pieceIdx) => {
             const currentPieceAlias = 'v' + pieceIdx
-            if (pieceIdx === 0) firstPieceAlias = currentPieceAlias
             gremlinInvoke = gremlinInvoke
             .call("addV", vertexLabels.targetPattern)
             .call("property", "sourceType", piece.type)
@@ -392,7 +388,7 @@ export default function() {
             lastAddedPieceAlias = currentPieceAlias
         })
         gremlinInvoke = gremlinInvoke
-        .call("select", firstPieceAlias)
+        .call("select", aliases.sourcePatternBeginning)
         return gremlinInvoke
     }
 
