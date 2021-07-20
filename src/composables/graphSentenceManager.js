@@ -46,6 +46,7 @@ export default function() {
             dependency.selected = undefined
             currentSentence().arcs.forEach( arc => arc.sourcePatternEdgeId = undefined)
             currentSentence().words.forEach( word => word.sourcePatternVertexId = undefined)
+            selectedSourcePattern.value = {}
         } else {
             dependency.selected = !dependency.selected
         }
