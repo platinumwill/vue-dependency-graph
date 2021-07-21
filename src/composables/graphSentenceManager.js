@@ -55,6 +55,7 @@ export default function() {
         const dependency = currentSentence().arcs[dependencyIndex]
         if (dependency.selected || dependency.sourcePatternEdgeId) {
             dependency.selected = undefined
+            // TODO 這裡的處理可能要改掉
             currentSentence().arcs.forEach( arc => arc.sourcePatternEdgeId = undefined)
             currentSentence().words.forEach( word => word.sourcePatternVertexId = undefined)
             selectedSourcePattern.value = {}
