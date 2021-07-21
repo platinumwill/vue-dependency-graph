@@ -49,7 +49,7 @@ export default function() {
         }
         updateBeginning()
         reloadMatchingSourcePatternOptions()
-        findExistingMatchPatternAndMark()
+        findExistingMatchSourcePatternAndMark()
     }
     const toggleDependencySelection = (dependencyIndex) => {
         const dependency = currentSentence().arcs[dependencyIndex]
@@ -63,7 +63,7 @@ export default function() {
         }
         updateBeginning()
         reloadMatchingSourcePatternOptions()
-        findExistingMatchPatternAndMark()
+        findExistingMatchSourcePatternAndMark()
     }
     const updateBeginning = () => {
         currentSentence().words.forEach( (word) => {
@@ -86,7 +86,7 @@ export default function() {
         }
     }
 
-    const findExistingMatchPatternAndMark = () => {
+    const findExistingMatchSourcePatternAndMark = () => {
         if (!findBeginWord()) return
         const selectedArcsFromBegin = currentSentence().arcs.filter( (arc) => {
             return (arc.selected && arc.trueStart === findBeginWord().indexInSentence)
@@ -292,7 +292,7 @@ export default function() {
         .then((resultData) => {
             const sourcePatternBeginningVertexId = resultData['@value'][0]['@value'].id['@value']
             console.log('Source Pattern Begin Vertex Id: ', sourcePatternBeginningVertexId)
-            findExistingMatchPatternAndMark()
+            findExistingMatchSourcePatternAndMark()
             reloadMatchingSourcePatternOptions().then(() => {
                 setSelectedSourcePatternDropdownValue(sourcePatternBeginningVertexId)
             })
