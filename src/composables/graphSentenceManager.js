@@ -292,7 +292,6 @@ export default function() {
         .then((resultData) => {
             const sourcePatternBeginningVertexId = resultData['@value'][0]['@value'].id['@value']
             console.log('Source Pattern Begin Vertex Id: ', sourcePatternBeginningVertexId)
-            findExistingMatchSourcePatternAndMark()
             reloadMatchingSourcePatternOptions().then(() => {
                 setSelectedSourcePatternDropdownValue(sourcePatternBeginningVertexId)
             })
