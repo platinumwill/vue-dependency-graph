@@ -111,7 +111,6 @@ export default function() {
             } else {
                 arcSum.set(selectedArc.label, 1)
             }
-            // gremlinInvoke = gremlinInvoke.command("and", new gremlin)
         })
         arcSum.forEach( (value, key) => {
             gremlinInvoke = gremlinInvoke.nest("and"
@@ -179,13 +178,9 @@ export default function() {
         const sourcePatternBeginningId = newValue.id
         const currentBeginWord = findBeginWord()
         currentBeginWord.sourcePatternVertexId = sourcePatternBeginningId
-
-        // clear
-
         // 處理 target pattern
         selectedTargetPattern.value = {}
         reloadTargetPatternOptions(sourcePatternBeginningId)
-
         autoMarkMatchingPattern(sourcePatternBeginningId)
     })
 
@@ -243,8 +238,6 @@ export default function() {
                 const outVId = path['@value'].objects['@value'][0]['@value'].id['@value']
                 const outELabel = path['@value'].objects['@value'][1]['@value'].label
                 const outEId = path['@value'].objects['@value'][1]['@value'].id['@value']
-                // const inVLabel = path['@value'].objects[2].label
-                // const beginWordIndex = beginWord().indexInSentence
                 const sentence = currentSentence()
                 const matchingArc = sentence.arcs.find( (arc) => {
                     return (
@@ -313,10 +306,10 @@ export default function() {
             )
             .then((resultData) => {
                 const targetPatternBeginnningVertexId = resultData['@value'][0]['@value'].id['@value']
-                console.log(targetPatternBeginnningVertexId)
+                console.log('Target Pattern Beginning Vertex Id: ', targetPatternBeginnningVertexId)
             })
         }).catch(function(error) {
-            console.log(error)
+            console.error(error)
         })
     }
     const processSelectedNewSourcePatternStoring = (selectedWords, selectedArcs, gremlinInvoke) => {
