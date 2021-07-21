@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useStore } from "vuex"
 import gremlinApi, * as gremlinUtils from "@/composables/api/gremlin-api"
 
@@ -135,7 +135,7 @@ export default function() {
                 throw error
             }
             const sourcePatternBeginningId = resultData['@value'][0]['@value'].id['@value']
-            autoMarkMatchingPattern(sourcePatternBeginningId)
+            setSelectedSourcePatternDropdownValue(sourcePatternBeginningId)
         })
     }
 
@@ -170,14 +170,13 @@ export default function() {
         })
     }
 
-    const selectedTargetPattern = ref({})
-    const targetPatternOptions = ref([])
-    const selectedSourcePatternChanged = function(event) {
-        if (event.value == undefined) {
+    watch(selectedSourcePattern, (newValue, oldValue) => {
+        console.log('selected source pattern changed: ', newValue, oldValue)
+        if (newValue == undefined || newValue.id == undefined) {
             clearSelectionAndMatchingAndOptions()
             return
         }
-        const sourcePatternBeginningId = event.value.id
+        const sourcePatternBeginningId = newValue.id
         const currentBeginWord = findBeginWord()
         currentBeginWord.sourcePatternVertexId = sourcePatternBeginningId
 
@@ -188,7 +187,10 @@ export default function() {
         reloadTargetPatternOptions(sourcePatternBeginningId)
 
         autoMarkMatchingPattern(sourcePatternBeginningId)
-    }
+    })
+
+    const selectedTargetPattern = ref({})
+    const targetPatternOptions = ref([])
     const clearSelectionAndMatchingAndOptions = () => {
         const sentence = currentSentence()
         sentence.arcs.forEach( arc => arc.sourcePatternEdgeId = undefined)
@@ -401,7 +403,6 @@ export default function() {
         , sourcePattern: {
             selected: selectedSourcePattern
             , options: sourcePatternOptions.value
-            , selectionChanged: selectedSourcePatternChanged
         }
         , targetPattern: {
             selected: selectedTargetPattern

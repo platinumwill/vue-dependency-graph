@@ -4,7 +4,6 @@
             <Dropdown v-model="sourcePattern.selected.value"
                 :options="sourcePattern.options"
                 optionLabel="label"
-                @change="sourcePattern.selectionChanged"
                 placeholder="Existing source pattern"
                 :showClear="true"
                 >
