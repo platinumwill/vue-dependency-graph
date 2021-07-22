@@ -396,7 +396,7 @@ export default function() {
     }
 
     return {
-        spacyFormatSentences
+        spacyFormatSentences: spacyFormatSentences.value
         , toggleMorphologySelection
         , morphologyInfoType
         , toggleDependencySelection
