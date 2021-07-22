@@ -48,6 +48,8 @@ const store = createStore({
         sentences.forEach((sentence, index) => {sentence.index = index})
         stanfordnlpApi(documentText).then((stanfordnlpParse) => {
           // 句子的屬性（以後準備拿掉）
+          console.log("google sentences: ", sentences.length)
+          console.log("stanfordnlp sentences: ", stanfordnlpParse.sentences.length)
           let start = 0
           sentences.forEach((sentence, index) => {
             sentence.start = start
