@@ -49,8 +49,9 @@ export default {
             return this.config.distance / 2 * this.highestLevel
         }
         , isParsedContentReady() {
-            return this.spacyFormatSentences.length > 0 &&
-            this.currentSpacyFormatSentence.words !== undefined
+            return this.spacyFormatSentences.length > 0
+            && this.currentSpacyFormatSentence.words !== undefined
+            && this.currentSpacyFormatSentence.words.length > 0
         }
         , currentSpacyFormatSentence() {
             return this.spacyFormatSentences[this.currentSentenceIndex]
