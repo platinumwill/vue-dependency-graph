@@ -10,8 +10,10 @@ export default async function (documentText) {
             const features = {
 }
             features.extractSyntax = true
-            features.extractEntities = true
+            features.extractEntities = false
+            features.extractDocumentSentiment = false
             features.classifyText = false
+            features.extractEntitySentiment = false
 
             google_param.document = document
             google_param.encodingType = 'UTF8'
