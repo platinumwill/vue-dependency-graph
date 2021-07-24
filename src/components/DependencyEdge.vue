@@ -90,10 +90,18 @@ export default {
             + "," + (this.startY - this.config.arrowWidth) 
         }
         , color: function() {
-            return this.selected ? this.config.selectedForegroundColor : 'currentColor'
+            if (this.matchExisting) {
+                return "yellow"
+            } else if (this.selected) {
+                return this.config.selectedForegroundColor 
+            }
+            return 'currentColor'
         }
         , selected: function() {
             return this.spacyFormatSentences[this.currentSentenceIndex].arcs[this.arc.indexInSentence].selected
+        }
+        , matchExisting: function() {
+            return this.arc.sourcePatternEdgeId !== undefined
         }
         , ...mapGetters({ 
             currentSentenceIndex: 'currentSentenceIndex'

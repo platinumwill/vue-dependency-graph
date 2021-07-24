@@ -1,6 +1,24 @@
 <template>
     <div>
-        <button @click="openTranslationPatternWindow">Add Pattern Segment</button>
+        <div>
+            <Dropdown v-model="sourcePattern.selected.value"
+                :options="sourcePattern.options"
+                optionLabel="label"
+                placeholder="Existing source pattern"
+                :showClear="true"
+                >
+            </Dropdown>
+            <br/>
+            <Dropdown v-model="targetPattern.selected.value"
+                :options="targetPattern.options"
+                optionLabel="label"
+                placeholder="Existing target pattern"
+            >
+            </Dropdown>
+        </div>
+
+        <Button @click="openTranslationPatternWindow" :disabled="!isPatternSavable" >Add Pattern Segment</Button>
+
         <Dialog header="Pattern Segment" 
             v-model:visible="displayModal" 
             :maximizable="true"
@@ -40,13 +58,14 @@
 <script>
 // import PrimeVue from 'primevue/config';
 import Dialog from 'primevue/dialog'
+import Button from 'primevue/button'
+import Dropdown from 'primevue/dropdown'
+
 import draggable from 'vuedraggable'
 import VueHorizontal from "vue-horizontal";
 import SegmentPiece from "./SegmentPiece.vue"
-import Button from 'primevue/button'
 import { mapGetters } from 'vuex'
-
-import patternManager from "@/composables/patternManager"
+import { inject } from 'vue'
 
 class Piece {
     constructor () {
@@ -64,6 +83,7 @@ export default {
         , VueHorizontal
         , SegmentPiece
         , Button
+        , Dropdown
     }
     , data() {
         return {
@@ -73,7 +93,17 @@ export default {
         }
     }
     , computed: {
-        ...mapGetters({ 
+        isPatternSavable: function() {
+            let selectedWordCount = 0
+            let beginningWordCount = 0
+            this.$parent.currentSpacyFormatSentence.words.forEach( (word) => {
+                if (word.selectedMorphologyInfoType !== undefined) selectedWordCount++
+                if (word.beginningMorphologyInfoType !== undefined) beginningWordCount++
+            })
+            if (selectedWordCount === 0 || beginningWordCount != 1) return false
+            return true
+        }
+        , ...mapGetters({ 
             currentSentenceIndex: 'currentSentenceIndex'
         })
     }
@@ -153,11 +183,16 @@ export default {
         }
     }
     , setup() {
-        const {
-            patternHelper
-        } = patternManager()
 
-        return { patternHelper }
+        const sourcePattern = inject('sourcePattern')
+        const targetPattern = inject('targetPattern')
+        const patternHelper = inject('patternHelper')
+
+        return {
+            patternHelper
+            , sourcePattern
+            , targetPattern
+        }
     }
 }
 </script>

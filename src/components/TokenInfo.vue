@@ -1,5 +1,5 @@
 <template>
-    <tspan class="displacy-lemma" @click="posClicked" :dy="dy" :fill="color" :x="$parent.x"><slot></slot></tspan>
+    <tspan :class="{'morph-info-beginning': isBeginning}" @click="posClicked" :dy="dy" :fill="color" :x="$parent.x"><slot></slot></tspan>
 </template>
 
 <script>
@@ -36,14 +36,34 @@ export default {
     }
     , computed: {
         color: function() {
-            return this.selected ? this.config.selectedForegroundColor : 'currentColor'
+            if (this.matchExisting) {
+                return "yellow"
+            } else if (this.selected) {
+                return this.config.selectedForegroundColor 
+            }
+            return 'currentColor'
         }
         , ...mapGetters({ 
             currentSentenceIndex: 'currentSentenceIndex'
         })
         , selected: function() {
-            return this.spacyFormatSentences[this.currentSentenceIndex].words[this.token.indexInSentence].selectedMorphologyInfoType === this.morphologyInfoType
+            return this.currentSpacyWord.selectedMorphologyInfoType === this.morphologyInfoType
+        }
+        , matchExisting: function() {
+            return this.token.sourcePatternVertexId !== undefined && this.selected
+        }
+        , isBeginning: function() {
+            return this.currentSpacyWord.beginningMorphologyInfoType === this.morphologyInfoType
+        }
+        , currentSpacyWord: function() {
+            return this.spacyFormatSentences[this.currentSentenceIndex].words[this.token.indexInSentence]
         }
     }
 }
 </script>
+
+<style>
+    .morph-info-beginning {
+        text-decoration: underline;
+    }
+</style>

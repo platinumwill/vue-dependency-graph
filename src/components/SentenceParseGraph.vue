@@ -115,11 +115,17 @@ export default {
             spacyFormatSentences
             , toggleMorphologySelection
             , toggleDependencySelection
+            , sourcePattern
+            , targetPattern
+            , patternHelper
         } = graphSentenceManager()
 
         provide('spacyFormatSentences', spacyFormatSentences.value)
         provide('toggleMorphologySelection', toggleMorphologySelection)
         provide('toggleDependencySelection', toggleDependencySelection)
+        provide('sourcePattern', sourcePattern)
+        provide('targetPattern', targetPattern)
+        provide('patternHelper', patternHelper)
 
         return {
             spacyFormatHelper
