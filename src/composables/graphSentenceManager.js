@@ -3,8 +3,12 @@ import { useStore } from "vuex"
 import gremlinApi, * as gremlinUtils from "@/composables/api/gremlin-api"
 
 const morphologyInfoType = Object.freeze({
-    pos: 'POS'
-    , lemma: 'Lemma'
+    pos: {
+        name: 'POS'
+    }
+    , lemma: {
+        name: 'Lemma'
+    }
 })
 const vertexLabels = Object.freeze({
     linearTargetPattern: "LinearTargetPatternPiece"
