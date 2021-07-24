@@ -8,6 +8,7 @@ const morphologyInfoType = Object.freeze({
 })
 const vertexLabels = Object.freeze({
     targetPattern: "SimpleTargetPatternPiece"
+    , sourcePattern: "SourcePatternPiece"
     , connector: 'Connector'
 })
 const edgeLabels = Object.freeze({
@@ -335,7 +336,7 @@ export default function() {
         }
         selectedWords.forEach( (word) => {
             gremlinInvoke = gremlinInvoke
-                .call("addV", word.selectedMorphologyInfoType)
+                .call("addV", vertexLabels.sourcePattern)
                 .call("property", word.selectedMorphologyInfoType, word.tag)
                 .call("as", vertexAlias(word))
             if (word.beginningMorphologyInfoType !== undefined) {
