@@ -302,6 +302,8 @@ export default function() {
             reloadMatchingSourcePatternOptions().then(() => {
                 setSelectedSourcePatternDropdownValue(sourcePatternBeginningVertexId)
             })
+            // 這裡手動呼叫 reload，不然靠 watch 的話好像會來不及
+            reloadTargetPatternOptions(sourcePatternBeginningVertexId)
             return sourcePatternBeginningVertexId
         }).then((sourcePatternBeginningVertexId) => {
             gremlinApi(
