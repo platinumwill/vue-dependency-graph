@@ -5,9 +5,9 @@ import google from '@/composables/parse-providers/googleAgent.js'
 export default function() {
     return {
         spacyFormatParseProviders: [
-            stanford
+            google
+            , stanford
             , spacy
-            , google
         ]
     }
 }
