@@ -181,7 +181,20 @@ export default function() {
         currentBeginWord.sourcePatternVertexId = sourcePatternBeginningId
         // 處理 target pattern
         selectedTargetPattern.value = {}
-        reloadTargetPatternOptions(sourcePatternBeginningId)
+        reloadTargetPatternOptions(sourcePatternBeginningId).then( () => {
+            gremlinApi(
+                new gremlinUtils.GremlinInvoke()
+                .call('V', sourcePatternBeginningId)
+                .call('in', edgeLabels.applicable)
+                .command
+            )
+            .then((resultData) => {
+                const targetPatternBeginnningVertexId = resultData['@value'][0]['@value'].id['@value']
+                console.log('Target Pattern Beginning Vertex Id: ', targetPatternBeginnningVertexId)
+                setSelectedTargetPatternDropdownValue(targetPatternBeginnningVertexId)
+            })
+        })
+
         autoMarkMatchingPattern(sourcePatternBeginningId)
     })
 
@@ -206,12 +219,17 @@ export default function() {
         .call("V", sourcePatternBeginningId)
         .call("in", "applicable")
         .command
-        gremlinApi(gremlinCommand).then( (resultData) => {
-            resultData['@value'].forEach( (targetPatternBeginning) => {
-                targetPatternOptions.value.push({
-                    id: targetPatternBeginning['@value'].id['@value'] 
-                    , label: targetPatternBeginning['@value'].label + '-' + targetPatternBeginning['@value'].id['@value']
+        return new Promise( (resolve, reject) => {
+            gremlinApi(gremlinCommand).then( (resultData) => {
+                resultData['@value'].forEach( (targetPatternBeginning) => {
+                    targetPatternOptions.value.push({
+                        id: targetPatternBeginning['@value'].id['@value'] 
+                        , label: targetPatternBeginning['@value'].label + '-' + targetPatternBeginning['@value'].id['@value']
+                    })
                 })
+                resolve(resultData)
+            }).catch( (error) => {
+                reject(error)
             })
         })
     }
@@ -302,21 +320,7 @@ export default function() {
             reloadMatchingSourcePatternOptions().then(() => {
                 setSelectedSourcePatternDropdownValue(sourcePatternBeginningVertexId)
             })
-            // 這裡手動呼叫 reload，不然靠 watch 的話好像會來不及
-            reloadTargetPatternOptions(sourcePatternBeginningVertexId)
             return sourcePatternBeginningVertexId
-        }).then((sourcePatternBeginningVertexId) => {
-            gremlinApi(
-                new gremlinUtils.GremlinInvoke()
-                .call('V', sourcePatternBeginningVertexId)
-                .call('in', edgeLabels.applicable)
-                .command
-            )
-            .then((resultData) => {
-                const targetPatternBeginnningVertexId = resultData['@value'][0]['@value'].id['@value']
-                console.log('Target Pattern Beginning Vertex Id: ', targetPatternBeginnningVertexId)
-                setSelectedTargetPatternDropdownValue(targetPatternBeginnningVertexId)
-            })
         }).catch(function(error) {
             console.error(error)
         })
