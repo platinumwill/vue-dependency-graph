@@ -6,11 +6,9 @@ const morphologyInfoType = Object.freeze({
     pos: 'POS'
     , lemma: 'Lemma'
 })
-// const vertextType = Object.freeze({
-//     connector: 'Connector'
-// })
 const vertexLabels = Object.freeze({
     targetPattern: "SimpleTargetPatternPiece"
+    , connector: 'Connector'
 })
 const edgeLabels = Object.freeze({
     applicable: 'applicable'
@@ -363,7 +361,7 @@ export default function() {
                 const connectorVName = "connector_" + arc.trueStart + "-" + arc.trueEnd
                 endVName = connectorVName
                 gremlinInvoke = gremlinInvoke
-                .call("addV", "Connector")
+                .call("addV", vertexLabels.connector)
                 .call("as", connectorVName)
             } else {
                 const endWord = selectedWords.find( word => word.indexInSentence == arc.trueEnd ) 
