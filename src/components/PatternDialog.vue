@@ -97,8 +97,8 @@ export default {
             let selectedWordCount = 0
             let beginningWordCount = 0
             this.$parent.currentSpacyFormatSentence.words.forEach( (word) => {
-                if (word.selectedMorphologyInfoType !== undefined) selectedWordCount++
-                if (word.beginningMorphologyInfoType !== undefined) beginningWordCount++
+                if (word.selectedMorphologyInfoTypes.length > 0) selectedWordCount++
+                if (word.isBeginning) beginningWordCount++
             })
             if (selectedWordCount === 0 || beginningWordCount != 1) return false
             return true
@@ -115,13 +115,13 @@ export default {
             const segmentPieces = []
 
             const selectedWords = this.$parent.currentSpacyFormatSentence.words.filter((word) => {
-                return word.selectedMorphologyInfoType
+                return word.selectedMorphologyInfoTypes.length > 0
             })
             selectedWords.forEach((selectedWord) => {
                 const item = new Piece()
-                item.type = selectedWord.selectedMorphologyInfoType
+                item.type = 'Token'
                 item.content = selectedWord.tag + ' (' + selectedWord.lemma + ')'
-                item.vueKey = 'sentence-' + this.currentSentenceIndex + "_" + selectedWord.selectedMorphologyInfoType + "-" + selectedWord.indexInSentence
+                item.vueKey = 'sentence-' + this.currentSentenceIndex + "_token-" + selectedWord.indexInSentence
                 item.sortOrder = selectedWord.indexInSentence
                 segmentPieces.push(item)
             })
@@ -174,7 +174,7 @@ export default {
         }
         , savePattern() {
             const selectedWords = this.$parent.currentSpacyFormatSentence.words.filter((word) => {
-                return word.selectedMorphologyInfoType
+                return word.selectedMorphologyInfoTypes.length > 0
             })
             const selectedArcs = this.$parent.currentSpacyFormatSentence.arcs.filter((arc) => {
                 return arc.selected

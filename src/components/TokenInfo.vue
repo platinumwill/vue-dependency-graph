@@ -22,7 +22,7 @@ export default {
             type: Object
         }
         , morphologyInfoType: {
-            type: String
+            type: Object
         }
     }
     , data() {
@@ -47,7 +47,7 @@ export default {
             currentSentenceIndex: 'currentSentenceIndex'
         })
         , selected: function() {
-            return this.currentSpacyWord.selectedMorphologyInfoType === this.morphologyInfoType
+            return this.currentSpacyWord.selectedMorphologyInfoTypes.includes(this.morphologyInfoType)
         }
         , matchExisting: function() {
             return this.token.sourcePatternVertexId !== undefined && this.selected

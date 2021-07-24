@@ -5,9 +5,11 @@ import gremlinApi, * as gremlinUtils from "@/composables/api/gremlin-api"
 const morphologyInfoType = Object.freeze({
     pos: {
         name: 'POS'
+        , propertyInWord: 'tag'
     }
     , lemma: {
         name: 'Lemma'
+        , propertyInWord: 'lemma'
     }
 })
 const vertexLabels = Object.freeze({
@@ -39,19 +41,23 @@ export default function() {
         // TODO 選取還是都要連起來比較保險
         // 執行 toggle
         const word = sentence.words[tokenIndex]
-        if (word.selectedMorphologyInfoType === morphInfoType) { // toggle off
-            word.selectedMorphologyInfoType = undefined
-            word.beginningMorphologyInfoType = undefined
+        if (word.selectedMorphologyInfoTypes.includes(morphInfoType)) { // toggle off
+            word.selectedMorphologyInfoTypes.splice(word.selectedMorphologyInfoTypes.indexOf(morphInfoType, 1))
             word.sourcePatternVertexId = undefined
-            if (findBeginWord.indexInSentence === tokenIndex) {
+            const beginWord = findBeginWord()
+            if (beginWord != undefined && beginWord.indexInSentence === tokenIndex) {
+                selectedSourcePattern.value = {}
+                selectedTargetPattern.value= {}
                 sourcePatternOptions.value.splice(0, sourcePatternOptions.value.length)
                 targetPatternOptions.value.splice(0, targetPatternOptions.value.length)
                 word.isBeginning = false
             }
         } else { // toggle on
-            word.selectedMorphologyInfoType = morphInfoType
+            word.selectedMorphologyInfoTypes.push(morphInfoType)
+            if (findBeginWord() === undefined) {
+                word.isBeginning = true
+            }
         }
-        updateBeginning()
         reloadMatchingSourcePatternOptions()
         findExistingMatchSourcePatternAndMark()
     }
@@ -59,38 +65,13 @@ export default function() {
         const dependency = currentSentence().arcs[dependencyIndex]
         if (dependency.selected || dependency.sourcePatternEdgeId) {
             dependency.selected = undefined
-            // TODO 這裡的處理可能要改掉
-            currentSentence().arcs.forEach( arc => arc.sourcePatternEdgeId = undefined)
-            currentSentence().words.forEach( word => word.sourcePatternVertexId = undefined)
             selectedSourcePattern.value = {}
         } else {
             dependency.selected = !dependency.selected
         }
-        updateBeginning()
         reloadMatchingSourcePatternOptions()
         findExistingMatchSourcePatternAndMark()
     }
-    const updateBeginning = () => {
-        currentSentence().words.forEach( (word) => {
-            selectedArcs().forEach( (arc) => {
-                if (arc.trueEnd === word.indexInSentence) { // 在 edge 尾巴的標成不是 begin
-                    word.beginningMorphologyInfoType = undefined
-                    return
-                }
-            })
-            if (findBeginWord()) return
-            word.beginningMorphologyInfoType = word.selectedMorphologyInfoType
-        })
-        if (! findBeginWord()) return
-        if (findBeginWord().length > 1) { // 如果 begin word 超過 1 個
-            currentSentence().words.forEach( (word) => {
-                word.beginningMorphologyInfoType = undefined
-                word.selectedMorphologyInfoType = undefined
-                word.sourcePatternVertexId = undefined
-            })
-        }
-    }
-
     const findExistingMatchSourcePatternAndMark = () => {
         if (!findBeginWord()) return
         const selectedArcsFromBegin = currentSentence().arcs.filter( (arc) => {
@@ -99,8 +80,11 @@ export default function() {
         if (selectedArcsFromBegin.length === 0) return
         let gremlinInvoke = new gremlinUtils.GremlinInvoke()
         .call("V")
-        .call("has", findBeginWord().selectedMorphologyInfoType, findBeginWord().tag)
-        .nest(
+        const beginWord = findBeginWord()
+        beginWord.selectedMorphologyInfoTypes.forEach( (morphInfoType) => {
+            gremlinInvoke = gremlinInvoke.call("has", morphInfoType.name, beginWord[morphInfoType.propertyInWord])
+        })
+        gremlinInvoke = gremlinInvoke.nest(
             "where"
             , new gremlinUtils.GremlinInvoke(true)
             .call("outE")
@@ -151,10 +135,11 @@ export default function() {
         if (! beginWord) {
             return
         }
-        const gremlinCommand = new gremlinUtils.GremlinInvoke()
-        .call("V")
-        .call("has", beginWord.beginningMorphologyInfoType, beginWord.tag)
-        .call("inE", 'applicable')
+        let gremlinCommand = new gremlinUtils.GremlinInvoke().call("V")
+        beginWord.selectedMorphologyInfoTypes.forEach( (morphInfoType) => {
+            gremlinCommand = gremlinCommand.call("has", morphInfoType.name, beginWord[morphInfoType.propertyInWord])
+        })
+        gremlinCommand = gremlinCommand.call("inE", 'applicable')
         .call("inV")
         .call("dedup")
         .command
@@ -211,8 +196,8 @@ export default function() {
         sentence.arcs.forEach( arc => arc.sourcePatternEdgeId = undefined)
         sentence.arcs.forEach( arc => arc.selected = false)
         sentence.words.forEach( (word) => {
-            word.selectedMorphologyInfoType = undefined
-            word.beginningMorphologyInfoType = undefined
+            word.selectedMorphologyInfoTypes.splice(0, word.selectedMorphologyInfoTypes.length)
+            word.isBeginning = false
             word.sourcePatternVertexId = undefined
         })
         sourcePatternOptions.value.splice(0, sourcePatternOptions.value.length)
@@ -284,14 +269,9 @@ export default function() {
     const currentSentence = () => {
         return spacyFormatSentences.value[store.getters.currentSentenceIndex]
     }
-    const selectedArcs = () => {
-        return currentSentence().arcs.filter( (arc) => {
-            return arc.selected
-        })
-    }
     const findBeginWord = () => {
         const beginWords = currentSentence().words.filter( (word) => {
-            return word.beginningMorphologyInfoType !== undefined
+            return word.isBeginning
         })
         if (beginWords.length <= 0) return undefined
         if (beginWords.length > 1) {
@@ -333,7 +313,7 @@ export default function() {
     }
     const processSelectedNewSourcePatternStoring = (selectedWords, selectedArcs, gremlinInvoke) => {
         function vertexAlias(word) {
-            return word.selectedMorphologyInfoType + word.indexInSentence
+            return 'sourceV-' + word.indexInSentence
         }
         if (selectedSourcePattern.value != undefined && selectedSourcePattern.value.id != undefined) {
             gremlinInvoke = gremlinInvoke
@@ -344,9 +324,11 @@ export default function() {
         selectedWords.forEach( (word) => {
             gremlinInvoke = gremlinInvoke
                 .call("addV", vertexLabels.sourcePattern)
-                .call("property", word.selectedMorphologyInfoType, word.tag)
-                .call("as", vertexAlias(word))
-            if (word.beginningMorphologyInfoType !== undefined) {
+            word.selectedMorphologyInfoTypes.forEach( (morphInfoType) => {
+                gremlinInvoke = gremlinInvoke.call("property", morphInfoType.name, word[morphInfoType.propertyInWord])
+            })
+            gremlinInvoke = gremlinInvoke.call("as", vertexAlias(word))
+            if (word.isBeginning) {
                 gremlinInvoke = gremlinInvoke
                 .call("as", aliases.sourcePatternBeginning)
                 .call("property", "isBeginning", true)
@@ -356,8 +338,7 @@ export default function() {
         selectedArcs.forEach( (arc) => {
             const startWord = selectedWords.find( word => word.indexInSentence == arc.trueStart )
             if (startWord === undefined
-                || startWord.selectedMorphologyInfoType === undefined 
-                || startWord.selectedMorphologyInfoType === ''
+                || startWord.selectedMorphologyInfoTypes.length === 0
                 ) {
                     const error = "dependency 起點沒被選取"
                     console.error(error)

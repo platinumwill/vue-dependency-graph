@@ -44,6 +44,7 @@ export default function () {
             )
         words.forEach((word, index) => {
             word.indexInSentence = index
+            word.selectedMorphologyInfoTypes = []
         })
         return  {
             words: words
