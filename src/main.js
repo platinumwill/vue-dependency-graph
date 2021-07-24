@@ -56,9 +56,9 @@ const store = createStore({
             sentence.end = start + stanfordnlpParse.sentences[index].tokens.length - 1
             start += stanfordnlpParse.sentences[index].tokens.length
           })
+          commit('baseline/storeSentences', sentences)
+          commit('storeOriginalText', documentText)
         })
-        commit('baseline/storeSentences', sentences)
-        commit('storeOriginalText', documentText)
       })
     }
   }
