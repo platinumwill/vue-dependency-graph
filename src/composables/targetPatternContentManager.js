@@ -6,9 +6,11 @@ class LinearTargetPatternPiece {
     static types = Object.freeze({
         token: {
             caption: "Token"
+            , name: "token"
         }
         , dependency: {
             caption: "Dependency"
+            , name: "dependency"
         }
     })
 

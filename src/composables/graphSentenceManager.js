@@ -370,7 +370,7 @@ export default function() {
             const currentPieceAlias = 'v' + pieceIdx
             gremlinInvoke = gremlinInvoke
             .call("addV", vertexLabels.linearTargetPattern)
-            .call("property", "sourceType", piece.type)
+            .call("property", "sourceType", piece.type.name)
             .call("as", currentPieceAlias)
             if (lastAddedPieceAlias) {
                 gremlinInvoke = gremlinInvoke
