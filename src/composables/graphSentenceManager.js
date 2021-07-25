@@ -180,9 +180,10 @@ export default function() {
                 .command
             )
             .then((resultData) => {
-                const targetPatternBeginnningVertexId = resultData['@value'][0]['@value'].id['@value']
-                console.log('Target Pattern Beginning Vertex Id: ', targetPatternBeginnningVertexId)
-                setSelectedTargetPatternDropdownValue(targetPatternBeginnningVertexId)
+                console.log(resultData)
+                // const targetPatternBeginnningVertexId = resultData['@value'][0]['@value'].id['@value']
+                // console.log('Target Pattern Beginning Vertex Id: ', targetPatternBeginnningVertexId)
+                // setSelectedTargetPatternDropdownValue(targetPatternBeginnningVertexId)
             })
         })
 
@@ -229,12 +230,12 @@ export default function() {
             return option.id == id
         })
     }
-    const setSelectedTargetPatternDropdownValue = (id) => {
-        selectedTargetPattern.value = targetPatternOptions.value.find( (option) => {
-            return option.id == id
-        })
-        console.log(selectedTargetPattern.value)
-    }
+    // const setSelectedTargetPatternDropdownValue = (id) => {
+    //     selectedTargetPattern.value = targetPatternOptions.value.find( (option) => {
+    //         return option.id == id
+    //     })
+    //     console.log(selectedTargetPattern.value)
+    // }
     const autoMarkMatchingPattern = (sourcePatternBeginningId) => {
         setSelectedSourcePatternDropdownValue(sourcePatternBeginningId)
         // 這裡必須要用 ==，因為 Primevue 的值是存 null，不是存 undefined
