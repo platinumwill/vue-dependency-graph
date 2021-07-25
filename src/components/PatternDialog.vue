@@ -28,7 +28,7 @@
             >
             <div>
                 <Button icon="pi pi-replay" label="Revert" @click="revertPieces" />
-                <Button icon="pi pi-plus" label="Add Fixed Text" @click="addFixedTextPiece" style="margin-left: .5em" />
+                <Button icon="pi pi-plus" label="Add Fixed Text" @click="targetPatternContent.addFixedTextPiece" style="margin-left: .5em" />
             </div>
             <vue-horizontal responsive>
             <draggable v-model="targetPatternContent.targetPatternPieces.value" tag="transition-group" item-key="vueKey">
@@ -67,15 +67,6 @@ import SegmentPiece from "./SegmentPiece.vue"
 import { mapGetters } from 'vuex'
 import { inject } from 'vue'
 
-class Piece {
-    constructor () {
-
-    }
-    get displayText () {
-        return this.appliedText
-    }
-} 
-
 export default {
     components: {
         Dialog
@@ -111,13 +102,6 @@ export default {
         }
         , queryOrGenerateDefaultPieces: function() {
             this.targetPatternContent.queryOrGenerateDefaultPieces(this.$parent.currentSpacyFormatSentence)
-        }
-        , addFixedTextPiece() {
-            const fixedTextPiece = new Piece()
-            fixedTextPiece.type = 'Fixed'
-            fixedTextPiece.content = 'TEXT'
-            fixedTextPiece.vueKey = 'fixed-' + this.targetPatternContent.targetPatternPieces.value.filter(item => item.type === 'fixed').length
-            this.targetPatternContent.targetPatternPieces.value.push(fixedTextPiece)
         }
         , revertPieces() {
             this.targetPatternContent.targetPatternPiecesForRevert.forEach(piece => console.log(piece.appliedText))

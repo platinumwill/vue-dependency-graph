@@ -8,10 +8,16 @@ class LinearTargetPatternPiece {
         token: {
             caption: "Token"
             , name: "token"
+            , isToken: true
         }
         , dependency: {
             caption: "Dependency"
             , name: "dependency"
+        }
+        , text: {
+            caption: "Text"
+            , name: "text"
+            , isText: true
         }
     })
 
@@ -26,7 +32,7 @@ class LinearTargetPatternPiece {
     get type () {
         if (this.source instanceof spacyFormatUtil.ModifiedSpacyToken) return LinearTargetPatternPiece.types.token
         if (this.source instanceof spacyFormatUtil.ModifiedSpacyDependency) return LinearTargetPatternPiece.types.dependency
-        return undefined
+        return LinearTargetPatternPiece.types.text
     }
 
 }
@@ -105,11 +111,19 @@ export default function(
         )
     }
 
+    const addFixedTextPiece = () => {
+        const fixedTextPiece = new LinearTargetPatternPiece()
+        fixedTextPiece.content = 'TEXT'
+        fixedTextPiece.vueKey = 'fixed-' + targetPatternPieces.value.filter(item => item.type === LinearTargetPatternPiece.types.text).length
+        targetPatternPieces.value.push(fixedTextPiece)
+    }
+
     return {
         targetPatternContent: {
             targetPatternPieces: targetPatternPieces
             , queryOrGenerateDefaultPieces: queryOrGenerateDefaultPieces
             , targetPatternPiecesForRevert: targetPatternPiecesForRevert
+            , addFixedTextPiece: addFixedTextPiece
         }
     }
 

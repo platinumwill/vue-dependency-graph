@@ -7,7 +7,7 @@
             {{ item.content }}
         </template>
         <template #content>
-            <div v-if="item.type == 'POS'">
+            <div v-if="item.type.isToken">
                 <Dropdown 
                     :options="mockDictionaries"
                     optionLabel="target"
@@ -20,7 +20,7 @@
                     >
                 </Dropdown>
             </div>
-            <div v-if="item.type == 'Fixed'">
+            <div v-if="item.type.isText">
                 <Dropdown v-model="appliedText" :options="fixedTextOptions"
                     @input="notifyOfAppliedTextChange"
                     :editable="true"
