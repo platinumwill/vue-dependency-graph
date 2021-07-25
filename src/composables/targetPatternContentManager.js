@@ -1,5 +1,6 @@
 import { ref, watch } from 'vue'
 import gremlinApi, * as gremlinUtils from "@/composables/api/gremlin-api"
+import * as spacyFormatUtil from "@/composables/spacyFormatManager"
 
 class LinearTargetPatternPiece {
 
@@ -14,13 +15,20 @@ class LinearTargetPatternPiece {
         }
     })
 
-    constructor(type) {
-        this.type = type
+    constructor(source) {
+        this.source = source
     }
 
     get displayText () {
         return this.appliedText
     }
+
+    get type () {
+        if (this.source instanceof spacyFormatUtil.ModifiedSpacyToken) return LinearTargetPatternPiece.types.token
+        if (this.source instanceof spacyFormatUtil.ModifiedSpacyDependency) return LinearTargetPatternPiece.types.dependency
+        return undefined
+    }
+
 }
 
 export default function(
@@ -65,7 +73,7 @@ export default function(
             return word.selectedMorphologyInfoTypes.length > 0
         })
         selectedWords.forEach((selectedWord) => {
-            const item = new LinearTargetPatternPiece(LinearTargetPatternPiece.types.token)
+            const item = new LinearTargetPatternPiece(selectedWord)
             item.content = selectedWord.tag + ' (' + selectedWord.lemma + ')'
             item.vueKey = "token-" + selectedWord.indexInSentence
             item.sortOrder = selectedWord.indexInSentence
@@ -74,7 +82,7 @@ export default function(
         currentSpacySentence.arcs.filter((arc) => {
             return arc.selected
         }).forEach((selectedArc) => {
-            const item = new LinearTargetPatternPiece(LinearTargetPatternPiece.types.dependency)
+            const item = new LinearTargetPatternPiece(selectedArc)
             item.content = selectedArc.label
             item.vueKey = "dependency-" + selectedArc.indexInSentence
 
