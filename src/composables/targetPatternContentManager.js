@@ -47,7 +47,7 @@ export default function(targetPattern) {
     const targetPatternPiecesForRevert = []
 
     return {
-        targetPatternData: {
+        targetPatternContent: {
             targetPatternPieces: targetPatternPieces
             , targetPatternPiecesForRevert: targetPatternPiecesForRevert
         }
