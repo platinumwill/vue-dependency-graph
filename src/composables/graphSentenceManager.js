@@ -42,6 +42,7 @@ export default function() {
             if (findBeginWord.indexInSentence === tokenIndex) {
                 sourcePatternOptions.value.splice(0, sourcePatternOptions.value.length)
                 targetPatternOptions.value.splice(0, targetPatternOptions.value.length)
+                word.isBeginning = false
             }
         } else { // toggle on
             word.selectedMorphologyInfoType = morphInfoType
@@ -175,8 +176,10 @@ export default function() {
             clearSelectionAndMatchingAndOptions()
             return
         }
-        const sourcePatternBeginningId = newValue.id
         const currentBeginWord = findBeginWord()
+        if (currentBeginWord == undefined) return
+        
+        const sourcePatternBeginningId = newValue.id
         currentBeginWord.sourcePatternVertexId = sourcePatternBeginningId
         // 處理 target pattern
         selectedTargetPattern.value = {}
