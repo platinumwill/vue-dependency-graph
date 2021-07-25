@@ -31,7 +31,7 @@
                 <Button icon="pi pi-plus" label="Add Fixed Text" @click="addFixedTextPiece" style="margin-left: .5em" />
             </div>
             <vue-horizontal responsive>
-            <draggable v-model="segmentPieces" tag="transition-group" item-key="vueKey">
+            <draggable v-model="targetPatternData.targetPatternPieces.value" tag="transition-group" item-key="vueKey">
                 <template #item="{element}">
                     <SegmentPiece :item="element"
                         @appliedTextChanged="changeAppliedText"
@@ -43,7 +43,7 @@
             </draggable>
             </vue-horizontal>
             <span 
-                v-for="piece in segmentPieces"
+                v-for="piece in targetPatternData.targetPatternPieces.value"
                 :class="piece.isOptional ? 'optional' : ''"
                 :key="piece.vueKey">
                     {{ piece.displayText }}
@@ -67,6 +67,8 @@ import SegmentPiece from "./SegmentPiece.vue"
 import { mapGetters } from 'vuex'
 import { inject } from 'vue'
 
+import targetPatternManager from '@/composables/targetPatternManager'
+
 class Piece {
     constructor () {
 
@@ -88,8 +90,6 @@ export default {
     , data() {
         return {
             displayModal: false
-            , segmentPieces: []
-            , segmentPiecesForRevert: []
         }
     }
     , computed: {
@@ -144,25 +144,33 @@ export default {
             segmentPieces.sort(function(a, b) {
                 return a.sortOrder - b.sortOrder
             })
-            this.segmentPieces = segmentPieces
-            this.segmentPiecesForRevert = [...segmentPieces]
+            this.targetPatternData.targetPatternPieces.value.splice(0, this.targetPatternData.targetPatternPieces.value.length, ...segmentPieces)
+            this.targetPatternData.targetPatternPiecesForRevert.splice(
+                0
+                ,this.targetPatternData.targetPatternPiecesForRevert.length
+                , ...segmentPieces
+            )
         }
         , addFixedTextPiece() {
             const fixedTextPiece = new Piece()
             fixedTextPiece.type = 'Fixed'
             fixedTextPiece.content = 'TEXT'
-            fixedTextPiece.vueKey = 'fixed-' + this.segmentPieces.filter(item => item.type === 'fixed').length
-            this.segmentPieces.push(fixedTextPiece)
+            fixedTextPiece.vueKey = 'fixed-' + this.targetPatternData.targetPatternPieces.value.filter(item => item.type === 'fixed').length
+            this.targetPatternData.targetPatternPieces.value.push(fixedTextPiece)
         }
         , revertPieces() {
-            this.segmentPiecesForRevert.forEach(piece => console.log(piece.appliedText))
-            this.segmentPieces = [...this.segmentPiecesForRevert]
+            this.targetPatternData.targetPatternPiecesForRevert.forEach(piece => console.log(piece.appliedText))
+            this.targetPatternData.targetPatternPieces.value.splice(
+                0
+                , this.targetPatternData.targetPatternPieces.value.length
+                , ...this.targetPatternData.targetPatternPiecesForRevert
+            )
             // applied text 可能也要清空
         }
         , removePiece(piece) {
-            const index = this.segmentPieces.indexOf(piece)
+            const index = this.targetPatternData.targetPatternPieces.value.indexOf(piece)
             if (index < 0) return
-            this.segmentPieces.splice(index, 1)
+            this.targetPatternData.targetPatternPieces.value.splice(index, 1)
         }
         , changeAppliedText(pieceAndValue) {
             // 是 child component 的事件，但物件的值不能在 child component 修改，要在這裡才能修改
@@ -179,10 +187,14 @@ export default {
             const selectedArcs = this.$parent.currentSpacyFormatSentence.arcs.filter((arc) => {
                 return arc.selected
             })
-            this.patternHelper.saveSelectedPattern(selectedWords, selectedArcs, this.segmentPieces)
+            this.patternHelper.saveSelectedPattern(selectedWords, selectedArcs, this.targetPatternData.targetPatternPieces.value)
         }
     }
     , setup() {
+
+        const {
+            targetPatternData
+        } = targetPatternManager()
 
         const sourcePattern = inject('sourcePattern')
         const targetPattern = inject('targetPattern')
@@ -192,6 +204,7 @@ export default {
             patternHelper
             , sourcePattern
             , targetPattern
+            , targetPatternData
         }
     }
 }
