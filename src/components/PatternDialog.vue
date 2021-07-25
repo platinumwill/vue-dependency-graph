@@ -23,7 +23,7 @@
             v-model:visible="displayModal" 
             :maximizable="true"
             :keepInViewport="false"
-            @show="generateSegmentItems"
+            @show="queryOrGenerateDefaultPieces"
             :style="{width: '100vw'}" :modal="true" :closeOnEscape="true" position="topleft"
             >
             <div>
@@ -109,45 +109,8 @@ export default {
         openTranslationPatternWindow: function() {
             this.displayModal = !this.displayModal
         }
-        , generateSegmentItems: function() {
-            const segmentPieces = []
-
-            const selectedWords = this.$parent.currentSpacyFormatSentence.words.filter((word) => {
-                return word.selectedMorphologyInfoTypes.length > 0
-            })
-            selectedWords.forEach((selectedWord) => {
-                const item = new Piece()
-                item.type = 'Token'
-                item.content = selectedWord.tag + ' (' + selectedWord.lemma + ')'
-                item.vueKey = 'sentence-' + this.currentSentenceIndex + "_token-" + selectedWord.indexInSentence
-                item.sortOrder = selectedWord.indexInSentence
-                segmentPieces.push(item)
-            })
-            this.$parent.currentSpacyFormatSentence.arcs.filter((arc) => {
-                return arc.selected
-            }).forEach((selectedArc) => {
-                const item = new Piece()
-                item.type = 'Dependency'
-                item.content = selectedArc.label
-                item.vueKey = 'sentence-' + this.currentSentenceIndex + "_dependency-" + selectedArc.indexInSentence
-
-                item.sortOrder = (selectedArc.trueStart + selectedArc.trueEnd) / 2
-                if (this.patternHelper.isDependencyPlaceholder(selectedArc, selectedWords)) {
-                    item.isPlaceholder = true
-                    item.appliedText = '{' + selectedArc.label + ' 連接處}'
-                }
-                segmentPieces.push(item)
-            })
-
-            segmentPieces.sort(function(a, b) {
-                return a.sortOrder - b.sortOrder
-            })
-            this.targetPatternContent.targetPatternPieces.value.splice(0, this.targetPatternContent.targetPatternPieces.value.length, ...segmentPieces)
-            this.targetPatternContent.targetPatternPiecesForRevert.splice(
-                0
-                ,this.targetPatternContent.targetPatternPiecesForRevert.length
-                , ...segmentPieces
-            )
+        , queryOrGenerateDefaultPieces: function() {
+            this.targetPatternContent.queryOrGenerateDefaultPieces(this.$parent.currentSpacyFormatSentence)
         }
         , addFixedTextPiece() {
             const fixedTextPiece = new Piece()

@@ -124,7 +124,10 @@ export default {
 
         const {
             targetPatternContent
-        } = targetPatternContentManager(targetPattern)
+        } = targetPatternContentManager(
+            targetPattern
+            , patternHelper
+        )
 
         provide('spacyFormatSentences', spacyFormatSentences)
         provide('toggleMorphologySelection', toggleMorphologySelection)

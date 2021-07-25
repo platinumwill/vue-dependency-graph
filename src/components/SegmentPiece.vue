@@ -1,7 +1,7 @@
 <template>
     <Card>
         <template #header>
-            {{ item.type }}
+            {{ item.type.caption }}
         </template>
         <template #title>
             {{ item.content }}
