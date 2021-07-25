@@ -7,7 +7,7 @@ const morphologyInfoType = Object.freeze({
     , lemma: 'Lemma'
 })
 const vertexLabels = Object.freeze({
-    targetPattern: "SimpleTargetPatternPiece"
+    linearTargetPattern: "LinearTargetPatternPiece"
     , sourcePattern: "SourcePatternPiece"
     , connector: 'Connector'
 })
@@ -381,7 +381,7 @@ export default function() {
         segmentPieces.forEach((piece, pieceIdx) => {
             const currentPieceAlias = 'v' + pieceIdx
             gremlinInvoke = gremlinInvoke
-            .call("addV", vertexLabels.targetPattern)
+            .call("addV", vertexLabels.linearTargetPattern)
             .call("property", "sourceType", piece.type)
             .call("as", currentPieceAlias)
             if (lastAddedPieceAlias) {
