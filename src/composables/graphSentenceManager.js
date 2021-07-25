@@ -94,7 +94,6 @@ export default function() {
         )
         const arcSum = new Map();
         selectedArcsFromBegin.forEach( (selectedArc) => {
-            console.log("label: ", selectedArc.label)
             if ( arcSum.has(selectedArc.label) ) {
                 arcSum.set(selectedArc.label, arcSum.get(selectedArc.label) + 1)
             } else {
