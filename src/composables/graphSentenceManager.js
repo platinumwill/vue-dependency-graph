@@ -40,6 +40,7 @@ export default function() {
         }
         // TODO 選取還是都要連起來比較保險
         // 執行 toggle
+        // TODO PROGRESS POS 固定要選起來，選了其他的，要自動標記 POS 有選
         const word = sentence.words[tokenIndex]
         if (word.selectedMorphologyInfoTypes.includes(morphInfoType)) { // toggle off
             word.selectedMorphologyInfoTypes.splice(word.selectedMorphologyInfoTypes.indexOf(morphInfoType, 1))
@@ -57,6 +58,7 @@ export default function() {
             if (findBeginWord() === undefined) {
                 word.isBeginning = true
             }
+            // TODO PROGRESS POS 固定要選起來，選了其他的，要自動標記 POS 有選，這裡做反向控制
         }
         reloadMatchingSourcePatternOptions()
         findExistingMatchSourcePatternAndMark()
@@ -371,6 +373,7 @@ export default function() {
             gremlinInvoke = gremlinInvoke
             .call("addV", vertexLabels.linearTargetPattern)
             // TODO 這裡也許不用加了，直接用 edge 指
+            // PROGRESS
             .call("property", "sourceType", piece.type.name)
             .call("as", currentPieceAlias)
             if (lastAddedPieceAlias) {
