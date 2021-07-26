@@ -44,14 +44,14 @@ const store = createStore({
     async parseAndStoreDocument({commit}, documentText) {
       // 這是為了要拿句子的拆分
       googleApi(documentText).then((parse) => {
-        const sentences = parse.sentences.map(({ text: {content: text} }) => ({text}))
-        sentences.forEach((sentence, index) => {sentence.index = index})
+        const sentences = parse.sentences.map(({ text: {content: text} }: any) => ({text}))
+        sentences.forEach((sentence: any, index: number) => {sentence.index = index})
         stanfordnlpApi(documentText).then((stanfordnlpParse) => {
           // 句子的屬性（以後準備拿掉）
           console.log("google sentences: ", sentences.length)
           console.log("stanfordnlp sentences: ", stanfordnlpParse.sentences.length)
           let start = 0
-          sentences.forEach((sentence, index) => {
+          sentences.forEach((sentence: any, index: number) => {
             sentence.start = start
             sentence.end = start + stanfordnlpParse.sentences[index].tokens.length - 1
             start += stanfordnlpParse.sentences[index].tokens.length
@@ -63,10 +63,10 @@ const store = createStore({
     }
   }
   , mutations: {
-    storeOriginalText (state, documentText) {
+    storeOriginalText (state: any, documentText) {
         state.originalText = documentText
     }
-    , shiftSentence(state, offset) {
+    , shiftSentence(state: any, offset) {
         const newIndex = state.currentSentenceIndex + offset
         if (newIndex < 0) {
             return
@@ -78,16 +78,16 @@ const store = createStore({
     isDocumentReady(state, getters) {
       return (getters.baselineSentences.length > 0)
     }
-    , baselineSentences(state) {
+    , baselineSentences(state: any) {
       return state.baseline.sentences
     }
     , maxSentenceIndex(state, getters) {
-      if (! getters.baselineSentences.length > 0) {
+      if (! (getters.baselineSentences.length > 0)) {
         return -1 
       }
       return getters.baselineSentences.length - 1
     }
-    , currentSentenceIndex (state) {
+    , currentSentenceIndex (state: any) {
       return state.sentenceNavigator.currentSentenceIndex
     }
     , currentSentence (state, getters) {
