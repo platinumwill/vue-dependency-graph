@@ -1,6 +1,15 @@
 import { ref } from "vue"
 import { useStore } from "vuex"
 
+export class ModifiedSpacySentence {
+    constructor(modifiedSpacyTokens, modifiedSpacyDependencies) {
+        this.words = modifiedSpacyTokens
+        this.words.forEach(word => word.sentence = this)
+        this.arcs = modifiedSpacyDependencies
+        this.arcs.forEach(arc => arc.sentence = this)
+    }
+}
+
 export class ModifiedSpacyToken {
     constructor(spacyWord) {
         this.text = spacyWord.text
@@ -68,10 +77,8 @@ export default function () {
             token.selectedMorphologyInfoTypes = []
             tokens.push(token)
         })
-        return  {
-            words: tokens
-            , arcs: dependencies
-        }
+        const sentence = new ModifiedSpacySentence(tokens, dependencies)
+        return sentence
     }
 
     const spacyFormatHelper = ref({})
