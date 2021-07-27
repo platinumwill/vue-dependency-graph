@@ -33,6 +33,7 @@ export class ModifiedSpacyToken extends ModifiedSpacyElement {
 
 export class ModifiedSpacyDependency extends ModifiedSpacyElement {
     
+    dir: string
     start: number
     end: number
     label: string
@@ -42,6 +43,7 @@ export class ModifiedSpacyDependency extends ModifiedSpacyElement {
 
     constructor(spacyArc: any, index: number) {
         super(index, "dependency")
+        this.dir = spacyArc.dir
         this.start = spacyArc.start
         this.end = spacyArc.end
         this.label = spacyArc.label
