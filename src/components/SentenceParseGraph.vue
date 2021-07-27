@@ -126,7 +126,6 @@ export default {
             targetPatternContent
         } = targetPatternContentManager(
             targetPattern
-            , patternHelper
         )
 
         provide('spacyFormatSentences', spacyFormatSentences)

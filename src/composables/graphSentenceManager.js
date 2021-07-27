@@ -284,15 +284,6 @@ export default function() {
         return beginWords[0]
     }
 
-    const isDependencyPlaceholder = (arc, selectedWords) => {
-        const startConnected = (selectedWords.find( word => word.indexInSentence == arc.trueStart) !== undefined)
-        const endConnected = (selectedWords.find( word => word.indexInSentence == arc.trueEnd) !== undefined)
-        if (startConnected && !endConnected) {
-            return true
-        }
-        return false
-    }
-
     const saveSelectedPattern = (selectedWords, selectedArcs, segmentPieces) => {
         let gremlinInvoke = new gremlinUtils.GremlinInvoke()
 
@@ -348,7 +339,7 @@ export default function() {
                 }
             let startVName = vertexAlias(startWord)
             let endVName = undefined
-            if (isDependencyPlaceholder(arc, selectedWords)) { // 這個 dependency 後面連著連接處
+            if (arc.isPlaceholder) { // 這個 dependency 後面連著連接處
                 const connectorVName = "connector_" + arc.trueStart + "-" + arc.trueEnd
                 endVName = connectorVName
                 gremlinInvoke = gremlinInvoke
@@ -406,8 +397,7 @@ export default function() {
             , options: targetPatternOptions.value
         }
         , patternHelper: {
-            isDependencyPlaceholder: isDependencyPlaceholder
-            , saveSelectedPattern: saveSelectedPattern
+            saveSelectedPattern: saveSelectedPattern
         }
     }
 }
