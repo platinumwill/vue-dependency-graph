@@ -1,6 +1,6 @@
 import { ref, watch } from 'vue'
 import gremlinApi, * as gremlinUtils from "@/composables/api/gremlin-api"
-import * as spacyFormatUtil from "@/composables/spacyFormatManager"
+import * as sentenceManager from "@/composables/sentenceManager"
 
 class LinearTargetPatternPiece {
 
@@ -30,8 +30,8 @@ class LinearTargetPatternPiece {
     }
 
     get type () {
-        if (this.source instanceof spacyFormatUtil.ModifiedSpacyToken) return LinearTargetPatternPiece.types.token
-        if (this.source instanceof spacyFormatUtil.ModifiedSpacyDependency) return LinearTargetPatternPiece.types.dependency
+        if (this.source instanceof sentenceManager.ModifiedSpacyToken) return LinearTargetPatternPiece.types.token
+        if (this.source instanceof sentenceManager.ModifiedSpacyDependency) return LinearTargetPatternPiece.types.dependency
         return LinearTargetPatternPiece.types.text
     }
 
