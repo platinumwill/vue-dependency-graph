@@ -20,6 +20,7 @@ export class ModifiedSpacyToken extends ModifiedSpacyElement {
     tag: string
     lemma: string
     selectedMorphologyInfoTypes: string[] = []
+    sourcePatternVertexId?: number
 
     constructor(spacyWord: any, index: number) {
         super(index, "token")
@@ -40,6 +41,7 @@ export class ModifiedSpacyDependency extends ModifiedSpacyElement {
     trueStart: number
     trueEnd: number
     selected: boolean = false
+    sourcePatternEdgeId?: number
 
     constructor(spacyArc: any, index: number) {
         super(index, "dependency")

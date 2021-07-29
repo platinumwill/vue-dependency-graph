@@ -245,7 +245,7 @@ export default function() {
             resultData['@value'].forEach( (path) => {
                 const outVId = path['@value'].objects['@value'][0]['@value'].id['@value']
                 const outELabel = path['@value'].objects['@value'][1]['@value'].label
-                const outEId = path['@value'].objects['@value'][1]['@value'].id['@value']
+                const outEId = path['@value'].objects['@value'][1]['@value'].id['@value'].relationId
                 const sentence = currentSentence()
                 const matchingArc = sentence.arcs.find( (arc) => {
                     return (
@@ -328,7 +328,7 @@ export default function() {
             let startVName = gremlinManager.vertexAlias(startWord)
             let endVName = undefined
             if (arc.isPlaceholder) { // 這個 dependency 後面連著連接處
-                const connectorVName = "connector_" + arc.trueStart + "-" + arc.trueEnd
+                const connectorVName = gremlinManager.connectorAlias(arc)
                 endVName = connectorVName
                 gremlinInvoke = gremlinInvoke
                 .call("addV", gremlinManager.vertexLabels.connector)

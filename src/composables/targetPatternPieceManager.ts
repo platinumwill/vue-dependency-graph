@@ -1,5 +1,6 @@
 import * as sentenceManager from "@/composables/sentenceManager"
 import * as gremlinManager from "@/composables/gremlinManager"
+import gremlinApi, * as gremlinUtil from "@/composables/api/gremlin-api"
 
 export class LinearTargetPatternPiece {
 
@@ -117,6 +118,25 @@ export const processTargetPatternStoring = (segmentPieces: LinearTargetPatternPi
             .call("addE", gremlinManager.edgeLabels.applicable)
             .call("to", gremlinManager.aliases.sourcePatternBeginning)
         }
+        // 建立和 source 的關連
+        if (piece.source instanceof sentenceManager.ModifiedSpacyDependency) {
+            // 和 connector 的關連
+            gremlinInvoke
+            .call("addE", gremlinManager.edgeLabels.traceToInDep)
+            .call("from", currentPieceAlias)
+            if (piece.source.sourcePatternEdgeId != undefined) { // 如果 source pattern 是既有的的狀況
+                gremlinInvoke.nest(
+                    "to"
+                    , new gremlinUtil.GremlinInvoke()
+                    .call("E", piece.source.sourcePatternEdgeId)
+                    .call("inV")
+                    .command
+                )
+            } else {
+                gremlinInvoke.call("to", gremlinManager.connectorAlias(piece.source))
+            }
+        }
+        // TODO 處理和 source VERTEX 的關連
         lastAddedPieceAlias = currentPieceAlias
     })
     return gremlinInvoke
