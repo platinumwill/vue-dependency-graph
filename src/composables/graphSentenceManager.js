@@ -1,6 +1,8 @@
 import { ref, watch } from 'vue'
 import { useStore } from "vuex"
 import gremlinApi, * as gremlinUtils from "@/composables/api/gremlin-api"
+import * as gremlinManager from "@/composables/gremlinManager"
+import * as targetPatternPieceManager from "@/composables/targetPatternPieceManager"
 
 const morphologyInfoType = Object.freeze({
     pos: {
@@ -11,18 +13,6 @@ const morphologyInfoType = Object.freeze({
         name: 'lemma'
         , propertyInWord: 'lemma'
     }
-})
-const vertexLabels = Object.freeze({
-    linearTargetPattern: "LinearTargetPatternPiece"
-    , sourcePattern: "SourcePatternPiece"
-    , connector: 'Connector'
-})
-const edgeLabels = Object.freeze({
-    applicable: 'applicable'
-    , follows: 'follows'
-})
-const aliases = Object.freeze({
-    sourcePatternBeginning: "sourcePatternBeginning"
 })
 
 
@@ -177,7 +167,7 @@ export default function() {
             gremlinApi(
                 new gremlinUtils.GremlinInvoke()
                 .call('V', sourcePatternBeginningId)
-                .call('in', edgeLabels.applicable)
+                .call('in', gremlinManager.edgeLabels.applicable)
                 .command
             )
             .then((resultData) => {
@@ -289,7 +279,8 @@ export default function() {
 
         // TODO 判斷現在的 pattern 是不是既有的，是的話就不要再存
         gremlinInvoke = processSelectedNewSourcePatternStoring(selectedWords, selectedArcs, gremlinInvoke)
-        gremlinInvoke = processTargetPatternStoring(segmentPieces, gremlinInvoke)
+        gremlinInvoke = targetPatternPieceManager.processTargetPatternStoring(segmentPieces, gremlinInvoke)
+        gremlinInvoke.call("select", gremlinManager.aliases.sourcePatternBeginning)
 
         console.log(gremlinInvoke.command)
         gremlinApi(gremlinInvoke.command)
@@ -305,25 +296,22 @@ export default function() {
         })
     }
     const processSelectedNewSourcePatternStoring = (selectedWords, selectedArcs, gremlinInvoke) => {
-        function vertexAlias(word) {
-            return 'sourceV-' + word.indexInSentence
-        }
         if (selectedSourcePattern.value != undefined && selectedSourcePattern.value.id != undefined) {
             gremlinInvoke = gremlinInvoke
             .call("V", selectedSourcePattern.value.id)
-            .call("as", aliases.sourcePatternBeginning)
+            .call("as", gremlinManager.aliases.sourcePatternBeginning)
             return gremlinInvoke
         }
         selectedWords.forEach( (word) => {
             gremlinInvoke = gremlinInvoke
-                .call("addV", vertexLabels.sourcePattern)
+                .call("addV", gremlinManager.vertexLabels.sourcePattern)
             word.selectedMorphologyInfoTypes.forEach( (morphInfoType) => {
                 gremlinInvoke = gremlinInvoke.call("property", morphInfoType.name, word[morphInfoType.propertyInWord])
             })
-            gremlinInvoke = gremlinInvoke.call("as", vertexAlias(word))
+            gremlinInvoke = gremlinInvoke.call("as", gremlinManager.vertexAlias(word))
             if (word.isBeginning) {
                 gremlinInvoke = gremlinInvoke
-                .call("as", aliases.sourcePatternBeginning)
+                .call("as", gremlinManager.aliases.sourcePatternBeginning)
                 .call("property", "isBeginning", true)
                 .call("property", "owner", "Chin")
             }
@@ -337,17 +325,17 @@ export default function() {
                     console.error(error)
                     throw error
                 }
-            let startVName = vertexAlias(startWord)
+            let startVName = gremlinManager.vertexAlias(startWord)
             let endVName = undefined
             if (arc.isPlaceholder) { // 這個 dependency 後面連著連接處
                 const connectorVName = "connector_" + arc.trueStart + "-" + arc.trueEnd
                 endVName = connectorVName
                 gremlinInvoke = gremlinInvoke
-                .call("addV", vertexLabels.connector)
+                .call("addV", gremlinManager.vertexLabels.connector)
                 .call("as", connectorVName)
             } else {
                 const endWord = selectedWords.find( word => word.indexInSentence == arc.trueEnd ) 
-                endVName = vertexAlias(endWord)
+                endVName = gremlinManager.vertexAlias(endWord)
             }
             gremlinInvoke = gremlinInvoke
             .call("addE", arc.label)
@@ -356,33 +344,6 @@ export default function() {
         })
         return gremlinInvoke
     }
-    const processTargetPatternStoring = (segmentPieces, gremlinInvoke) => {
-        // save target pattern
-        let lastAddedPieceAlias
-        segmentPieces.forEach((piece, pieceIdx) => {
-            const currentPieceAlias = 'v' + pieceIdx
-            gremlinInvoke = gremlinInvoke
-            .call("addV", vertexLabels.linearTargetPattern)
-            // TODO 這裡也許不用加了，直接用 edge 指
-            // PROGRESS
-            .call("property", "sourceType", piece.type.name)
-            .call("as", currentPieceAlias)
-            if (lastAddedPieceAlias) {
-                gremlinInvoke = gremlinInvoke
-                .call("addE", edgeLabels.follows)
-                .call("to", lastAddedPieceAlias)
-            } else {
-                gremlinInvoke = gremlinInvoke
-                .call("addE", edgeLabels.applicable)
-                .call("to", aliases.sourcePatternBeginning)
-            }
-            lastAddedPieceAlias = currentPieceAlias
-        })
-        gremlinInvoke = gremlinInvoke
-        .call("select", aliases.sourcePatternBeginning)
-        return gremlinInvoke
-    }
-
     return {
         spacyFormatSentences: spacyFormatSentences.value
         , toggleMorphologySelection

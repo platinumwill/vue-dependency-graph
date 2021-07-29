@@ -1,4 +1,5 @@
 import * as sentenceManager from "@/composables/sentenceManager"
+import * as gremlinManager from "@/composables/gremlinManager"
 
 export class LinearTargetPatternPiece {
 
@@ -94,4 +95,29 @@ export function queryOrGenerateDefaultPieces (currentSpacySentence: sentenceMana
         ,targetPatternPiecesForRevert.length
         , ...segmentPieces
     )
+}
+
+export const processTargetPatternStoring = (segmentPieces: LinearTargetPatternPiece[], gremlinInvoke: any) => {
+    // save target pattern
+    let lastAddedPieceAlias: string
+    segmentPieces.forEach((piece, pieceIdx) => {
+        const currentPieceAlias = 'v' + pieceIdx
+        gremlinInvoke = gremlinInvoke
+        .call("addV", gremlinManager.vertexLabels.linearTargetPattern)
+        // TODO 這裡也許不用加了，直接用 edge 指
+        // PROGRESS
+        .call("property", "sourceType", piece.type.name)
+        .call("as", currentPieceAlias)
+        if (lastAddedPieceAlias) {
+            gremlinInvoke = gremlinInvoke
+            .call("addE", gremlinManager.edgeLabels.follows)
+            .call("to", lastAddedPieceAlias)
+        } else {
+            gremlinInvoke = gremlinInvoke
+            .call("addE", gremlinManager.edgeLabels.applicable)
+            .call("to", gremlinManager.aliases.sourcePatternBeginning)
+        }
+        lastAddedPieceAlias = currentPieceAlias
+    })
+    return gremlinInvoke
 }
