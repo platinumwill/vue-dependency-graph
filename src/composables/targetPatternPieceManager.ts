@@ -142,6 +142,7 @@ export const processTargetPatternStoring = (segmentPieces: LinearTargetPatternPi
                     "to"
                     , new gremlinUtil.GremlinInvoke(true)
                     .call("V", piece.source.sourcePatternVertexId)
+                    .command
                 )
             } else {
                 gremlinInvoke.call("to", gremlinManager.vertexAlias(piece.source))
