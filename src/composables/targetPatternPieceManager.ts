@@ -154,6 +154,16 @@ export const processTargetPatternStoring = (segmentPieces: LinearTargetPatternPi
     return gremlinInvoke
 }
 
+class LinearTargetPattern {
+    id: string
+    label: string
+
+    constructor(id: string, label: string) {
+        this.id = id
+        this.label = label
+    }
+}
+
 export const reloadMatchingTargetPatternOptions = (sourcePatternBeginningId: number, targetPatternOptions: any) => {
     targetPatternOptions.value.splice(0, targetPatternOptions.value.length)
 
@@ -164,10 +174,9 @@ export const reloadMatchingTargetPatternOptions = (sourcePatternBeginningId: num
     return new Promise( (resolve, reject) => {
         gremlinApi(gremlinCommand).then( (resultData) => {
             resultData['@value'].forEach( (targetPatternBeginning: any) => {
-                targetPatternOptions.value.push({
-                    id: targetPatternBeginning['@value'].id['@value'] 
-                    , label: targetPatternBeginning['@value'].label + '-' + targetPatternBeginning['@value'].id['@value']
-                })
+                const id = targetPatternBeginning['@value'].id['@value']
+                const label = targetPatternBeginning['@value'].label + '-' + targetPatternBeginning['@value'].id['@value']
+                targetPatternOptions.value.push(new LinearTargetPattern(id, label))
             })
             resolve(resultData)
         }).catch( (error) => {
