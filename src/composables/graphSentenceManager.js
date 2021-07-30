@@ -331,7 +331,8 @@ export default function() {
                 const connectorVName = gremlinManager.connectorAlias(arc)
                 endVName = connectorVName
                 gremlinInvoke = gremlinInvoke
-                .call("addV", gremlinManager.vertexLabels.connector)
+                .call("addV", gremlinManager.vertexLabels.sourcePattern)
+                .call("property", gremlinManager.propertyNames.isConnector, true)
                 .call("as", connectorVName)
             } else {
                 const endWord = selectedWords.find( word => word.indexInSentence == arc.trueEnd ) 

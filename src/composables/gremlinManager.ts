@@ -11,7 +11,6 @@ export function connectorAlias(dependency: sentenceManager.ModifiedSpacyDependen
 export const vertexLabels = Object.freeze({
     linearTargetPattern: "LinearTargetPatternPiece"
     , sourcePattern: "SourcePatternPiece"
-    , connector: 'Connector'
 })
 export const edgeLabels = Object.freeze({
     applicable: 'applicable'
@@ -21,4 +20,8 @@ export const edgeLabels = Object.freeze({
 })
 export const aliases = Object.freeze({
     sourcePatternBeginning: "sourcePatternBeginning"
+})
+
+export const propertyNames = Object.freeze({
+    isConnector: "isConnector"
 })
