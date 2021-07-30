@@ -17,6 +17,7 @@ export const edgeLabels = Object.freeze({
     applicable: 'applicable'
     , follows: 'follows'
     , traceToInDep: 'traceToInDep'
+    , traceTo: 'traceTo'
 })
 export const aliases = Object.freeze({
     sourcePatternBeginning: "sourcePatternBeginning"

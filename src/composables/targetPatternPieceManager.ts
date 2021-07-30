@@ -105,9 +105,6 @@ export const processTargetPatternStoring = (segmentPieces: LinearTargetPatternPi
         const currentPieceAlias = 'v' + pieceIdx
         gremlinInvoke = gremlinInvoke
         .call("addV", gremlinManager.vertexLabels.linearTargetPattern)
-        // TODO 這裡也許不用加了，直接用 edge 指
-        // PROGRESS
-        .call("property", "sourceType", piece.type.name)
         .call("as", currentPieceAlias)
         if (lastAddedPieceAlias) {
             gremlinInvoke = gremlinInvoke
@@ -120,7 +117,7 @@ export const processTargetPatternStoring = (segmentPieces: LinearTargetPatternPi
         }
         // 建立和 source 的關連
         if (piece.source instanceof sentenceManager.ModifiedSpacyDependency) {
-            // 和 connector 的關連
+            // 和 dependency 的關連
             gremlinInvoke
             .call("addE", gremlinManager.edgeLabels.traceToInDep)
             .call("from", currentPieceAlias)
@@ -134,6 +131,20 @@ export const processTargetPatternStoring = (segmentPieces: LinearTargetPatternPi
                 )
             } else {
                 gremlinInvoke.call("to", gremlinManager.connectorAlias(piece.source))
+            }
+        }
+        if (piece.source instanceof sentenceManager.ModifiedSpacyToken) {
+            gremlinInvoke
+            .call("addE", gremlinManager.edgeLabels.traceTo)
+            .call("from", currentPieceAlias)
+            if (piece.source.sourcePatternVertexId != undefined) {
+                gremlinInvoke.nest(
+                    "to"
+                    , new gremlinUtil.GremlinInvoke(true)
+                    .call("V", piece.source.sourcePatternVertexId)
+                )
+            } else {
+                gremlinInvoke.call("to", gremlinManager.vertexAlias(piece.source))
             }
         }
         // TODO 處理和 source VERTEX 的關連
