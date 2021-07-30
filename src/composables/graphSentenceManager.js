@@ -151,7 +151,7 @@ export default function() {
     }
 
     watch(selectedSourcePattern, (newValue, oldValue) => {
-        console.log('selected source pattern changed: ', newValue, oldValue)
+        console.log('watching selected source pattern change: ', newValue, oldValue)
         if (newValue == undefined || newValue.id == undefined) {
             clearSelectionAndMatchingAndOptions()
             return
