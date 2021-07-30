@@ -153,3 +153,25 @@ export const processTargetPatternStoring = (segmentPieces: LinearTargetPatternPi
     })
     return gremlinInvoke
 }
+
+export const reloadMatchingTargetPatternOptions = (sourcePatternBeginningId: number, targetPatternOptions: any) => {
+    targetPatternOptions.value.splice(0, targetPatternOptions.value.length)
+
+    const gremlinCommand = new gremlinUtil.GremlinInvoke()
+    .call("V", sourcePatternBeginningId)
+    .call("in", "applicable")
+    .command
+    return new Promise( (resolve, reject) => {
+        gremlinApi(gremlinCommand).then( (resultData) => {
+            resultData['@value'].forEach( (targetPatternBeginning: any) => {
+                targetPatternOptions.value.push({
+                    id: targetPatternBeginning['@value'].id['@value'] 
+                    , label: targetPatternBeginning['@value'].label + '-' + targetPatternBeginning['@value'].id['@value']
+                })
+            })
+            resolve(resultData)
+        }).catch( (error) => {
+            reject(error)
+        })
+    })
+}

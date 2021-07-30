@@ -163,19 +163,7 @@ export default function() {
         currentBeginWord.sourcePatternVertexId = sourcePatternBeginningId
         // 處理 target pattern
         selectedTargetPattern.value = {}
-        reloadTargetPatternOptions(sourcePatternBeginningId).then( () => {
-            gremlinApi(
-                new gremlinUtils.GremlinInvoke()
-                .call('V', sourcePatternBeginningId)
-                .call('in', gremlinManager.edgeLabels.applicable)
-                .command
-            )
-            .then((resultData) => {
-                console.log(resultData)
-                // const targetPatternBeginnningVertexId = resultData['@value'][0]['@value'].id['@value']
-                // console.log('Target Pattern Beginning Vertex Id: ', targetPatternBeginnningVertexId)
-                // setSelectedTargetPatternDropdownValue(targetPatternBeginnningVertexId)
-            })
+        targetPatternPieceManager.reloadMatchingTargetPatternOptions(sourcePatternBeginningId, targetPatternOptions).then( () => {
         })
 
         autoMarkMatchingPattern(sourcePatternBeginningId)
@@ -194,27 +182,6 @@ export default function() {
         })
         sourcePatternOptions.value.splice(0, sourcePatternOptions.value.length)
         targetPatternOptions.value.splice(0, targetPatternOptions.value.length)
-    }
-    const reloadTargetPatternOptions = (sourcePatternBeginningId) => {
-        targetPatternOptions.value.splice(0, targetPatternOptions.value.length)
-
-        const gremlinCommand = new gremlinUtils.GremlinInvoke()
-        .call("V", sourcePatternBeginningId)
-        .call("in", "applicable")
-        .command
-        return new Promise( (resolve, reject) => {
-            gremlinApi(gremlinCommand).then( (resultData) => {
-                resultData['@value'].forEach( (targetPatternBeginning) => {
-                    targetPatternOptions.value.push({
-                        id: targetPatternBeginning['@value'].id['@value'] 
-                        , label: targetPatternBeginning['@value'].label + '-' + targetPatternBeginning['@value'].id['@value']
-                    })
-                })
-                resolve(resultData)
-            }).catch( (error) => {
-                reject(error)
-            })
-        })
     }
     const setSelectedSourcePatternDropdownValue = (id) => {
         selectedSourcePattern.value = sourcePatternOptions.value.find( (option) => {
