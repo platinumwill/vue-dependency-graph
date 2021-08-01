@@ -177,20 +177,37 @@ export const reloadMatchingTargetPatternOptions = (sourcePatternBeginningId: num
     .call("path")
     .nest("by"
         , new gremlinUtil.GremlinInvoke(true)
-            .call("project", gremlinManager.projectKeys.traceToEdge, gremlinManager.projectKeys.traceToInV)
-            .nest(
+            .call(
+                "project"
+                , gremlinManager.projectKeys.traceToEdge
+                , gremlinManager.projectKeys.traceToInV
+                , gremlinManager.projectKeys.connectorInEdge
+            ).nest(
                 "by"
                 , new gremlinUtil.GremlinInvoke(true)
                     .call("outE", gremlinManager.edgeLabels.traceTo)
                     .call("elementMap")
                     .call("fold")
                     .command
-            )
-            .nest(
+            ).nest(
                 "by"
                 , new gremlinUtil.GremlinInvoke(true)
                     .call("out", gremlinManager.edgeLabels.traceTo)
                     .call("elementMap")
+                    .call("fold")
+                    .command
+            ).nest(
+                "by"
+                , new gremlinUtil.GremlinInvoke(true)
+                    .call("out", gremlinManager.edgeLabels.traceTo)
+                    .call("inE")
+                    .nest("hasLabel"
+                        , new gremlinUtil.GremlinInvoke(true).call(
+                            "without"
+                            , gremlinManager.edgeLabels.traceTo
+                            , gremlinManager.edgeLabels.applicable
+                        ).command
+                    ).call("elementMap")
                     .call("fold")
                     .command
             ).command
@@ -202,7 +219,7 @@ export const reloadMatchingTargetPatternOptions = (sourcePatternBeginningId: num
                 console.log('path: ', targetPatternPath['@value'].objects['@value'])
                 const path: any[] = targetPatternPath['@value'].objects['@value'] // pathArray[0] 是 source pattern beginning
                 // 一個 path 就是一條 LinearTargetPattern
-                path.forEach(projected => {
+                path.forEach(projected => { // 一個元素內含一個 target pattern piece 的相關資料，例如 source pattern 和之間的 edge
                     const projectedMapArray = projected['@value']
                     console.log('projected: ', projectedMapArray)
                     const projectedTraceToEdge = projectedMapArray[1]['@value']
@@ -212,17 +229,45 @@ export const reloadMatchingTargetPatternOptions = (sourcePatternBeginningId: num
                     console.log('traceToEdge: ', foldedTraceToEdgeElementMap)
                     const foldedTraceToInVElementMapArray = projectedMapArray[3]['@value'][0]['@value']
                     console.log('traceToInV: ', foldedTraceToInVElementMapArray)
+
+                    const foldedTraceToInVInDependencyElementMapArrayWrapper = projectedMapArray[5]['@value']
+                    let foldedTraceToInVInDependencyElementMapArray: any[] = []
+                    if (foldedTraceToInVInDependencyElementMapArrayWrapper.length > 0) {
+                        foldedTraceToInVInDependencyElementMapArray = foldedTraceToInVInDependencyElementMapArrayWrapper[0]['@value']
+                    }
+                    console.log('traceToInV in dependency: ', foldedTraceToInVInDependencyElementMapArray)
+
                     // 取得 source pattern vertex id
                     let sourcePatternVId = undefined
+                    let isConnector = undefined
                     foldedTraceToInVElementMapArray.forEach( (element: any, index: number) => {
                         if (element['@value'] != undefined) {
                             if (element['@value'] == 'id') {
                                 sourcePatternVId = foldedTraceToInVElementMapArray[index + 1]['@value']
-                                console.log('source pattern vid: ', sourcePatternVId)
-                                return
+                            }
+                        } else {
+                            if (element == gremlinManager.propertyNames.isConnector) {
+                                isConnector = foldedTraceToInVElementMapArray[index + 1]
                             }
                         }
                     })
+                    // 處理 source pattern vertex 是 connector 的狀況
+                    if (isConnector) {
+                        let depEdgeId = undefined
+                        let depEdgeLabel = undefined
+                        foldedTraceToInVInDependencyElementMapArray.forEach( (element: any, index: number) => {
+                            if (element['@value'] != undefined) {
+                                if (element['@value'] == 'id') {
+                                    depEdgeId = foldedTraceToInVInDependencyElementMapArray[index + 1]['@value'].relationId
+                                    console.log('dep edge id: ', depEdgeId)
+                                }
+                                if (element['@value'] == 'label') {
+                                    depEdgeLabel = foldedTraceToInVInDependencyElementMapArray[index + 1]
+                                    console.log('dep edge label: ', depEdgeLabel)
+                                }
+                            }
+                        })
+                    }
                 })
                 
                 // const id = targetPatternBeginning['@value'].id['@value']
