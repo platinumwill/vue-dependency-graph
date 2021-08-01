@@ -163,7 +163,12 @@ export default function() {
         currentBeginWord.sourcePatternVertexId = sourcePatternBeginningId
         // 處理 target pattern
         selectedTargetPattern.value = {}
-        targetPatternPieceManager.reloadMatchingTargetPatternOptions(sourcePatternBeginningId, targetPatternOptions).then( () => {
+
+        targetPatternOptions.value.splice(0, targetPatternOptions.value.length)
+        // TODO currentSentence 希望不用傳
+        targetPatternPieceManager.reloadMatchingTargetPatternOptions(sourcePatternBeginningId, currentSentence()).then( (targetPattern) => {
+            console.log('target pattern options reloaded: ', targetPattern)
+            targetPatternOptions.value.push(...targetPattern)
         })
 
         autoMarkMatchingPattern(sourcePatternBeginningId)

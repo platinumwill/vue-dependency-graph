@@ -12,6 +12,12 @@ export class ModifiedSpacyElement {
     get vueKey () {
         return this.type + this.indexInSentence
     }
+    
+    get existingGraphElementId(): string {
+        if (this instanceof ModifiedSpacyToken && this.sourcePatternVertexId != undefined) return this.sourcePatternVertexId?.toString()
+        if (this instanceof ModifiedSpacyDependency && this.sourcePatternEdgeId) return this.sourcePatternEdgeId
+        return "$$$"
+    }
 
 }
 export class ModifiedSpacyToken extends ModifiedSpacyElement {
@@ -41,7 +47,7 @@ export class ModifiedSpacyDependency extends ModifiedSpacyElement {
     trueStart: number
     trueEnd: number
     selected: boolean = false
-    sourcePatternEdgeId?: number
+    sourcePatternEdgeId?: string
 
     constructor(spacyArc: any, index: number) {
         super(index, "dependency")
@@ -86,4 +92,24 @@ export class ModifiedSpacySentence {
         return this.words.filter( token => token.selectedMorphologyInfoTypes.length > 0)
     }
 
+}
+
+export const findDependencyByPatternEdgeId = (sourceEdgeId: string, sentence: ModifiedSpacySentence): ModifiedSpacyDependency => {
+    const result = sentence.arcs.find( dependency => {
+        return dependency.sourcePatternEdgeId == sourceEdgeId
+    })
+    if (result != undefined) return result
+    const error = "source pattern edge 記錄有問題"
+    console.error(error)
+    throw error
+}
+
+export const findTokenByPatternVertexId = (sourceVertexId: number, sentence: ModifiedSpacySentence): ModifiedSpacyToken => {
+    const result = sentence.words.find( token => {
+        return token.sourcePatternVertexId == sourceVertexId
+    })
+    if (result != undefined) return result
+    const error = "source pattern vertex 記錄有問題"
+    console.error(error)
+    throw error
 }

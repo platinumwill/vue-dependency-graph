@@ -30,4 +30,5 @@ export const projectKeys = Object.freeze({
     traceToEdge: "traceToEdge"
     , traceToInV: "traceToInV"
     , connectorInEdge: "connectorInEdge"
+    , tracer: "tracer"
 })

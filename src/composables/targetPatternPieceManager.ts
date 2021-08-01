@@ -7,6 +7,7 @@ export class LinearTargetPatternPiece {
     source: sentenceManager.ModifiedSpacyElement
     appliedText?: string
     specifiedVuekey?: string
+    mappedGraphVertexId?: string
 
     static types = Object.freeze({
         token: {
@@ -156,17 +157,22 @@ export const processTargetPatternStoring = (segmentPieces: LinearTargetPatternPi
 }
 
 class LinearTargetPattern {
-    id: string
-    label: string
+    // id: string
+    // label: string
+    pieces: LinearTargetPatternPiece[] = []
 
-    constructor(id: string, label: string) {
-        this.id = id
-        this.label = label
+    get label() {
+        return this.pieces[0].mappedGraphVertexId
+    }
+
+    constructor() {
+        // this.id = id
+        // this.label = label
     }
 }
 
-export const reloadMatchingTargetPatternOptions = (sourcePatternBeginningId: number, targetPatternOptions: any) => {
-    targetPatternOptions.value.splice(0, targetPatternOptions.value.length)
+// TODO currentSpaceSentence 希望可以拿掉
+export const reloadMatchingTargetPatternOptions = (sourcePatternBeginningId: number, currentSpacySentence: sentenceManager.ModifiedSpacySentence) => {
 
     const gremlinCommand = new gremlinUtil.GremlinInvoke()
     .call("V", sourcePatternBeginningId)
@@ -182,6 +188,7 @@ export const reloadMatchingTargetPatternOptions = (sourcePatternBeginningId: num
                 , gremlinManager.projectKeys.traceToEdge
                 , gremlinManager.projectKeys.traceToInV
                 , gremlinManager.projectKeys.connectorInEdge
+                , gremlinManager.projectKeys.tracer
             ).nest(
                 "by"
                 , new gremlinUtil.GremlinInvoke(true)
@@ -210,16 +217,28 @@ export const reloadMatchingTargetPatternOptions = (sourcePatternBeginningId: num
                     ).call("elementMap")
                     .call("fold")
                     .command
+            ).nest(
+                "by"
+                , new gremlinUtil.GremlinInvoke(true)
+                    .call("outE", gremlinManager.edgeLabels.traceTo)
+                    .call("outV")
+                    .call("elementMap")
+                    .call("fold")
+                    .command
             ).command
         ).command
     console.log("reloading matching target pattern, gremlin: ", gremlinCommand)
     return new Promise( (resolve, reject) => {
+        const targetPatternOptions: LinearTargetPattern[] = []
         gremlinApi(gremlinCommand).then( (resultData) => {
             resultData['@value'].forEach( (targetPatternPath: any) => {
+                const targetPattern = new LinearTargetPattern()
                 console.log('path: ', targetPatternPath['@value'].objects['@value'])
                 const path: any[] = targetPatternPath['@value'].objects['@value'] // pathArray[0] 是 source pattern beginning
                 // 一個 path 就是一條 LinearTargetPattern
                 path.forEach(projected => { // 一個元素內含一個 target pattern piece 的相關資料，例如 source pattern 和之間的 edge
+                    let targetPatternPiece = undefined
+
                     const projectedMapArray = projected['@value']
                     console.log('projected: ', projectedMapArray)
                     const projectedTraceToEdge = projectedMapArray[1]['@value']
@@ -229,6 +248,8 @@ export const reloadMatchingTargetPatternOptions = (sourcePatternBeginningId: num
                     console.log('traceToEdge: ', foldedTraceToEdgeElementMap)
                     const foldedTraceToInVElementMapArray = projectedMapArray[3]['@value'][0]['@value']
                     console.log('traceToInV: ', foldedTraceToInVElementMapArray)
+                    const foldedTracerElementMapArray = projectedMapArray[7]['@value'][0]['@value']
+                    console.log('tracer itself: ', foldedTracerElementMapArray)
 
                     const foldedTraceToInVInDependencyElementMapArrayWrapper = projectedMapArray[5]['@value']
                     let foldedTraceToInVInDependencyElementMapArray: any[] = []
@@ -240,6 +261,8 @@ export const reloadMatchingTargetPatternOptions = (sourcePatternBeginningId: num
                     // 取得 source pattern vertex id
                     let sourcePatternVId = undefined
                     let isConnector = undefined
+                    let tracerVertexId = undefined
+                    let tracedVertexId = undefined
                     foldedTraceToInVElementMapArray.forEach( (element: any, index: number) => {
                         if (element['@value'] != undefined) {
                             if (element['@value'] == 'id') {
@@ -251,9 +274,24 @@ export const reloadMatchingTargetPatternOptions = (sourcePatternBeginningId: num
                             }
                         }
                     })
+                    foldedTracerElementMapArray.forEach( (element: any, index: number) => {
+                        if (element['@value'] != undefined) {
+                            if (element['@value'] == 'id') {
+                                tracerVertexId = foldedTracerElementMapArray[index + 1]['@value']
+                                console.log('tracer v id: ', tracerVertexId)
+                            }
+                        }
+                    })
+                    foldedTraceToInVElementMapArray.forEach( (element: any, index: number) => {
+                        if (element['@value'] != undefined) {
+                            if (element['@value'] == 'id') {
+                                tracedVertexId = foldedTraceToInVElementMapArray[index + 1]['@value']
+                            }
+                        }
+                    })
                     // 處理 source pattern vertex 是 connector 的狀況
                     if (isConnector) {
-                        let depEdgeId = undefined
+                        let depEdgeId: string = ''
                         let depEdgeLabel = undefined
                         foldedTraceToInVInDependencyElementMapArray.forEach( (element: any, index: number) => {
                             if (element['@value'] != undefined) {
@@ -267,15 +305,22 @@ export const reloadMatchingTargetPatternOptions = (sourcePatternBeginningId: num
                                 }
                             }
                         })
+                        const tracedDependency = sentenceManager.findDependencyByPatternEdgeId(depEdgeId, currentSpacySentence)
+                        targetPatternPiece = new LinearTargetPatternPiece(tracedDependency)
+                    } else {
+                        if (tracedVertexId != undefined) {
+                            const tracedToken = sentenceManager.findTokenByPatternVertexId(tracedVertexId, currentSpacySentence)
+                            targetPatternPiece = new LinearTargetPatternPiece(tracedToken)
+                        }
+                    }
+                    if (targetPatternPiece != undefined) {
+                        targetPatternPiece.mappedGraphVertexId = tracerVertexId
+                        targetPattern.pieces.push(targetPatternPiece)
                     }
                 })
-                
-                // const id = targetPatternBeginning['@value'].id['@value']
-                // reloadOneTargetPattern(id)
-                // const label = targetPatternBeginning['@value'].label + '-' + targetPatternBeginning['@value'].id['@value']
-                // targetPatternOptions.value.push(new LinearTargetPattern(id, label))
+                targetPatternOptions.push(targetPattern)
             })
-            resolve(resultData)
+            resolve(targetPatternOptions)
         }).catch( (error) => {
             reject(error)
         })
