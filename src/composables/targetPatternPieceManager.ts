@@ -260,17 +260,13 @@ export const reloadMatchingTargetPatternOptions = (sourcePatternBeginningId: num
 
                     // 取得 source pattern vertex id
                     let sourcePatternVId = undefined
-                    let isConnector = undefined
+                    let isPlaceholder = undefined
                     let tracerVertexId = undefined
                     let tracedVertexId = undefined
                     foldedTraceToInVElementMapArray.forEach( (element: any, index: number) => {
                         if (element['@value'] != undefined) {
                             if (element['@value'] == 'id') {
                                 sourcePatternVId = foldedTraceToInVElementMapArray[index + 1]['@value']
-                            }
-                        } else {
-                            if (element == gremlinManager.propertyNames.isConnector) {
-                                isConnector = foldedTraceToInVElementMapArray[index + 1]
                             }
                         }
                     })
@@ -279,6 +275,10 @@ export const reloadMatchingTargetPatternOptions = (sourcePatternBeginningId: num
                             if (element['@value'] == 'id') {
                                 tracerVertexId = foldedTracerElementMapArray[index + 1]['@value']
                                 console.log('tracer v id: ', tracerVertexId)
+                            }
+                        } else {
+                            if (element == gremlinManager.propertyNames.isPlaceholder) {
+                                isPlaceholder = foldedTracerElementMapArray[index + 1]
                             }
                         }
                     })
@@ -289,8 +289,8 @@ export const reloadMatchingTargetPatternOptions = (sourcePatternBeginningId: num
                             }
                         }
                     })
-                    // 處理 source pattern vertex 是 connector 的狀況
-                    if (isConnector) {
+                    // 處理 target pattern vertex 是 placeholder 的狀況
+                    if (isPlaceholder) {
                         let depEdgeId: string = ''
                         let depEdgeLabel = undefined
                         foldedTraceToInVInDependencyElementMapArray.forEach( (element: any, index: number) => {
