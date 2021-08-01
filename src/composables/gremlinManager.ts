@@ -1,4 +1,5 @@
 import * as sentenceManager from "@/composables/sentenceManager"
+import axios from "axios"
 
 export function vertexAlias(word: sentenceManager.ModifiedSpacyToken) {
     return 'sourceV-' + word.indexInSentence
@@ -44,15 +45,19 @@ export class GremlinInvoke {
         }
     }
 
-    call(method: string, ...values: any[]) {
+    call(method: string, ...values: string[]|number[]|GremlinInvoke[]) {
         if (this.commandBuffer !== '') {
             this.commandBuffer = this.commandBuffer.concat(".")
         }
         this.commandBuffer = this.commandBuffer.concat(method, "(")
         if (values !== undefined) {
-            values.forEach( (value, index) => {
+            values.forEach( (value: string|number|GremlinInvoke, index: number) => {
                 if (index !== 0) this.commandBuffer = this.commandBuffer.concat(", ")
-                this.commandBuffer = this.commandBuffer.concat(JSON.stringify(value))
+                if (value instanceof GremlinInvoke) {
+                    this.commandBuffer = this.commandBuffer.concat(value.command())
+                } else {
+                    this.commandBuffer = this.commandBuffer.concat(JSON.stringify(value))
+                }
             })
         }
         this.commandBuffer = this.commandBuffer.concat(")")
@@ -76,4 +81,22 @@ export class GremlinInvoke {
     command() {
         return this.commandBuffer
     }
+}
+
+export const submit = (commandOrObject: string | GremlinInvoke) => {
+    let command = ''
+    if (commandOrObject instanceof GremlinInvoke) command = commandOrObject.command()
+
+    let argument = {
+        gremlin: command
+    }
+    return new Promise((resolve, reject) => {
+        axios.post('http://stanford-local:8182/', JSON.stringify(argument)).then(function(response) {
+            const result = response.data.result
+            resolve(result.data)
+        }).catch(function(error) {
+            console.error(error)
+            reject(error)
+        })
+    })
 }

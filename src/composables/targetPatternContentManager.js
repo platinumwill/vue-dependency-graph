@@ -1,5 +1,6 @@
 import { ref, watch } from 'vue'
-import gremlinApi, * as gremlinUtils from "@/composables/api/gremlin-api"
+import gremlinApi from "@/composables/api/gremlin-api"
+import * as gremlinManager from "@/composables/gremlinManager"
 import * as targetPatternPieceManager from "@/composables/targetPatternPieceManager"
 
 export default function(
@@ -13,10 +14,10 @@ export default function(
 
         const targetPatternBeginnningVertexId = newValue.id
         const gremlinInvoke = 
-        new gremlinUtils.GremlinInvoke()        
+        new gremlinManager.GremlinInvoke()
         .call("V", targetPatternBeginnningVertexId)
-        .nest("repeat", new gremlinUtils.GremlinInvoke(true).call("out").command)
-        .nest("until", new gremlinUtils.GremlinInvoke(true).call("out").call("count").call("is", 0).command)
+        .nest("repeat", new gremlinManager.GremlinInvoke(true).call("out").command)
+        .nest("until", new gremlinManager.GremlinInvoke(true).call("out").call("count").call("is", 0).command)
         .call("limit", 20)
         .call("path")
         console.log(gremlinInvoke.command)
