@@ -126,7 +126,7 @@ export const processTargetPatternStoring = (segmentPieces: LinearTargetPatternPi
             if (piece.source.sourcePatternEdgeId != undefined) { // 如果 source pattern 是既有的的狀況
                 gremlinInvoke.nest(
                     "to"
-                    , new gremlinUtil.GremlinInvoke()
+                    , new gremlinManager.GremlinInvoke(false)
                     .call("E", piece.source.sourcePatternEdgeId)
                     .call("inV")
                     .command
@@ -142,7 +142,7 @@ export const processTargetPatternStoring = (segmentPieces: LinearTargetPatternPi
             if (piece.source.sourcePatternVertexId != undefined) {
                 gremlinInvoke.nest(
                     "to"
-                    , new gremlinUtil.GremlinInvoke(true)
+                    , new gremlinManager.GremlinInvoke(true)
                     .call("V", piece.source.sourcePatternVertexId)
                     .command
                 )
@@ -174,15 +174,15 @@ class LinearTargetPattern {
 // TODO currentSpaceSentence 希望可以拿掉
 export const reloadMatchingTargetPatternOptions = (sourcePatternBeginningId: number, currentSpacySentence: sentenceManager.ModifiedSpacySentence) => {
 
-    const gremlinCommand = new gremlinUtil.GremlinInvoke()
+    const gremlinCommand = new gremlinManager.GremlinInvoke(false)
     .call("V", sourcePatternBeginningId)
     .call("in", "applicable")
-    .nest("repeat", new gremlinUtil.GremlinInvoke(true).call("__.in", gremlinManager.edgeLabels.follows).command)
-    .nest("until", new gremlinUtil.GremlinInvoke(true).call("__.in").call("count").call("is", 0).command)
+    .nest("repeat", new gremlinManager.GremlinInvoke(true).call("__.in", gremlinManager.edgeLabels.follows).command())
+    .nest("until", new gremlinManager.GremlinInvoke(true).call("__.in").call("count").call("is", 0).command())
     .call("limit", 20)
     .call("path")
     .nest("by"
-        , new gremlinUtil.GremlinInvoke(true)
+        , new gremlinManager.GremlinInvoke(true)
             .call(
                 "project"
                 , gremlinManager.projectKeys.traceToEdge
@@ -191,42 +191,42 @@ export const reloadMatchingTargetPatternOptions = (sourcePatternBeginningId: num
                 , gremlinManager.projectKeys.tracer
             ).nest(
                 "by"
-                , new gremlinUtil.GremlinInvoke(true)
+                , new gremlinManager.GremlinInvoke(true)
                     .call("outE", gremlinManager.edgeLabels.traceTo)
                     .call("elementMap")
                     .call("fold")
-                    .command
+                    .command()
             ).nest(
                 "by"
-                , new gremlinUtil.GremlinInvoke(true)
+                , new gremlinManager.GremlinInvoke(true)
                     .call("out", gremlinManager.edgeLabels.traceTo)
                     .call("elementMap")
                     .call("fold")
-                    .command
+                    .command()
             ).nest(
                 "by"
-                , new gremlinUtil.GremlinInvoke(true)
+                , new gremlinManager.GremlinInvoke(true)
                     .call("out", gremlinManager.edgeLabels.traceTo)
                     .call("inE")
                     .nest("hasLabel"
-                        , new gremlinUtil.GremlinInvoke(true).call(
+                        , new gremlinManager.GremlinInvoke(true).call(
                             "without"
                             , gremlinManager.edgeLabels.traceTo
                             , gremlinManager.edgeLabels.applicable
-                        ).command
+                        ).command()
                     ).call("elementMap")
                     .call("fold")
-                    .command
+                    .command()
             ).nest(
                 "by"
-                , new gremlinUtil.GremlinInvoke(true)
+                , new gremlinManager.GremlinInvoke(true)
                     .call("outE", gremlinManager.edgeLabels.traceTo)
                     .call("outV")
                     .call("elementMap")
                     .call("fold")
-                    .command
-            ).command
-        ).command
+                    .command()
+            ).command()
+        ).command()
     console.log("reloading matching target pattern, gremlin: ", gremlinCommand)
     return new Promise( (resolve, reject) => {
         const targetPatternOptions: LinearTargetPattern[] = []
