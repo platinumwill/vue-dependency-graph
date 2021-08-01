@@ -39,11 +39,17 @@ export class GremlinInvoke {
         this.command = this.command.concat(")")
         return this
     }
-    nest(method, nested) {
+    nest(method, ...nested) {
         if (this.command !== '') {
             this.command = this.command.concat(".")
         }
-        this.command = this.command.concat(method, "(", nested)
+        this.command = this.command.concat(method, "(")
+        if (nested !== undefined) {
+            nested.forEach( (value, index) => {
+                if (index !== 0) this.command = this.command.concat(", ")
+                this.command = this.command.concat(value)
+            })
+        }
         this.command = this.command.concat(")")
         return this
     }

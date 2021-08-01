@@ -171,13 +171,64 @@ export const reloadMatchingTargetPatternOptions = (sourcePatternBeginningId: num
     const gremlinCommand = new gremlinUtil.GremlinInvoke()
     .call("V", sourcePatternBeginningId)
     .call("in", "applicable")
-    .command
+    .nest("repeat", new gremlinUtil.GremlinInvoke(true).call("__.in", gremlinManager.edgeLabels.follows).command)
+    .nest("until", new gremlinUtil.GremlinInvoke(true).call("__.in").call("count").call("is", 0).command)
+    .call("limit", 20)
+    .call("path")
+    .nest("by"
+        , new gremlinUtil.GremlinInvoke(true)
+            .call("project", gremlinManager.projectKeys.traceToEdge, gremlinManager.projectKeys.traceToInV)
+            .nest(
+                "by"
+                , new gremlinUtil.GremlinInvoke(true)
+                    .call("outE", gremlinManager.edgeLabels.traceTo)
+                    .call("elementMap")
+                    .call("fold")
+                    .command
+            )
+            .nest(
+                "by"
+                , new gremlinUtil.GremlinInvoke(true)
+                    .call("out", gremlinManager.edgeLabels.traceTo)
+                    .call("elementMap")
+                    .call("fold")
+                    .command
+            ).command
+        ).command
+    console.log("reloading matching target pattern, gremlin: ", gremlinCommand)
     return new Promise( (resolve, reject) => {
         gremlinApi(gremlinCommand).then( (resultData) => {
-            resultData['@value'].forEach( (targetPatternBeginning: any) => {
-                const id = targetPatternBeginning['@value'].id['@value']
-                const label = targetPatternBeginning['@value'].label + '-' + targetPatternBeginning['@value'].id['@value']
-                targetPatternOptions.value.push(new LinearTargetPattern(id, label))
+            resultData['@value'].forEach( (targetPatternPath: any) => {
+                console.log('path: ', targetPatternPath['@value'].objects['@value'])
+                const path: any[] = targetPatternPath['@value'].objects['@value'] // pathArray[0] 是 source pattern beginning
+                // 一個 path 就是一條 LinearTargetPattern
+                path.forEach(projected => {
+                    const projectedMapArray = projected['@value']
+                    console.log('projected: ', projectedMapArray)
+                    const projectedTraceToEdge = projectedMapArray[1]['@value']
+                    if (projectedTraceToEdge.length <= 0) return
+                    console.log('projected traceToEdge elementMap: ', projectedTraceToEdge)
+                    const foldedTraceToEdgeElementMap = projectedTraceToEdge[0]['@value']
+                    console.log('traceToEdge: ', foldedTraceToEdgeElementMap)
+                    const foldedTraceToInVElementMapArray = projectedMapArray[3]['@value'][0]['@value']
+                    console.log('traceToInV: ', foldedTraceToInVElementMapArray)
+                    // 取得 source pattern vertex id
+                    let sourcePatternVId = undefined
+                    foldedTraceToInVElementMapArray.forEach( (element: any, index: number) => {
+                        if (element['@value'] != undefined) {
+                            if (element['@value'] == 'id') {
+                                sourcePatternVId = foldedTraceToInVElementMapArray[index + 1]['@value']
+                                console.log('source pattern vid: ', sourcePatternVId)
+                                return
+                            }
+                        }
+                    })
+                })
+                
+                // const id = targetPatternBeginning['@value'].id['@value']
+                // reloadOneTargetPattern(id)
+                // const label = targetPatternBeginning['@value'].label + '-' + targetPatternBeginning['@value'].id['@value']
+                // targetPatternOptions.value.push(new LinearTargetPattern(id, label))
             })
             resolve(resultData)
         }).catch( (error) => {

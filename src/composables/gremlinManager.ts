@@ -25,3 +25,8 @@ export const propertyNames = Object.freeze({
     isConnector: "isConnector"
     , isPlaceholder: "isPlaceholder"
 })
+
+export const projectKeys = Object.freeze({
+    traceToEdge: "traceToEdge"
+    , traceToInV: "traceToInV"
+})
