@@ -105,6 +105,7 @@ export const processTargetPatternStoring = (segmentPieces: LinearTargetPatternPi
         const currentPieceAlias = 'v' + pieceIdx
         gremlinInvoke = gremlinInvoke
         .call("addV", gremlinManager.vertexLabels.linearTargetPattern)
+        .call("property", gremlinManager.propertyNames.isPlaceholder, piece.isPlaceholder)
         .call("as", currentPieceAlias)
         if (lastAddedPieceAlias) {
             gremlinInvoke = gremlinInvoke
@@ -119,7 +120,7 @@ export const processTargetPatternStoring = (segmentPieces: LinearTargetPatternPi
         if (piece.source instanceof sentenceManager.ModifiedSpacyDependency) {
             // 和 dependency 的關連
             gremlinInvoke
-            .call("addE", gremlinManager.edgeLabels.traceToInDep)
+            .call("addE", gremlinManager.edgeLabels.traceTo)
             .call("from", currentPieceAlias)
             if (piece.source.sourcePatternEdgeId != undefined) { // 如果 source pattern 是既有的的狀況
                 gremlinInvoke.nest(

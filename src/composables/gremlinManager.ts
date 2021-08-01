@@ -15,7 +15,6 @@ export const vertexLabels = Object.freeze({
 export const edgeLabels = Object.freeze({
     applicable: 'applicable'
     , follows: 'follows'
-    , traceToInDep: 'traceToInDep'
     , traceTo: 'traceTo'
 })
 export const aliases = Object.freeze({
@@ -24,4 +23,5 @@ export const aliases = Object.freeze({
 
 export const propertyNames = Object.freeze({
     isConnector: "isConnector"
+    , isPlaceholder: "isPlaceholder"
 })
