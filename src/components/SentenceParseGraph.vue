@@ -22,6 +22,7 @@ import PatternDialog from "./PatternDialog.vue"
 import spacyFormatManager from "@/composables/spacyFormatManager"
 import graphSentenceManager from "@/composables/graphSentenceManager"
 import targetPatternContentManager from '@/composables/targetPatternContentManager'
+import targetPatternPieceManager from '@/composables/targetPatternPieceManager'
 
 export default {
     data() {
@@ -128,6 +129,8 @@ export default {
             targetPattern
         )
 
+        const { targetPatternWrapper } = targetPatternPieceManager()
+
         provide('spacyFormatSentences', spacyFormatSentences)
         provide('toggleMorphologySelection', toggleMorphologySelection)
         provide('toggleDependencySelection', toggleDependencySelection)
@@ -135,6 +138,7 @@ export default {
         provide('targetPattern', targetPattern)
         provide('patternHelper', patternHelper)
         provide('targetPatternContent', targetPatternContent)
+        provide('targetPatternWrapper', targetPatternWrapper)
 
         return {
             spacyFormatHelper

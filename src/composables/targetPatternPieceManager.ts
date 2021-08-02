@@ -1,9 +1,74 @@
+import { ref } from 'vue'
 import * as sentenceManager from "@/composables/sentenceManager"
 import * as gremlinManager from "@/composables/gremlinManager"
 
+export default function() {
+
+    const pieces: LinearTargetPatternPiece[] = []
+    const targetPatternPieces = ref(pieces)
+    const targetPatternPiecesForRevert: LinearTargetPatternPiece[] = []
+
+    function addFixedTextPiece() {
+        const fixedTextPiece = new LinearTargetPatternPiece()
+        fixedTextPiece.specifiedVuekey = 'fixed-' + targetPatternPieces.value.filter(item => item.type === LinearTargetPatternPiece.types.text).length
+        targetPatternPieces.value.push(fixedTextPiece)
+    }
+
+    function revertPieces() {
+        targetPatternPieces.value.splice(
+            0
+            , targetPatternPieces.value.length
+            , ...targetPatternPiecesForRevert
+        )
+        // applied text 可能也要清空
+    }
+
+    function queryOrGenerateDefaultPieces (currentSpacySentence: sentenceManager.ModifiedSpacySentence, targetPatternPieces: any[]) {
+        console.log(currentSpacySentence)
+        console.log('target pattern pieces: ', targetPatternPieces)
+
+        const segmentPieces: LinearTargetPatternPiece[] = []
+
+        const selectedWords = currentSpacySentence.words.filter((word) => {
+            return word.selectedMorphologyInfoTypes.length > 0
+        })
+        selectedWords.forEach((selectedWord) => {
+            const piece = new LinearTargetPatternPiece(selectedWord)
+            segmentPieces.push(piece)
+        })
+        currentSpacySentence.arcs.filter((arc) => {
+            return arc.selected
+        }).forEach((selectedArc) => {
+            const piece = new LinearTargetPatternPiece(selectedArc)
+            segmentPieces.push(piece)
+        })
+
+        segmentPieces.sort(function(a, b) {
+            return a.sortOrder - b.sortOrder
+        })
+        targetPatternPieces.splice(0, targetPatternPieces.length, ...segmentPieces)
+        targetPatternPiecesForRevert.splice(
+            0
+            ,targetPatternPiecesForRevert.length
+            , ...segmentPieces
+        )
+    }
+
+    return {
+        targetPatternWrapper: {
+            pieces: targetPatternPieces
+            , piecesForRevert: targetPatternPiecesForRevert
+            , queryOrGenerateDefaultPieces: queryOrGenerateDefaultPieces
+            , addFixedTextPiece: addFixedTextPiece
+            , revertPieces: revertPieces
+        }
+    }
+
+}
+
 export class LinearTargetPatternPiece {
 
-    source: sentenceManager.ModifiedSpacyElement
+    source?: sentenceManager.ModifiedSpacyElement
     appliedText?: string
     specifiedVuekey?: string
     mappedGraphVertexId?: string
@@ -25,7 +90,7 @@ export class LinearTargetPatternPiece {
         }
     })
 
-    constructor(source: sentenceManager.ModifiedSpacyElement) {
+    constructor(source?: sentenceManager.ModifiedSpacyElement) {
         this.source = source
     }
 
@@ -55,7 +120,7 @@ export class LinearTargetPatternPiece {
     }
 
     get vueKey () {
-        if (this.specifiedVuekey == undefined) return this.source.vueKey
+        if (this.specifiedVuekey == undefined && this.source != undefined) return this.source.vueKey
         return this.specifiedVuekey
     }
 
@@ -66,36 +131,6 @@ export class LinearTargetPatternPiece {
         throw error
     }
 
-}
-
-export function queryOrGenerateDefaultPieces (currentSpacySentence: sentenceManager.ModifiedSpacySentence, targetPatternPieces: any[], targetPatternPiecesForRevert: any[]) {
-    console.log(currentSpacySentence)
-
-    const segmentPieces: LinearTargetPatternPiece[] = []
-
-    const selectedWords = currentSpacySentence.words.filter((word) => {
-        return word.selectedMorphologyInfoTypes.length > 0
-    })
-    selectedWords.forEach((selectedWord) => {
-        const piece = new LinearTargetPatternPiece(selectedWord)
-        segmentPieces.push(piece)
-    })
-    currentSpacySentence.arcs.filter((arc) => {
-        return arc.selected
-    }).forEach((selectedArc) => {
-        const piece = new LinearTargetPatternPiece(selectedArc)
-        segmentPieces.push(piece)
-    })
-
-    segmentPieces.sort(function(a, b) {
-        return a.sortOrder - b.sortOrder
-    })
-    targetPatternPieces.splice(0, targetPatternPieces.length, ...segmentPieces)
-    targetPatternPiecesForRevert.splice(
-        0
-        ,targetPatternPiecesForRevert.length
-        , ...segmentPieces
-    )
 }
 
 export const processTargetPatternStoring = (segmentPieces: LinearTargetPatternPiece[], gremlinInvoke: any) => {

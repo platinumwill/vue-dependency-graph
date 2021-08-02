@@ -1,4 +1,4 @@
-import { ref, watch } from 'vue'
+import { watch } from 'vue'
 import * as gremlinManager from "@/composables/gremlinManager"
 import * as targetPatternPieceManager from "@/composables/targetPatternPieceManager"
 
@@ -29,26 +29,8 @@ export default function(
 
     })
 
-    const targetPatternPieces = ref([])
-    const targetPatternPiecesForRevert = []
-
-    const queryOrGenerateDefaultPieces = (currentSpacySentence) => {
-        targetPatternPieceManager.queryOrGenerateDefaultPieces(currentSpacySentence, targetPatternPieces.value, targetPatternPiecesForRevert)
-    }
-
-    const addFixedTextPiece = () => {
-        const fixedTextPiece = new targetPatternPieceManager.LinearTargetPatternPiece()
-        fixedTextPiece.specifiedVuekey = 'fixed-' + targetPatternPieces.value.filter(item => item.type === targetPatternPieceManager.LinearTargetPatternPiece.types.text).length
-        console.log(fixedTextPiece.specifiedVuekey)
-        targetPatternPieces.value.push(fixedTextPiece)
-    }
-
     return {
         targetPatternContent: {
-            targetPatternPieces: targetPatternPieces
-            , queryOrGenerateDefaultPieces: queryOrGenerateDefaultPieces
-            , targetPatternPiecesForRevert: targetPatternPiecesForRevert
-            , addFixedTextPiece: addFixedTextPiece
         }
     }
 
