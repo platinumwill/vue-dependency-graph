@@ -37,7 +37,7 @@ export const projectKeys = Object.freeze({
 export class GremlinInvoke {
 
     commandBuffer: string
-    constructor(nested: boolean) {
+    constructor(nested?: boolean) {
         if (! nested) {
             this.commandBuffer = "g"
         } else {

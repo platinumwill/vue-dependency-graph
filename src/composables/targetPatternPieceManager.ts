@@ -125,7 +125,7 @@ export const processTargetPatternStoring = (segmentPieces: LinearTargetPatternPi
             if (piece.source.sourcePatternEdgeId != undefined) { // 如果 source pattern 是既有的的狀況
                 gremlinInvoke.call(
                     "to"
-                    , new gremlinManager.GremlinInvoke(false)
+                    , new gremlinManager.GremlinInvoke()
                     .call("E", piece.source.sourcePatternEdgeId)
                     .call("inV")
                 )
@@ -171,7 +171,7 @@ class LinearTargetPattern {
 // TODO currentSpaceSentence 希望可以拿掉
 export const reloadMatchingTargetPatternOptions = (sourcePatternBeginningId: number, currentSpacySentence: sentenceManager.ModifiedSpacySentence) => {
 
-    const gremlinCommand = new gremlinManager.GremlinInvoke(false)
+    const gremlinCommand = new gremlinManager.GremlinInvoke()
     .call("V", sourcePatternBeginningId)
     .call("in", "applicable")
     .call("repeat", new gremlinManager.GremlinInvoke(true).call("__.in", gremlinManager.edgeLabels.follows))
