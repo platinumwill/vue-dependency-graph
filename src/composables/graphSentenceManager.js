@@ -160,8 +160,10 @@ export default function() {
         const sourcePatternBeginningId = newValue.id
         currentBeginWord.sourcePatternVertexId = sourcePatternBeginningId
         // 處理 target pattern
+        // TODO selectedTargetPattern 要移到 targetPatternPieceManager 裡
         selectedTargetPattern.value = {}
 
+        // TODO targetPatternOptions 要移到 targetPatternPieceManager 裡
         targetPatternOptions.value.splice(0, targetPatternOptions.value.length)
         // TODO currentSentence 希望不用傳
         targetPatternPieceManager.reloadMatchingTargetPatternOptions(sourcePatternBeginningId, currentSentence()).then( (targetPattern) => {

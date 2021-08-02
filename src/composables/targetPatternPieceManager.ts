@@ -29,6 +29,7 @@ export default function() {
 
         const segmentPieces: LinearTargetPatternPiece[] = []
 
+        // TODO 這裡用新的 API 來處理
         const selectedWords = currentSpacySentence.words.filter((word) => {
             return word.selectedMorphologyInfoTypes.length > 0
         })
@@ -52,6 +53,7 @@ export default function() {
             ,targetPatternPiecesForRevert.length
             , ...segmentPieces
         )
+        // TODO 還沒有實做查詢邏輯，查詢邏輯其實應該是和 options 比對
     }
 
     return {
