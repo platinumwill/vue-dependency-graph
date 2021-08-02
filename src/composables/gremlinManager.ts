@@ -64,6 +64,10 @@ export class GremlinInvoke {
         return this
     }
 
+    outE(...values: string[] | number[] | boolean[] | GremlinInvoke[]) {
+        return this.call("outE", ...values)
+    }
+
     command() {
         return this.commandBuffer
     }

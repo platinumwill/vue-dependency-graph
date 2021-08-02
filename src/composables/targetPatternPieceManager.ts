@@ -214,7 +214,7 @@ export const reloadMatchingTargetPatternOptions = (sourcePatternBeginningId: num
             ).call(
                 "by"
                 , new gremlinManager.GremlinInvoke(true)
-                    .call("outE", gremlinManager.edgeLabels.traceTo)
+                    .outE(gremlinManager.edgeLabels.traceTo)
                     .call("outV")
                     .call("elementMap")
                     .call("fold")
