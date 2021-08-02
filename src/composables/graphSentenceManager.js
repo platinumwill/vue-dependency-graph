@@ -1,6 +1,5 @@
 import { ref, watch } from 'vue'
 import { useStore } from "vuex"
-import gremlinApi, * as gremlinUtils from "@/composables/api/gremlin-api"
 import * as gremlinManager from "@/composables/gremlinManager"
 import * as targetPatternPieceManager from "@/composables/targetPatternPieceManager"
 
@@ -70,19 +69,18 @@ export default function() {
             return (arc.selected && arc.trueStart === findBeginWord().indexInSentence)
         })
         if (selectedArcsFromBegin.length === 0) return
-        let gremlinInvoke = new gremlinUtils.GremlinInvoke()
+        let gremlinInvoke = new gremlinManager.GremlinInvoke()
         .call("V")
         const beginWord = findBeginWord()
         beginWord.selectedMorphologyInfoTypes.forEach( (morphInfoType) => {
             gremlinInvoke = gremlinInvoke.call("has", morphInfoType.name, beginWord[morphInfoType.propertyInWord])
         })
-        gremlinInvoke = gremlinInvoke.nest(
+        gremlinInvoke.call(
             "where"
-            , new gremlinUtils.GremlinInvoke(true)
+            , new gremlinManager.GremlinInvoke(true)
             .call("outE")
             .call("count")
             .call("is", selectedArcsFromBegin.length)
-            .command
         )
         const arcSum = new Map();
         selectedArcsFromBegin.forEach( (selectedArc) => {
@@ -93,18 +91,18 @@ export default function() {
             }
         })
         arcSum.forEach( (value, key) => {
-            gremlinInvoke = gremlinInvoke.nest("and"
-                , new gremlinUtils.GremlinInvoke(true)
+            gremlinInvoke.call(
+                "and"
+                , new gremlinManager.GremlinInvoke(true)
                 .call("outE", key)
                 .call("count")
                 .call("is", value)
-                .command
             )
         })
         // TODO 到這裡只完成第一層的 edge 判斷，還有後續的 vertex 和 edge 要查
-        const gremlinCommand = gremlinInvoke.command
+        const gremlinCommand = gremlinInvoke.command()
         console.log(gremlinCommand)
-        gremlinApi(gremlinCommand).then( (resultData) => {
+        gremlinManager.submit(gremlinCommand).then( (resultData) => {
             if (resultData['@value'].length === 0) {
                 return
             }
@@ -126,16 +124,16 @@ export default function() {
         if (! beginWord) {
             return
         }
-        let gremlinCommand = new gremlinUtils.GremlinInvoke().call("V")
+        let gremlinCommand = new gremlinManager.GremlinInvoke().call("V")
         beginWord.selectedMorphologyInfoTypes.forEach( (morphInfoType) => {
             gremlinCommand = gremlinCommand.call("has", morphInfoType.name, beginWord[morphInfoType.propertyInWord])
         })
         gremlinCommand = gremlinCommand.call("inE", 'applicable')
         .call("inV")
         .call("dedup")
-        .command
+        .command()
         return new Promise((resolve, reject) => {
-            gremlinApi(gremlinCommand).then( (resultData) => {
+            gremlinManager.submit(gremlinCommand).then( (resultData) => {
                 resultData['@value'].forEach( (sourcePatternBeginning) => {
                     sourcePatternOptions.value.push({
                         id: sourcePatternBeginning['@value'].id['@value']
@@ -193,26 +191,20 @@ export default function() {
             return option.id == id
         })
     }
-    // const setSelectedTargetPatternDropdownValue = (id) => {
-    //     selectedTargetPattern.value = targetPatternOptions.value.find( (option) => {
-    //         return option.id == id
-    //     })
-    //     console.log(selectedTargetPattern.value)
-    // }
     const autoMarkMatchingPattern = (sourcePatternBeginningId) => {
         setSelectedSourcePatternDropdownValue(sourcePatternBeginningId)
         // 這裡必須要用 ==，因為 Primevue 的值是存 null，不是存 undefined
         if (selectedSourcePattern.value == undefined || selectedSourcePattern.value.id == undefined) {
             setSelectedSourcePatternDropdownValue(sourcePatternBeginningId)
         }
-        let gremlinCommand = new gremlinUtils.GremlinInvoke()
+        let gremlinCommand = new gremlinManager.GremlinInvoke()
         .call("V", sourcePatternBeginningId)
-        .nest("repeat", new gremlinUtils.GremlinInvoke(true).call("outE").call("inV").command)
-        .nest("until", new gremlinUtils.GremlinInvoke(true).call("outE").call("count").call("is", 0).command)
+        .call("repeat", new gremlinManager.GremlinInvoke(true).call("outE").call("inV"))
+        .call("until", new gremlinManager.GremlinInvoke(true).call("outE").call("count").call("is", 0))
         .call("limit", 20)
         .call("path")
-        .command
-        gremlinApi(gremlinCommand).then( (resultData) => {
+        .command()
+        gremlinManager.submit(gremlinCommand).then( (resultData) => {
             findBeginWord().sourcePatternVertexId = sourcePatternBeginningId
             resultData['@value'].forEach( (path) => {
                 const outVId = path['@value'].objects['@value'][0]['@value'].id['@value']
@@ -247,15 +239,15 @@ export default function() {
     }
 
     const saveSelectedPattern = (selectedWords, selectedArcs, segmentPieces) => {
-        let gremlinInvoke = new gremlinUtils.GremlinInvoke()
+        let gremlinInvoke = new gremlinManager.GremlinInvoke()
 
         // TODO 判斷現在的 pattern 是不是既有的，是的話就不要再存
         gremlinInvoke = processSelectedNewSourcePatternStoring(selectedWords, selectedArcs, gremlinInvoke)
         gremlinInvoke = targetPatternPieceManager.processTargetPatternStoring(segmentPieces, gremlinInvoke)
         gremlinInvoke.call("select", gremlinManager.aliases.sourcePatternBeginning)
 
-        console.log(gremlinInvoke.command)
-        gremlinApi(gremlinInvoke.command)
+        console.log(gremlinInvoke.command())
+        gremlinManager.submit(gremlinInvoke.command())
         .then((resultData) => {
             const sourcePatternBeginningVertexId = resultData['@value'][0]['@value'].id['@value']
             console.log('Source Pattern Begin Vertex Id: ', sourcePatternBeginningVertexId)

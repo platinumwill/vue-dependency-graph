@@ -1,5 +1,5 @@
 import { ref, watch } from 'vue'
-import gremlinApi, * as gremlinUtils from "@/composables/api/gremlin-api"
+import * as gremlinManager from "@/composables/gremlinManager"
 import * as targetPatternPieceManager from "@/composables/targetPatternPieceManager"
 
 export default function(
@@ -13,14 +13,14 @@ export default function(
 
         const targetPatternBeginnningVertexId = newValue.id
         const gremlinInvoke = 
-        new gremlinUtils.GremlinInvoke()        
+        new gremlinManager.GremlinInvoke()
         .call("V", targetPatternBeginnningVertexId)
-        .nest("repeat", new gremlinUtils.GremlinInvoke(true).call("out").command)
-        .nest("until", new gremlinUtils.GremlinInvoke(true).call("out").call("count").call("is", 0).command)
+        .call("repeat", new gremlinManager.GremlinInvoke(true).call("out"))
+        .call("until", new gremlinManager.GremlinInvoke(true).call("out").call("count").call("is", 0))
         .call("limit", 20)
         .call("path")
         console.log(gremlinInvoke.command)
-        gremlinApi(gremlinInvoke.command).then( (resultData) => {
+        gremlinManager.submit(gremlinInvoke.command).then( (resultData) => {
             console.log('query target pattern result: ', resultData)
             const piece = new targetPatternPieceManager.LinearTargetPatternPiece(targetPatternPieceManager.LinearTargetPatternPiece.types.token)
             console.log('piece type: ', piece.type)
