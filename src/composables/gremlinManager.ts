@@ -71,7 +71,11 @@ export class GremlinInvoke {
 
 export const submit = (commandOrObject: string | GremlinInvoke) => {
     let command = ''
-    if (commandOrObject instanceof GremlinInvoke) command = commandOrObject.command()
+    if (commandOrObject instanceof GremlinInvoke) {
+        command = commandOrObject.command()
+    } else {
+        command = commandOrObject
+    }
 
     let argument = {
         gremlin: command

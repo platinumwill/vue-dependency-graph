@@ -1,6 +1,5 @@
 import * as sentenceManager from "@/composables/sentenceManager"
 import * as gremlinManager from "@/composables/gremlinManager"
-import gremlinApi from "@/composables/api/gremlin-api"
 
 export class LinearTargetPatternPiece {
 

@@ -1,6 +1,5 @@
 import { ref, watch } from 'vue'
 import { useStore } from "vuex"
-import gremlinApi from "@/composables/api/gremlin-api"
 import * as gremlinManager from "@/composables/gremlinManager"
 import * as targetPatternPieceManager from "@/composables/targetPatternPieceManager"
 
@@ -103,7 +102,7 @@ export default function() {
         // TODO 到這裡只完成第一層的 edge 判斷，還有後續的 vertex 和 edge 要查
         const gremlinCommand = gremlinInvoke.command()
         console.log(gremlinCommand)
-        gremlinApi(gremlinCommand).then( (resultData) => {
+        gremlinManager.submit(gremlinCommand).then( (resultData) => {
             if (resultData['@value'].length === 0) {
                 return
             }
@@ -134,7 +133,7 @@ export default function() {
         .call("dedup")
         .command()
         return new Promise((resolve, reject) => {
-            gremlinApi(gremlinCommand).then( (resultData) => {
+            gremlinManager.submit(gremlinCommand).then( (resultData) => {
                 resultData['@value'].forEach( (sourcePatternBeginning) => {
                     sourcePatternOptions.value.push({
                         id: sourcePatternBeginning['@value'].id['@value']
@@ -205,7 +204,7 @@ export default function() {
         .call("limit", 20)
         .call("path")
         .command()
-        gremlinApi(gremlinCommand).then( (resultData) => {
+        gremlinManager.submit(gremlinCommand).then( (resultData) => {
             findBeginWord().sourcePatternVertexId = sourcePatternBeginningId
             resultData['@value'].forEach( (path) => {
                 const outVId = path['@value'].objects['@value'][0]['@value'].id['@value']
@@ -248,7 +247,7 @@ export default function() {
         gremlinInvoke.call("select", gremlinManager.aliases.sourcePatternBeginning)
 
         console.log(gremlinInvoke.command())
-        gremlinApi(gremlinInvoke.command())
+        gremlinManager.submit(gremlinInvoke.command())
         .then((resultData) => {
             const sourcePatternBeginningVertexId = resultData['@value'][0]['@value'].id['@value']
             console.log('Source Pattern Begin Vertex Id: ', sourcePatternBeginningVertexId)

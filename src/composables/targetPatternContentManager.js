@@ -1,5 +1,4 @@
 import { ref, watch } from 'vue'
-import gremlinApi from "@/composables/api/gremlin-api"
 import * as gremlinManager from "@/composables/gremlinManager"
 import * as targetPatternPieceManager from "@/composables/targetPatternPieceManager"
 
@@ -21,7 +20,7 @@ export default function(
         .call("limit", 20)
         .call("path")
         console.log(gremlinInvoke.command)
-        gremlinApi(gremlinInvoke.command).then( (resultData) => {
+        gremlinManager.submit(gremlinInvoke.command).then( (resultData) => {
             console.log('query target pattern result: ', resultData)
             const piece = new targetPatternPieceManager.LinearTargetPatternPiece(targetPatternPieceManager.LinearTargetPatternPiece.types.token)
             console.log('piece type: ', piece.type)
