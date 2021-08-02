@@ -16,8 +16,8 @@ export default function(
         const gremlinInvoke = 
         new gremlinManager.GremlinInvoke()
         .call("V", targetPatternBeginnningVertexId)
-        .nest("repeat", new gremlinManager.GremlinInvoke(true).call("out").command)
-        .nest("until", new gremlinManager.GremlinInvoke(true).call("out").call("count").call("is", 0).command)
+        .call("repeat", new gremlinManager.GremlinInvoke(true).call("out"))
+        .call("until", new gremlinManager.GremlinInvoke(true).call("out").call("count").call("is", 0))
         .call("limit", 20)
         .call("path")
         console.log(gremlinInvoke.command)

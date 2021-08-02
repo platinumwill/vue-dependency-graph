@@ -76,13 +76,12 @@ export default function() {
         beginWord.selectedMorphologyInfoTypes.forEach( (morphInfoType) => {
             gremlinInvoke = gremlinInvoke.call("has", morphInfoType.name, beginWord[morphInfoType.propertyInWord])
         })
-        gremlinInvoke = gremlinInvoke.nest(
+        gremlinInvoke.call(
             "where"
             , new gremlinManager.GremlinInvoke(true)
             .call("outE")
             .call("count")
             .call("is", selectedArcsFromBegin.length)
-            .command()
         )
         const arcSum = new Map();
         selectedArcsFromBegin.forEach( (selectedArc) => {
@@ -93,12 +92,12 @@ export default function() {
             }
         })
         arcSum.forEach( (value, key) => {
-            gremlinInvoke = gremlinInvoke.nest("and"
+            gremlinInvoke.call(
+                "and"
                 , new gremlinManager.GremlinInvoke(true)
                 .call("outE", key)
                 .call("count")
                 .call("is", value)
-                .command()
             )
         })
         // TODO 到這裡只完成第一層的 edge 判斷，還有後續的 vertex 和 edge 要查
@@ -207,8 +206,8 @@ export default function() {
         }
         let gremlinCommand = new gremlinManager.GremlinInvoke()
         .call("V", sourcePatternBeginningId)
-        .nest("repeat", new gremlinManager.GremlinInvoke(true).call("outE").call("inV").command())
-        .nest("until", new gremlinManager.GremlinInvoke(true).call("outE").call("count").call("is", 0).command())
+        .call("repeat", new gremlinManager.GremlinInvoke(true).call("outE").call("inV"))
+        .call("until", new gremlinManager.GremlinInvoke(true).call("outE").call("count").call("is", 0))
         .call("limit", 20)
         .call("path")
         .command()

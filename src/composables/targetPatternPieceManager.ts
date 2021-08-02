@@ -124,12 +124,11 @@ export const processTargetPatternStoring = (segmentPieces: LinearTargetPatternPi
             .call("addE", gremlinManager.edgeLabels.traceTo)
             .call("from", currentPieceAlias)
             if (piece.source.sourcePatternEdgeId != undefined) { // 如果 source pattern 是既有的的狀況
-                gremlinInvoke.nest(
+                gremlinInvoke.call(
                     "to"
                     , new gremlinManager.GremlinInvoke(false)
                     .call("E", piece.source.sourcePatternEdgeId)
                     .call("inV")
-                    .command
                 )
             } else {
                 gremlinInvoke.call("to", gremlinManager.connectorAlias(piece.source))
@@ -140,11 +139,10 @@ export const processTargetPatternStoring = (segmentPieces: LinearTargetPatternPi
             .call("addE", gremlinManager.edgeLabels.traceTo)
             .call("from", currentPieceAlias)
             if (piece.source.sourcePatternVertexId != undefined) {
-                gremlinInvoke.nest(
+                gremlinInvoke.call(
                     "to"
                     , new gremlinManager.GremlinInvoke(true)
                     .call("V", piece.source.sourcePatternVertexId)
-                    .command
                 )
             } else {
                 gremlinInvoke.call("to", gremlinManager.vertexAlias(piece.source))
@@ -177,8 +175,8 @@ export const reloadMatchingTargetPatternOptions = (sourcePatternBeginningId: num
     const gremlinCommand = new gremlinManager.GremlinInvoke(false)
     .call("V", sourcePatternBeginningId)
     .call("in", "applicable")
-    .nest("repeat", new gremlinManager.GremlinInvoke(true).call("__.in", gremlinManager.edgeLabels.follows).command())
-    .nest("until", new gremlinManager.GremlinInvoke(true).call("__.in").call("count").call("is", 0).command())
+    .call("repeat", new gremlinManager.GremlinInvoke(true).call("__.in", gremlinManager.edgeLabels.follows))
+    .call("until", new gremlinManager.GremlinInvoke(true).call("__.in").call("count").call("is", 0))
     .call("limit", 20)
     .call("path")
     .call("by"
@@ -206,12 +204,12 @@ export const reloadMatchingTargetPatternOptions = (sourcePatternBeginningId: num
                 , new gremlinManager.GremlinInvoke(true)
                     .call("out", gremlinManager.edgeLabels.traceTo)
                     .call("inE")
-                    .nest("hasLabel"
+                    .call("hasLabel"
                         , new gremlinManager.GremlinInvoke(true).call(
                             "without"
                             , gremlinManager.edgeLabels.traceTo
                             , gremlinManager.edgeLabels.applicable
-                        ).command()
+                        )
                     ).call("elementMap")
                     .call("fold")
             ).call(
