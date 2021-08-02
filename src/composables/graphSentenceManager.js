@@ -192,12 +192,6 @@ export default function() {
             return option.id == id
         })
     }
-    // const setSelectedTargetPatternDropdownValue = (id) => {
-    //     selectedTargetPattern.value = targetPatternOptions.value.find( (option) => {
-    //         return option.id == id
-    //     })
-    //     console.log(selectedTargetPattern.value)
-    // }
     const autoMarkMatchingPattern = (sourcePatternBeginningId) => {
         setSelectedSourcePatternDropdownValue(sourcePatternBeginningId)
         // 這裡必須要用 ==，因為 Primevue 的值是存 null，不是存 undefined
