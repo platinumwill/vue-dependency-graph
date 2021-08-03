@@ -28,10 +28,10 @@
             >
             <div>
                 <Button icon="pi pi-replay" label="Revert" @click="revertPieces" />
-                <Button icon="pi pi-plus" label="Add Fixed Text" @click="targetPatternContent.addFixedTextPiece" style="margin-left: .5em" />
+                <Button icon="pi pi-plus" label="Add Fixed Text" @click="targetPatternWrapper.addFixedTextPiece" style="margin-left: .5em" />
             </div>
             <vue-horizontal responsive>
-            <draggable v-model="targetPatternContent.targetPatternPieces.value" tag="transition-group" item-key="vueKey">
+            <draggable v-model="targetPatternWrapper.pieces.value" tag="transition-group" item-key="vueKey">
                 <template #item="{element}">
                     <SegmentPiece :item="element"
                         @appliedTextChanged="changeAppliedText"
@@ -43,7 +43,7 @@
             </draggable>
             </vue-horizontal>
             <span 
-                v-for="piece in targetPatternContent.targetPatternPieces.value"
+                v-for="piece in targetPatternWrapper.pieces.value"
                 :class="piece.isOptional ? 'optional' : ''"
                 :key="piece.vueKey">
                     {{ piece.displayText }}
@@ -101,21 +101,16 @@ export default {
             this.displayModal = !this.displayModal
         }
         , queryOrGenerateDefaultPieces: function() {
-            this.targetPatternContent.queryOrGenerateDefaultPieces(this.$parent.currentSpacyFormatSentence)
+            this.targetPatternWrapper.queryOrGenerateDefaultPieces(this.$parent.currentSpacyFormatSentence, this.targetPatternWrapper.pieces.value)
         }
         , revertPieces() {
-            this.targetPatternContent.targetPatternPiecesForRevert.forEach(piece => console.log(piece.appliedText))
-            this.targetPatternContent.targetPatternPieces.value.splice(
-                0
-                , this.targetPatternContent.targetPatternPieces.value.length
-                , ...this.targetPatternContent.targetPatternPiecesForRevert
-            )
+            this.targetPatternWrapper.revertPieces()
             // applied text 可能也要清空
         }
         , removePiece(piece) {
-            const index = this.targetPatternContent.targetPatternPieces.value.indexOf(piece)
+            const index = this.targetPatternWrapper.pieces.value.indexOf(piece)
             if (index < 0) return
-            this.targetPatternContent.targetPatternPieces.value.splice(index, 1)
+            this.targetPatternWrapper.pieces.value.splice(index, 1)
         }
         , changeAppliedText(pieceAndValue) {
             // 是 child component 的事件，但物件的值不能在 child component 修改，要在這裡才能修改
@@ -132,7 +127,7 @@ export default {
             const selectedArcs = this.$parent.currentSpacyFormatSentence.arcs.filter((arc) => {
                 return arc.selected
             })
-            this.patternHelper.saveSelectedPattern(selectedWords, selectedArcs, this.targetPatternContent.targetPatternPieces.value)
+            this.patternHelper.saveSelectedPattern(selectedWords, selectedArcs, this.targetPatternWrapper.pieces.value)
         }
     }
     , setup() {
@@ -140,13 +135,13 @@ export default {
         const sourcePattern = inject('sourcePattern')
         const targetPattern = inject('targetPattern')
         const patternHelper = inject('patternHelper')
-        const targetPatternContent = inject('targetPatternContent')
+        const targetPatternWrapper = inject('targetPatternWrapper')
 
         return {
             patternHelper
             , sourcePattern
             , targetPattern
-            , targetPatternContent
+            , targetPatternWrapper
         }
     }
 }

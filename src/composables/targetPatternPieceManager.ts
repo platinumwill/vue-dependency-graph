@@ -1,9 +1,75 @@
+import { ref, watch } from 'vue'
 import * as sentenceManager from "@/composables/sentenceManager"
 import * as gremlinManager from "@/composables/gremlinManager"
 
+// TODO 想要把 selectedTargetPattern 拿掉
+export default function(selectedTargetPattern: LinearTargetPattern) {
+
+    // TODO 這裡是不是其實不需要 watch？
+    watch(selectedTargetPattern, (newValue: any, oldValue) => {
+        console.log('watching target pattern change: ', newValue, oldValue)
+
+        if (newValue == undefined || newValue.id == undefined) return
+
+        const targetPatternBeginnningVertexId = newValue.id
+        const gremlinInvoke = 
+        new gremlinManager.GremlinInvoke()
+        .call("V", targetPatternBeginnningVertexId)
+        .call("repeat", new gremlinManager.GremlinInvoke(true).call("out"))
+        .call("until", new gremlinManager.GremlinInvoke(true).call("out").call("count").call("is", 0))
+        .call("limit", 20)
+        .call("path")
+        console.log(gremlinInvoke.command)
+        gremlinManager.submit(gremlinInvoke).then( (resultData) => {
+            console.log('query target pattern result: ', resultData)
+            // const piece = new LinearTargetPatternPiece(LinearTargetPatternPiece.types.token)
+            // console.log('piece type: ', piece.type)
+            // console.log('piece type compare: ', piece.type === LinearTargetPatternPiece.types.token)
+        })
+
+    })
+
+    const pieces: LinearTargetPatternPiece[] = []
+    const targetPatternPieces = ref(pieces)
+    const targetPatternPiecesForRevert: LinearTargetPatternPiece[] = []
+
+    function addFixedTextPiece() {
+        const fixedTextPiece = new LinearTargetPatternPiece()
+        fixedTextPiece.specifiedVuekey = 'fixed-' + targetPatternPieces.value.filter(item => item.type === LinearTargetPatternPiece.types.text).length
+        targetPatternPieces.value.push(fixedTextPiece)
+    }
+
+    function revertPieces() {
+        targetPatternPieces.value.splice(
+            0
+            , targetPatternPieces.value.length
+            , ...targetPatternPiecesForRevert
+        )
+        // applied text 可能也要清空
+    }
+
+    function queryOrGenerateDefaultPieces (
+        currentSpacySentence: sentenceManager.ModifiedSpacySentence
+        , targetPatternPieces: LinearTargetPatternPiece[]
+        ) {
+        _queryOrGenerateDefaultPieces(currentSpacySentence, targetPatternPieces, targetPatternPiecesForRevert)
+    }
+
+    return {
+        targetPatternWrapper: {
+            pieces: targetPatternPieces
+            , piecesForRevert: targetPatternPiecesForRevert
+            , queryOrGenerateDefaultPieces: queryOrGenerateDefaultPieces
+            , addFixedTextPiece: addFixedTextPiece
+            , revertPieces: revertPieces
+        }
+    }
+
+}
+
 export class LinearTargetPatternPiece {
 
-    source: sentenceManager.ModifiedSpacyElement
+    source?: sentenceManager.ModifiedSpacyElement
     appliedText?: string
     specifiedVuekey?: string
     mappedGraphVertexId?: string
@@ -25,7 +91,7 @@ export class LinearTargetPatternPiece {
         }
     })
 
-    constructor(source: sentenceManager.ModifiedSpacyElement) {
+    constructor(source?: sentenceManager.ModifiedSpacyElement) {
         this.source = source
     }
 
@@ -55,7 +121,7 @@ export class LinearTargetPatternPiece {
     }
 
     get vueKey () {
-        if (this.specifiedVuekey == undefined) return this.source.vueKey
+        if (this.specifiedVuekey == undefined && this.source != undefined) return this.source.vueKey
         return this.specifiedVuekey
     }
 
@@ -68,11 +134,18 @@ export class LinearTargetPatternPiece {
 
 }
 
-export function queryOrGenerateDefaultPieces (currentSpacySentence: sentenceManager.ModifiedSpacySentence, targetPatternPieces: any[], targetPatternPiecesForRevert: any[]) {
+function _queryOrGenerateDefaultPieces (
+    currentSpacySentence: sentenceManager.ModifiedSpacySentence
+    , targetPatternPieces: LinearTargetPatternPiece[] 
+    , targetPatternPiecesForRevert: LinearTargetPatternPiece[]
+    ) {
+
     console.log(currentSpacySentence)
+    console.log('target pattern pieces: ', targetPatternPieces)
 
     const segmentPieces: LinearTargetPatternPiece[] = []
 
+    // TODO 這裡用新的 API 來處理
     const selectedWords = currentSpacySentence.words.filter((word) => {
         return word.selectedMorphologyInfoTypes.length > 0
     })
@@ -96,6 +169,7 @@ export function queryOrGenerateDefaultPieces (currentSpacySentence: sentenceMana
         ,targetPatternPiecesForRevert.length
         , ...segmentPieces
     )
+    // TODO 還沒有實做查詢邏輯，查詢邏輯其實應該是和 options 比對
 }
 
 export const processTargetPatternStoring = (segmentPieces: LinearTargetPatternPiece[], gremlinInvoke: any) => {
