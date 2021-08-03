@@ -23,37 +23,11 @@ export default function() {
         // applied text 可能也要清空
     }
 
-    function queryOrGenerateDefaultPieces (currentSpacySentence: sentenceManager.ModifiedSpacySentence, targetPatternPieces: any[]) {
-        console.log(currentSpacySentence)
-        console.log('target pattern pieces: ', targetPatternPieces)
-
-        const segmentPieces: LinearTargetPatternPiece[] = []
-
-        // TODO 這裡用新的 API 來處理
-        const selectedWords = currentSpacySentence.words.filter((word) => {
-            return word.selectedMorphologyInfoTypes.length > 0
-        })
-        selectedWords.forEach((selectedWord) => {
-            const piece = new LinearTargetPatternPiece(selectedWord)
-            segmentPieces.push(piece)
-        })
-        currentSpacySentence.arcs.filter((arc) => {
-            return arc.selected
-        }).forEach((selectedArc) => {
-            const piece = new LinearTargetPatternPiece(selectedArc)
-            segmentPieces.push(piece)
-        })
-
-        segmentPieces.sort(function(a, b) {
-            return a.sortOrder - b.sortOrder
-        })
-        targetPatternPieces.splice(0, targetPatternPieces.length, ...segmentPieces)
-        targetPatternPiecesForRevert.splice(
-            0
-            ,targetPatternPiecesForRevert.length
-            , ...segmentPieces
-        )
-        // TODO 還沒有實做查詢邏輯，查詢邏輯其實應該是和 options 比對
+    function queryOrGenerateDefaultPieces (
+        currentSpacySentence: sentenceManager.ModifiedSpacySentence
+        , targetPatternPieces: LinearTargetPatternPiece[]
+        ) {
+        _queryOrGenerateDefaultPieces(currentSpacySentence, targetPatternPieces, targetPatternPiecesForRevert)
     }
 
     return {
@@ -133,6 +107,44 @@ export class LinearTargetPatternPiece {
         throw error
     }
 
+}
+
+function _queryOrGenerateDefaultPieces (
+    currentSpacySentence: sentenceManager.ModifiedSpacySentence
+    , targetPatternPieces: LinearTargetPatternPiece[] 
+    , targetPatternPiecesForRevert: LinearTargetPatternPiece[]
+    ) {
+
+    console.log(currentSpacySentence)
+    console.log('target pattern pieces: ', targetPatternPieces)
+
+    const segmentPieces: LinearTargetPatternPiece[] = []
+
+    // TODO 這裡用新的 API 來處理
+    const selectedWords = currentSpacySentence.words.filter((word) => {
+        return word.selectedMorphologyInfoTypes.length > 0
+    })
+    selectedWords.forEach((selectedWord) => {
+        const piece = new LinearTargetPatternPiece(selectedWord)
+        segmentPieces.push(piece)
+    })
+    currentSpacySentence.arcs.filter((arc) => {
+        return arc.selected
+    }).forEach((selectedArc) => {
+        const piece = new LinearTargetPatternPiece(selectedArc)
+        segmentPieces.push(piece)
+    })
+
+    segmentPieces.sort(function(a, b) {
+        return a.sortOrder - b.sortOrder
+    })
+    targetPatternPieces.splice(0, targetPatternPieces.length, ...segmentPieces)
+    targetPatternPiecesForRevert.splice(
+        0
+        ,targetPatternPiecesForRevert.length
+        , ...segmentPieces
+    )
+    // TODO 還沒有實做查詢邏輯，查詢邏輯其實應該是和 options 比對
 }
 
 export const processTargetPatternStoring = (segmentPieces: LinearTargetPatternPiece[], gremlinInvoke: any) => {
