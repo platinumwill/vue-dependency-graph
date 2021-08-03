@@ -217,7 +217,7 @@ export default function(targetPattern) {
                     )
                 })
                 matchingArc.sourcePatternEdgeId = outEId
-                // 有了 sourcePatternEdgeId，視同被選取
+                // 有了 sourcePatternEdgeId，視同被選取。應該要考慮用 getter 邏輯來處理
                 matchingArc.selected = true
             })
         })
