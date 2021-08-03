@@ -15,7 +15,7 @@ const morphologyInfoType = Object.freeze({
 })
 
 
-export default function() {
+export default function(targetPattern) {
     
     const store = useStore()
     const spacyFormatSentences = ref([])
@@ -37,7 +37,7 @@ export default function() {
             const beginWord = findBeginWord()
             if (beginWord != undefined && beginWord.indexInSentence === tokenIndex) {
                 selectedSourcePattern.value = {}
-                selectedTargetPattern.value= {}
+                targetPattern.clearSelection()
                 sourcePatternOptions.value.splice(0, sourcePatternOptions.value.length)
                 targetPatternOptions.value.splice(0, targetPatternOptions.value.length)
                 word.isBeginning = false
@@ -161,7 +161,7 @@ export default function() {
         currentBeginWord.sourcePatternVertexId = sourcePatternBeginningId
         // 處理 target pattern
         // TODO selectedTargetPattern 要移到 targetPatternPieceManager 裡
-        selectedTargetPattern.value = {}
+        targetPattern.clearSelection()
 
         // TODO targetPatternOptions 要移到 targetPatternPieceManager 裡
         targetPatternOptions.value.splice(0, targetPatternOptions.value.length)
@@ -174,7 +174,6 @@ export default function() {
         autoMarkMatchingPattern(sourcePatternBeginningId)
     })
 
-    const selectedTargetPattern = ref({})
     const targetPatternOptions = ref([])
     const clearSelectionAndMatchingAndOptions = () => {
         const sentence = currentSentence()
@@ -325,9 +324,8 @@ export default function() {
             selected: selectedSourcePattern
             , options: sourcePatternOptions.value
         }
-        , targetPattern: {
-            selected: selectedTargetPattern
-            , options: targetPatternOptions.value
+        , oldtargetPattern: {
+            options: targetPatternOptions.value
         }
         , patternHelper: {
             saveSelectedPattern: saveSelectedPattern

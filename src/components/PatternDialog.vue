@@ -10,7 +10,7 @@
             </Dropdown>
             <br/>
             <Dropdown v-model="targetPattern.selected.value"
-                :options="targetPattern.options"
+                :options="oldtargetPattern.options"
                 optionLabel="label"
                 placeholder="Existing target pattern"
             >
@@ -133,15 +133,15 @@ export default {
     , setup() {
 
         const sourcePattern = inject('sourcePattern')
-        const targetPattern = inject('targetPattern')
+        const oldtargetPattern = inject('oldtargetPattern')
         const patternHelper = inject('patternHelper')
-        const targetPatternWrapper = inject('targetPatternWrapper')
+        const targetPattern = inject('targetPattern')
 
         return {
             patternHelper
             , sourcePattern
+            , oldtargetPattern
             , targetPattern
-            , targetPatternWrapper
         }
     }
 }
