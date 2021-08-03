@@ -34,7 +34,7 @@ export default function() {
         selectedTargetPattern.value = undefined
     }
     function clearTargetPatternOptions() {
-        targetPatternOptions.value = []
+        targetPatternOptions.value.splice(0, targetPatternOptions.value.length)
     }
 
     const targetPatternOptionsValue: LinearTargetPattern[] = []
