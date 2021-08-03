@@ -1,8 +1,33 @@
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import * as sentenceManager from "@/composables/sentenceManager"
 import * as gremlinManager from "@/composables/gremlinManager"
 
-export default function() {
+// TODO 想要把 selectedTargetPattern 拿掉
+export default function(selectedTargetPattern: LinearTargetPattern) {
+
+    // TODO 這裡是不是其實不需要 watch？
+    watch(selectedTargetPattern, (newValue: any, oldValue) => {
+        console.log('watching target pattern change: ', newValue, oldValue)
+
+        if (newValue == undefined || newValue.id == undefined) return
+
+        const targetPatternBeginnningVertexId = newValue.id
+        const gremlinInvoke = 
+        new gremlinManager.GremlinInvoke()
+        .call("V", targetPatternBeginnningVertexId)
+        .call("repeat", new gremlinManager.GremlinInvoke(true).call("out"))
+        .call("until", new gremlinManager.GremlinInvoke(true).call("out").call("count").call("is", 0))
+        .call("limit", 20)
+        .call("path")
+        console.log(gremlinInvoke.command)
+        gremlinManager.submit(gremlinInvoke).then( (resultData) => {
+            console.log('query target pattern result: ', resultData)
+            // const piece = new LinearTargetPatternPiece(LinearTargetPatternPiece.types.token)
+            // console.log('piece type: ', piece.type)
+            // console.log('piece type compare: ', piece.type === LinearTargetPatternPiece.types.token)
+        })
+
+    })
 
     const pieces: LinearTargetPatternPiece[] = []
     const targetPatternPieces = ref(pieces)

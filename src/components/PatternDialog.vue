@@ -135,14 +135,12 @@ export default {
         const sourcePattern = inject('sourcePattern')
         const targetPattern = inject('targetPattern')
         const patternHelper = inject('patternHelper')
-        const targetPatternContent = inject('targetPatternContent')
         const targetPatternWrapper = inject('targetPatternWrapper')
 
         return {
             patternHelper
             , sourcePattern
             , targetPattern
-            , targetPatternContent
             , targetPatternWrapper
         }
     }
