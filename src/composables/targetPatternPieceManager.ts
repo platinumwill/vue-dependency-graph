@@ -33,6 +33,12 @@ export default function() {
     function clearTargetPatternSelection() {
         selectedTargetPattern.value = undefined
     }
+    function clearTargetPatternOptions() {
+        targetPatternOptions.value = []
+    }
+
+    const targetPatternOptionsValue: LinearTargetPattern[] = []
+    const targetPatternOptions = ref(targetPatternOptionsValue)
 
     const pieces: LinearTargetPatternPiece[] = []
     const targetPatternPieces = ref(pieces)
@@ -60,6 +66,9 @@ export default function() {
         _queryOrGenerateDefaultPieces(currentSpacySentence, targetPatternPieces, targetPatternPiecesForRevert)
     }
 
+    function reloadTargetPatternOptions(sourcePatternBeginningId: number, currentSentence: sentenceManager.ModifiedSpacySentence) {
+        return reloadMatchingTargetPatternOptions(sourcePatternBeginningId, currentSentence, targetPatternOptions.value)
+    }
 
     return {
         targetPattern: {
@@ -70,6 +79,11 @@ export default function() {
             , revertPieces: revertPieces
             , clearSelection: clearTargetPatternSelection
             , selected: selectedTargetPattern
+            , selection: {
+                options: targetPatternOptions.value
+                , clearOptions: clearTargetPatternOptions
+                , reloadOptions: reloadTargetPatternOptions
+            }
         }
     }
 
@@ -251,7 +265,12 @@ class LinearTargetPattern {
 }
 
 // TODO currentSpaceSentence 希望可以拿掉
-export const reloadMatchingTargetPatternOptions = (sourcePatternBeginningId: number, currentSpacySentence: sentenceManager.ModifiedSpacySentence) => {
+export function reloadMatchingTargetPatternOptions (
+    sourcePatternBeginningId: number
+    , currentSpacySentence: sentenceManager.ModifiedSpacySentence
+    , targetPatternOptions: LinearTargetPattern[]) {
+
+    targetPatternOptions.splice(0, targetPatternOptions.length)
 
     const gremlinCommand = new gremlinManager.GremlinInvoke()
     .call("V", sourcePatternBeginningId)
@@ -304,7 +323,6 @@ export const reloadMatchingTargetPatternOptions = (sourcePatternBeginningId: num
         )
     console.log("reloading matching target pattern, gremlin: ", gremlinCommand)
     return new Promise( (resolve, reject) => {
-        const targetPatternOptions: LinearTargetPattern[] = []
         gremlinManager.submit(gremlinCommand).then( (resultData: any) => {
             resultData['@value'].forEach( (targetPatternPath: any) => {
                 const targetPattern = new LinearTargetPattern()

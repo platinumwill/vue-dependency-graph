@@ -120,7 +120,6 @@ export default {
             , toggleMorphologySelection
             , toggleDependencySelection
             , sourcePattern
-            , oldtargetPattern
             , patternHelper
         } = graphSentenceManager(targetPattern)
 
@@ -128,7 +127,6 @@ export default {
         provide('toggleMorphologySelection', toggleMorphologySelection)
         provide('toggleDependencySelection', toggleDependencySelection)
         provide('sourcePattern', sourcePattern)
-        provide('oldtargetPattern', oldtargetPattern)
         provide('patternHelper', patternHelper)
         provide('targetPattern', targetPattern)
 
