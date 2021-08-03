@@ -38,7 +38,7 @@ export default function(targetPattern) {
             if (beginWord != undefined && beginWord.indexInSentence === tokenIndex) {
                 selectedSourcePattern.value = {}
                 sourcePatternOptions.value.splice(0, sourcePatternOptions.value.length)
-                targetPattern.clearSelection()
+                targetPattern.selection.clearSelection()
                 targetPattern.selection.clearOptions()
                 word.isBeginning = false
             }
@@ -161,7 +161,7 @@ export default function(targetPattern) {
         currentBeginWord.sourcePatternVertexId = sourcePatternBeginningId
         autoMarkMatchingSourcePattern(sourcePatternBeginningId) // TODO 這裡可能要用 Promise，因為可以執行得比後面慢
         // 處理 target pattern
-        targetPattern.clearSelection()
+        targetPattern.selection.clearSelection()
         // TODO currentSentence 希望不用傳
         targetPattern.selection.reloadOptions(sourcePatternBeginningId, currentSentence()).then( (targetPattern) => {
             console.log('target pattern options reloaded: ', targetPattern)

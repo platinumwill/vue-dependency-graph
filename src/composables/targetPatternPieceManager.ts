@@ -77,10 +77,10 @@ export default function() {
             , queryOrGenerateDefaultPieces: queryOrGenerateDefaultPieces
             , addFixedTextPiece: addFixedTextPiece
             , revertPieces: revertPieces
-            , clearSelection: clearTargetPatternSelection
             , selection: {
-                options: targetPatternOptions.value
-                , selected: selectedTargetPattern
+                selected: selectedTargetPattern
+                , clearSelection: clearTargetPatternSelection
+                , options: targetPatternOptions.value
                 , clearOptions: clearTargetPatternOptions
                 , reloadOptions: reloadTargetPatternOptions
             }
