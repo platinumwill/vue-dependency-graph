@@ -78,9 +78,9 @@ export default function() {
             , addFixedTextPiece: addFixedTextPiece
             , revertPieces: revertPieces
             , clearSelection: clearTargetPatternSelection
-            , selected: selectedTargetPattern
             , selection: {
                 options: targetPatternOptions.value
+                , selected: selectedTargetPattern
                 , clearOptions: clearTargetPatternOptions
                 , reloadOptions: reloadTargetPatternOptions
             }

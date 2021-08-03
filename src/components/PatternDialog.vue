@@ -9,7 +9,7 @@
                 >
             </Dropdown>
             <br/>
-            <Dropdown v-model="targetPattern.selected.value"
+            <Dropdown v-model="targetPattern.selection.selected.value"
                 :options="targetPattern.selection.options"
                 optionLabel="label"
                 placeholder="Existing target pattern"
