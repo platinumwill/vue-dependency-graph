@@ -199,6 +199,12 @@ export default function() {
         if (selectedSourcePattern.value == undefined || selectedSourcePattern.value.id == undefined) {
             setSelectedSourcePatternDropdownValue(sourcePatternBeginningId)
         }
+        const sentence = currentSentence()
+        sentence.arcs.forEach( (dependency) => {
+            dependency.sourcePatternEdgeId = undefined
+            dependency.selected = undefined
+        })
+
         let gremlinCommand = new gremlinManager.GremlinInvoke()
         .call("V", sourcePatternBeginningId)
         .call("repeat", new gremlinManager.GremlinInvoke(true).call("outE").call("inV"))
@@ -212,7 +218,6 @@ export default function() {
                 const outVId = path['@value'].objects['@value'][0]['@value'].id['@value']
                 const outELabel = path['@value'].objects['@value'][1]['@value'].label
                 const outEId = path['@value'].objects['@value'][1]['@value'].id['@value'].relationId
-                const sentence = currentSentence()
                 const matchingArc = sentence.arcs.find( (arc) => {
                     return (
                         sentence.words[arc.trueStart].sourcePatternVertexId === outVId
