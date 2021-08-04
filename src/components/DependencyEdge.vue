@@ -45,7 +45,7 @@ export default {
     ]
     , methods: {
         edgeLabelClicked: function() {
-            this.toggleDependencySelection(this.arc.indexInSentence)
+            this.toggleDependencySelection(this.arc)
         }
     }
     , computed: {

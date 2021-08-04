@@ -52,9 +52,9 @@ export default function(targetPattern) {
         reloadMatchingSourcePatternOptions()
         findExistingMatchSourcePatternAndMark()
     }
-    const toggleDependencySelection = (dependencyIndex) => {
-        const dependency = currentSentence().arcs[dependencyIndex]
+    const toggleDependencySelection = (dependency) => {
         if (dependency.selected || dependency.sourcePatternEdgeId) {
+            dependency.sourcePatternEdgeId = undefined
             dependency.selected = undefined
             selectedSourcePattern.value = {}
         } else {
