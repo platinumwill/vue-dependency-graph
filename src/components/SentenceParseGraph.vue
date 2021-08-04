@@ -113,24 +113,22 @@ export default {
             spacyFormatHelper
         } = spacyFormatManager()
 
+        const { targetPattern } = targetPatternPieceManager()
+
         const {
             spacyFormatSentences
             , toggleMorphologySelection
             , toggleDependencySelection
             , sourcePattern
-            , targetPattern
             , patternHelper
-        } = graphSentenceManager()
-
-        const { targetPatternWrapper } = targetPatternPieceManager(targetPattern.selected)
+        } = graphSentenceManager(targetPattern)
 
         provide('spacyFormatSentences', spacyFormatSentences)
         provide('toggleMorphologySelection', toggleMorphologySelection)
         provide('toggleDependencySelection', toggleDependencySelection)
         provide('sourcePattern', sourcePattern)
-        provide('targetPattern', targetPattern)
         provide('patternHelper', patternHelper)
-        provide('targetPatternWrapper', targetPatternWrapper)
+        provide('targetPattern', targetPattern)
 
         return {
             spacyFormatHelper

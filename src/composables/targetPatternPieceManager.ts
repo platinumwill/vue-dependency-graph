@@ -3,7 +3,10 @@ import * as sentenceManager from "@/composables/sentenceManager"
 import * as gremlinManager from "@/composables/gremlinManager"
 
 // TODO 想要把 selectedTargetPattern 拿掉
-export default function(selectedTargetPattern: LinearTargetPattern) {
+export default function() {
+
+    const selectedTargetPatternValue: LinearTargetPattern | undefined = undefined
+    const selectedTargetPattern = ref(selectedTargetPatternValue)
 
     // TODO 這裡是不是其實不需要 watch？
     watch(selectedTargetPattern, (newValue: any, oldValue) => {
@@ -26,8 +29,16 @@ export default function(selectedTargetPattern: LinearTargetPattern) {
             // console.log('piece type: ', piece.type)
             // console.log('piece type compare: ', piece.type === LinearTargetPatternPiece.types.token)
         })
-
     })
+    function clearTargetPatternSelection() {
+        selectedTargetPattern.value = undefined
+    }
+    function clearTargetPatternOptions() {
+        targetPatternOptions.value.splice(0, targetPatternOptions.value.length)
+    }
+
+    const targetPatternOptionsValue: LinearTargetPattern[] = []
+    const targetPatternOptions = ref(targetPatternOptionsValue)
 
     const pieces: LinearTargetPatternPiece[] = []
     const targetPatternPieces = ref(pieces)
@@ -55,13 +66,24 @@ export default function(selectedTargetPattern: LinearTargetPattern) {
         _queryOrGenerateDefaultPieces(currentSpacySentence, targetPatternPieces, targetPatternPiecesForRevert)
     }
 
+    function reloadTargetPatternOptions(sourcePatternBeginningId: number, currentSentence: sentenceManager.ModifiedSpacySentence) {
+        return reloadMatchingTargetPatternOptions(sourcePatternBeginningId, currentSentence, targetPatternOptions.value)
+    }
+
     return {
-        targetPatternWrapper: {
+        targetPattern: {
             pieces: targetPatternPieces
             , piecesForRevert: targetPatternPiecesForRevert
             , queryOrGenerateDefaultPieces: queryOrGenerateDefaultPieces
             , addFixedTextPiece: addFixedTextPiece
             , revertPieces: revertPieces
+            , selection: {
+                selected: selectedTargetPattern
+                , clearSelection: clearTargetPatternSelection
+                , options: targetPatternOptions.value
+                , clearOptions: clearTargetPatternOptions
+                , reloadOptions: reloadTargetPatternOptions
+            }
         }
     }
 
@@ -243,7 +265,12 @@ class LinearTargetPattern {
 }
 
 // TODO currentSpaceSentence 希望可以拿掉
-export const reloadMatchingTargetPatternOptions = (sourcePatternBeginningId: number, currentSpacySentence: sentenceManager.ModifiedSpacySentence) => {
+export function reloadMatchingTargetPatternOptions (
+    sourcePatternBeginningId: number
+    , currentSpacySentence: sentenceManager.ModifiedSpacySentence
+    , targetPatternOptions: LinearTargetPattern[]) {
+
+    targetPatternOptions.splice(0, targetPatternOptions.length)
 
     const gremlinCommand = new gremlinManager.GremlinInvoke()
     .call("V", sourcePatternBeginningId)
@@ -296,7 +323,6 @@ export const reloadMatchingTargetPatternOptions = (sourcePatternBeginningId: num
         )
     console.log("reloading matching target pattern, gremlin: ", gremlinCommand)
     return new Promise( (resolve, reject) => {
-        const targetPatternOptions: LinearTargetPattern[] = []
         gremlinManager.submit(gremlinCommand).then( (resultData: any) => {
             resultData['@value'].forEach( (targetPatternPath: any) => {
                 const targetPattern = new LinearTargetPattern()

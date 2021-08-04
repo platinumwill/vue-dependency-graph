@@ -15,7 +15,7 @@ const morphologyInfoType = Object.freeze({
 })
 
 
-export default function() {
+export default function(targetPattern) {
     
     const store = useStore()
     const spacyFormatSentences = ref([])
@@ -37,9 +37,9 @@ export default function() {
             const beginWord = findBeginWord()
             if (beginWord != undefined && beginWord.indexInSentence === tokenIndex) {
                 selectedSourcePattern.value = {}
-                selectedTargetPattern.value= {}
                 sourcePatternOptions.value.splice(0, sourcePatternOptions.value.length)
-                targetPatternOptions.value.splice(0, targetPatternOptions.value.length)
+                targetPattern.selection.clearSelection()
+                targetPattern.selection.clearOptions()
                 word.isBeginning = false
             }
         } else { // toggle on
@@ -159,23 +159,15 @@ export default function() {
         
         const sourcePatternBeginningId = newValue.id
         currentBeginWord.sourcePatternVertexId = sourcePatternBeginningId
+        autoMarkMatchingSourcePattern(sourcePatternBeginningId) // TODO 這裡可能要用 Promise，因為可以執行得比後面慢
         // 處理 target pattern
-        // TODO selectedTargetPattern 要移到 targetPatternPieceManager 裡
-        selectedTargetPattern.value = {}
-
-        // TODO targetPatternOptions 要移到 targetPatternPieceManager 裡
-        targetPatternOptions.value.splice(0, targetPatternOptions.value.length)
+        targetPattern.selection.clearSelection()
         // TODO currentSentence 希望不用傳
-        targetPatternPieceManager.reloadMatchingTargetPatternOptions(sourcePatternBeginningId, currentSentence()).then( (targetPattern) => {
+        targetPattern.selection.reloadOptions(sourcePatternBeginningId, currentSentence()).then( (targetPattern) => {
             console.log('target pattern options reloaded: ', targetPattern)
-            targetPatternOptions.value.push(...targetPattern)
         })
-
-        autoMarkMatchingPattern(sourcePatternBeginningId)
     })
 
-    const selectedTargetPattern = ref({})
-    const targetPatternOptions = ref([])
     const clearSelectionAndMatchingAndOptions = () => {
         const sentence = currentSentence()
         sentence.arcs.forEach( arc => arc.sourcePatternEdgeId = undefined)
@@ -186,14 +178,14 @@ export default function() {
             word.sourcePatternVertexId = undefined
         })
         sourcePatternOptions.value.splice(0, sourcePatternOptions.value.length)
-        targetPatternOptions.value.splice(0, targetPatternOptions.value.length)
+        targetPattern.selection.clearOptions()
     }
     const setSelectedSourcePatternDropdownValue = (id) => {
         selectedSourcePattern.value = sourcePatternOptions.value.find( (option) => {
             return option.id == id
         })
     }
-    const autoMarkMatchingPattern = (sourcePatternBeginningId) => {
+    const autoMarkMatchingSourcePattern = (sourcePatternBeginningId) => {
         setSelectedSourcePatternDropdownValue(sourcePatternBeginningId)
         // 這裡必須要用 ==，因為 Primevue 的值是存 null，不是存 undefined
         if (selectedSourcePattern.value == undefined || selectedSourcePattern.value.id == undefined) {
@@ -225,6 +217,8 @@ export default function() {
                     )
                 })
                 matchingArc.sourcePatternEdgeId = outEId
+                // 有了 sourcePatternEdgeId，視同被選取。應該要考慮用 getter 邏輯來處理
+                matchingArc.selected = true
             })
         })
     }
@@ -324,10 +318,6 @@ export default function() {
         , sourcePattern: {
             selected: selectedSourcePattern
             , options: sourcePatternOptions.value
-        }
-        , targetPattern: {
-            selected: selectedTargetPattern
-            , options: targetPatternOptions.value
         }
         , patternHelper: {
             saveSelectedPattern: saveSelectedPattern

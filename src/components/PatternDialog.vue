@@ -9,8 +9,8 @@
                 >
             </Dropdown>
             <br/>
-            <Dropdown v-model="targetPattern.selected.value"
-                :options="targetPattern.options"
+            <Dropdown v-model="targetPattern.selection.selected.value"
+                :options="targetPattern.selection.options"
                 optionLabel="label"
                 placeholder="Existing target pattern"
             >
@@ -28,10 +28,10 @@
             >
             <div>
                 <Button icon="pi pi-replay" label="Revert" @click="revertPieces" />
-                <Button icon="pi pi-plus" label="Add Fixed Text" @click="targetPatternWrapper.addFixedTextPiece" style="margin-left: .5em" />
+                <Button icon="pi pi-plus" label="Add Fixed Text" @click="targetPattern.addFixedTextPiece" style="margin-left: .5em" />
             </div>
             <vue-horizontal responsive>
-            <draggable v-model="targetPatternWrapper.pieces.value" tag="transition-group" item-key="vueKey">
+            <draggable v-model="targetPattern.pieces.value" tag="transition-group" item-key="vueKey">
                 <template #item="{element}">
                     <SegmentPiece :item="element"
                         @appliedTextChanged="changeAppliedText"
@@ -43,7 +43,7 @@
             </draggable>
             </vue-horizontal>
             <span 
-                v-for="piece in targetPatternWrapper.pieces.value"
+                v-for="piece in targetPattern.pieces.value"
                 :class="piece.isOptional ? 'optional' : ''"
                 :key="piece.vueKey">
                     {{ piece.displayText }}
@@ -101,16 +101,16 @@ export default {
             this.displayModal = !this.displayModal
         }
         , queryOrGenerateDefaultPieces: function() {
-            this.targetPatternWrapper.queryOrGenerateDefaultPieces(this.$parent.currentSpacyFormatSentence, this.targetPatternWrapper.pieces.value)
+            this.targetPattern.queryOrGenerateDefaultPieces(this.$parent.currentSpacyFormatSentence, this.targetPattern.pieces.value)
         }
         , revertPieces() {
-            this.targetPatternWrapper.revertPieces()
+            this.targetPattern.revertPieces()
             // applied text 可能也要清空
         }
         , removePiece(piece) {
-            const index = this.targetPatternWrapper.pieces.value.indexOf(piece)
+            const index = this.targetPattern.pieces.value.indexOf(piece)
             if (index < 0) return
-            this.targetPatternWrapper.pieces.value.splice(index, 1)
+            this.targetPattern.pieces.value.splice(index, 1)
         }
         , changeAppliedText(pieceAndValue) {
             // 是 child component 的事件，但物件的值不能在 child component 修改，要在這裡才能修改
@@ -127,21 +127,19 @@ export default {
             const selectedArcs = this.$parent.currentSpacyFormatSentence.arcs.filter((arc) => {
                 return arc.selected
             })
-            this.patternHelper.saveSelectedPattern(selectedWords, selectedArcs, this.targetPatternWrapper.pieces.value)
+            this.patternHelper.saveSelectedPattern(selectedWords, selectedArcs, this.targetPattern.pieces.value)
         }
     }
     , setup() {
 
         const sourcePattern = inject('sourcePattern')
-        const targetPattern = inject('targetPattern')
         const patternHelper = inject('patternHelper')
-        const targetPatternWrapper = inject('targetPatternWrapper')
+        const targetPattern = inject('targetPattern')
 
         return {
             patternHelper
             , sourcePattern
             , targetPattern
-            , targetPatternWrapper
         }
     }
 }
