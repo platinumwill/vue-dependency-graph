@@ -1,6 +1,7 @@
 import { ref, watch } from 'vue'
 import { useStore } from "vuex"
 import * as gremlinManager from "@/composables/gremlinManager"
+import * as sourcePatternManager from "@/composables/sourcePatternManager"
 import * as targetPatternPieceManager from "@/composables/targetPatternPieceManager"
 
 const morphologyInfoType = Object.freeze({
@@ -36,7 +37,7 @@ export default function(targetPattern) {
             word.sourcePatternVertexId = undefined
             const beginWord = findBeginWord()
             if (beginWord != undefined && beginWord.indexInSentence === tokenIndex) {
-                selectedSourcePattern.value = {}
+                selectedSourcePattern.value = undefined
                 sourcePatternOptions.value.splice(0, sourcePatternOptions.value.length)
                 targetPattern.selection.clearSelection()
                 targetPattern.selection.clearOptions()
@@ -56,7 +57,7 @@ export default function(targetPattern) {
         if (dependency.selected || dependency.sourcePatternEdgeId) {
             dependency.sourcePatternEdgeId = undefined
             dependency.selected = undefined
-            selectedSourcePattern.value = {}
+            selectedSourcePattern.value = undefined
         } else {
             dependency.selected = !dependency.selected
         }
@@ -104,6 +105,8 @@ export default function(targetPattern) {
         console.log(gremlinCommand)
         gremlinManager.submit(gremlinCommand).then( (resultData) => {
             if (resultData['@value'].length === 0) {
+                sourcePatternManager.clearSelection(selectedSourcePattern)
+                sourcePatternManager.clearOptions(sourcePatternOptions)
                 return
             }
             if (resultData['@value'].length > 1) {
@@ -151,7 +154,10 @@ export default function(targetPattern) {
     watch(selectedSourcePattern, (newValue, oldValue) => {
         console.log('watching selected source pattern change: ', newValue, oldValue)
         if (newValue == undefined || newValue.id == undefined) {
-            clearSelectionAndMatchingAndOptions()
+            let clearSelection = true
+            // 如果點選 arc 或 word，找不到相對應的 pattern，這個時候不要清掉原本的選取
+            if (newValue == undefined) clearSelection = false
+            clearSelectionAndMatchingAndOptions(clearSelection)
             return
         }
         const currentBeginWord = findBeginWord()
@@ -168,13 +174,17 @@ export default function(targetPattern) {
         })
     })
 
-    const clearSelectionAndMatchingAndOptions = () => {
+    const clearSelectionAndMatchingAndOptions = (clearSelection) => {
         const sentence = currentSentence()
         sentence.arcs.forEach( arc => arc.sourcePatternEdgeId = undefined)
-        sentence.arcs.forEach( arc => arc.selected = false)
+        sentence.arcs.forEach( arc => {
+            if (clearSelection) arc.selected = false
+        })
         sentence.words.forEach( (word) => {
-            word.selectedMorphologyInfoTypes.splice(0, word.selectedMorphologyInfoTypes.length)
-            word.isBeginning = false
+            if (clearSelection) {
+                word.selectedMorphologyInfoTypes.splice(0, word.selectedMorphologyInfoTypes.length)
+                word.isBeginning = false
+            }
             word.sourcePatternVertexId = undefined
         })
         sourcePatternOptions.value.splice(0, sourcePatternOptions.value.length)
@@ -194,7 +204,6 @@ export default function(targetPattern) {
         const sentence = currentSentence()
         sentence.arcs.forEach( (dependency) => {
             dependency.sourcePatternEdgeId = undefined
-            dependency.selected = undefined
         })
 
         let gremlinCommand = new gremlinManager.GremlinInvoke()
