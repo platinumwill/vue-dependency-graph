@@ -134,7 +134,9 @@ export default function(targetPattern) {
         sourcePatternOptions.value.splice(0, sourcePatternOptions.value.length)
         const beginWord = findBeginWord()
         if (! beginWord) {
-            return
+            return new Promise( (resolve) => {
+                resolve(undefined)
+            })
         }
         let gremlinCommand = new gremlinManager.GremlinInvoke().call("V")
         beginWord.selectedMorphologyInfoTypes.forEach( (morphInfoType) => {
