@@ -20,7 +20,11 @@ export default function(targetPattern) {
     
     const store = useStore()
     const spacyFormatSentences = ref([])
+    let toggledFlag = false
+
     const toggleMorphologySelection = (morphInfoType, tokenIndex) => {
+        toggledFlag = true
+
         const sentence = currentSentence()
         const selectedArcs = sentence.arcs.filter( arc => arc.selected)
         if (selectedArcs.length > 0) { // 如果有選 dependency
@@ -53,7 +57,10 @@ export default function(targetPattern) {
         reloadMatchingSourcePatternOptions()
         findExistingMatchSourcePatternAndMark()
     }
+
     const toggleDependencySelection = (dependency) => {
+        toggledFlag = true
+
         if (dependency.selected || dependency.sourcePatternEdgeId) {
             dependency.sourcePatternEdgeId = undefined
             dependency.selected = undefined
@@ -153,13 +160,20 @@ export default function(targetPattern) {
 
     watch(selectedSourcePattern, (newValue, oldValue) => {
         console.log('watching selected source pattern change: ', newValue, oldValue)
+        const sentence = currentSentence()
+        if (! toggledFlag) {
+            sentence.clearSelection()
+        }
+        // TODO 這裡有點亂，待整理
+        sentence.arcs.forEach( arc => arc.sourcePatternEdgeId = undefined)
+        targetPattern.selection.clearOptions()
         if (newValue == undefined || newValue.id == undefined) {
-            let clearSelection = true
-            // 如果點選 arc 或 word，找不到相對應的 pattern，這個時候不要清掉原本的選取
-            if (newValue == undefined) clearSelection = false
-            clearSelectionAndMatchingAndOptions(clearSelection)
+            sentence.words.forEach( (word) => {
+                word.sourcePatternVertexId = undefined
+            })
             return
         }
+
         const currentBeginWord = findBeginWord()
         if (currentBeginWord == undefined) return
         
@@ -175,22 +189,6 @@ export default function(targetPattern) {
         })
     })
 
-    const clearSelectionAndMatchingAndOptions = (clearSelection) => {
-        const sentence = currentSentence()
-        sentence.arcs.forEach( arc => arc.sourcePatternEdgeId = undefined)
-        sentence.arcs.forEach( arc => {
-            if (clearSelection) arc.selected = false
-        })
-        sentence.words.forEach( (word) => {
-            if (clearSelection) {
-                word.selectedMorphologyInfoTypes.splice(0, word.selectedMorphologyInfoTypes.length)
-                word.isBeginning = false
-            }
-            word.sourcePatternVertexId = undefined
-        })
-        sourcePatternOptions.value.splice(0, sourcePatternOptions.value.length)
-        targetPattern.selection.clearOptions()
-    }
     const setSelectedSourcePatternDropdownValue = (id) => {
         selectedSourcePattern.value = sourcePatternOptions.value.find( (option) => {
             return option.id == id
@@ -217,6 +215,11 @@ export default function(targetPattern) {
         return new Promise( (resolve, reject) => {
             gremlinManager.submit(gremlinCommand).then( (resultData) => {
                 findBeginWord().sourcePatternVertexId = sourcePatternBeginningId
+
+                // TODO 這 2 個動作可能會造成以後的錯誤
+                findBeginWord().selectedMorphologyInfoTypes.splice(0, findBeginWord().selectedMorphologyInfoTypes.length)
+                findBeginWord().selectedMorphologyInfoTypes.push(morphologyInfoType.pos)
+
                 resultData['@value'].forEach( (path) => {
                     const outVId = path['@value'].objects['@value'][0]['@value'].id['@value']
                     const outELabel = path['@value'].objects['@value'][1]['@value'].label
@@ -231,6 +234,7 @@ export default function(targetPattern) {
                     // 有了 sourcePatternEdgeId，視同被選取。應該要考慮用 getter 邏輯來處理
                     matchingArc.selected = true
                 })
+                toggledFlag = false
             }).catch ( (error) => {
                 console.error(error)
                 reject(error)

@@ -93,6 +93,13 @@ export class ModifiedSpacySentence {
         return this.words.filter( token => token.selectedMorphologyInfoTypes.length > 0)
     }
 
+    clearSelection() {
+        this.selectedDependencies.forEach( dep => dep.selected = false)
+        this.selectedTokens.forEach( token => {
+            token.selectedMorphologyInfoTypes.splice(0, token.selectedMorphologyInfoTypes.length)
+        });
+    }
+
 }
 
 export const findDependencyByPatternEdgeId = (sourceEdgeId: string, sentence: ModifiedSpacySentence): ModifiedSpacyDependency => {
