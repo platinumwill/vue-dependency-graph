@@ -165,12 +165,13 @@ export default function(targetPattern) {
         
         const sourcePatternBeginningId = newValue.id
         currentBeginWord.sourcePatternVertexId = sourcePatternBeginningId
-        autoMarkMatchingSourcePattern(sourcePatternBeginningId) // TODO 這裡可能要用 Promise，因為可以執行得比後面慢
-        // 處理 target pattern
-        targetPattern.selection.clearSelection()
-        // TODO currentSentence 希望不用傳
-        targetPattern.selection.reloadOptions(sourcePatternBeginningId, currentSentence()).then( (targetPattern) => {
-            console.log('target pattern options reloaded: ', targetPattern)
+        autoMarkMatchingSourcePattern(sourcePatternBeginningId).then( () => {
+            // 處理 target pattern
+            targetPattern.selection.clearSelection()
+            // TODO currentSentence 希望不用傳
+            targetPattern.selection.reloadOptions(sourcePatternBeginningId, currentSentence()).then( (targetPattern) => {
+                console.log('target pattern options reloaded: ', targetPattern)
+            })
         })
     })
 
@@ -213,21 +214,26 @@ export default function(targetPattern) {
         .call("limit", 20)
         .call("path")
         .command()
-        gremlinManager.submit(gremlinCommand).then( (resultData) => {
-            findBeginWord().sourcePatternVertexId = sourcePatternBeginningId
-            resultData['@value'].forEach( (path) => {
-                const outVId = path['@value'].objects['@value'][0]['@value'].id['@value']
-                const outELabel = path['@value'].objects['@value'][1]['@value'].label
-                const outEId = path['@value'].objects['@value'][1]['@value'].id['@value'].relationId
-                const matchingArc = sentence.arcs.find( (arc) => {
-                    return (
-                        sentence.words[arc.trueStart].sourcePatternVertexId === outVId
-                        && arc.label === outELabel
-                    )
+        return new Promise( (resolve, reject) => {
+            gremlinManager.submit(gremlinCommand).then( (resultData) => {
+                findBeginWord().sourcePatternVertexId = sourcePatternBeginningId
+                resultData['@value'].forEach( (path) => {
+                    const outVId = path['@value'].objects['@value'][0]['@value'].id['@value']
+                    const outELabel = path['@value'].objects['@value'][1]['@value'].label
+                    const outEId = path['@value'].objects['@value'][1]['@value'].id['@value'].relationId
+                    const matchingArc = sentence.arcs.find( (arc) => {
+                        return (
+                            sentence.words[arc.trueStart].sourcePatternVertexId === outVId
+                            && arc.label === outELabel
+                        )
+                    })
+                    matchingArc.sourcePatternEdgeId = outEId
+                    // 有了 sourcePatternEdgeId，視同被選取。應該要考慮用 getter 邏輯來處理
+                    matchingArc.selected = true
                 })
-                matchingArc.sourcePatternEdgeId = outEId
-                // 有了 sourcePatternEdgeId，視同被選取。應該要考慮用 getter 邏輯來處理
-                matchingArc.selected = true
+            }).catch ( (error) => {
+                console.error(error)
+                reject(error)
             })
         })
     }
