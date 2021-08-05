@@ -162,9 +162,6 @@ function _queryOrGenerateDefaultPieces (
     , targetPatternPiecesForRevert: LinearTargetPatternPiece[]
     ) {
 
-    console.log(currentSpacySentence)
-    console.log('target pattern pieces: ', targetPatternPieces)
-
     const segmentPieces: LinearTargetPatternPiece[] = []
 
     // TODO 這裡用新的 API 來處理
@@ -321,35 +318,27 @@ export function reloadMatchingTargetPatternOptions (
                     .call("fold")
             )
         )
-    console.log("reloading matching target pattern, gremlin: ", gremlinCommand)
     return new Promise( (resolve, reject) => {
         gremlinManager.submit(gremlinCommand).then( (resultData: any) => {
             resultData['@value'].forEach( (targetPatternPath: any) => {
                 const targetPattern = new LinearTargetPattern()
-                console.log('path: ', targetPatternPath['@value'].objects['@value'])
                 const path: any[] = targetPatternPath['@value'].objects['@value'] // pathArray[0] 是 source pattern beginning
                 // 一個 path 就是一條 LinearTargetPattern
                 path.forEach(projected => { // 一個元素內含一個 target pattern piece 的相關資料，例如 source pattern 和之間的 edge
                     let targetPatternPiece = undefined
 
                     const projectedMapArray = projected['@value']
-                    console.log('projected: ', projectedMapArray)
                     const projectedTraceToEdge = projectedMapArray[1]['@value']
                     if (projectedTraceToEdge.length <= 0) return
-                    console.log('projected traceToEdge elementMap: ', projectedTraceToEdge)
                     const foldedTraceToEdgeElementMap = projectedTraceToEdge[0]['@value']
-                    console.log('traceToEdge: ', foldedTraceToEdgeElementMap)
                     const foldedTraceToInVElementMapArray = projectedMapArray[3]['@value'][0]['@value']
-                    console.log('traceToInV: ', foldedTraceToInVElementMapArray)
                     const foldedTracerElementMapArray = projectedMapArray[7]['@value'][0]['@value']
-                    console.log('tracer itself: ', foldedTracerElementMapArray)
 
                     const foldedTraceToInVInDependencyElementMapArrayWrapper = projectedMapArray[5]['@value']
                     let foldedTraceToInVInDependencyElementMapArray: any[] = []
                     if (foldedTraceToInVInDependencyElementMapArrayWrapper.length > 0) {
                         foldedTraceToInVInDependencyElementMapArray = foldedTraceToInVInDependencyElementMapArrayWrapper[0]['@value']
                     }
-                    console.log('traceToInV in dependency: ', foldedTraceToInVInDependencyElementMapArray)
 
                     // 取得 source pattern vertex id
                     let sourcePatternVId = undefined
@@ -367,7 +356,6 @@ export function reloadMatchingTargetPatternOptions (
                         if (element['@value'] != undefined) {
                             if (element['@value'] == 'id') {
                                 tracerVertexId = foldedTracerElementMapArray[index + 1]['@value']
-                                console.log('tracer v id: ', tracerVertexId)
                             }
                         } else {
                             if (element == gremlinManager.propertyNames.isPlaceholder) {
@@ -390,11 +378,9 @@ export function reloadMatchingTargetPatternOptions (
                             if (element['@value'] != undefined) {
                                 if (element['@value'] == 'id') {
                                     depEdgeId = foldedTraceToInVInDependencyElementMapArray[index + 1]['@value'].relationId
-                                    console.log('dep edge id: ', depEdgeId)
                                 }
                                 if (element['@value'] == 'label') {
                                     depEdgeLabel = foldedTraceToInVInDependencyElementMapArray[index + 1]
-                                    console.log('dep edge label: ', depEdgeLabel)
                                 }
                             }
                         })

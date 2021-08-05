@@ -27,6 +27,7 @@ export class ModifiedSpacyToken extends ModifiedSpacyElement {
     lemma: string
     selectedMorphologyInfoTypes: string[] = []
     sourcePatternVertexId?: number
+    isBeginning?: boolean
 
     constructor(spacyWord: any, index: number) {
         super(index, "token")
@@ -90,6 +91,13 @@ export class ModifiedSpacySentence {
     }
     get selectedTokens() {
         return this.words.filter( token => token.selectedMorphologyInfoTypes.length > 0)
+    }
+
+    clearSelection() {
+        this.selectedDependencies.forEach( dep => dep.selected = false)
+        this.selectedTokens.forEach( token => {
+            token.selectedMorphologyInfoTypes.splice(0, token.selectedMorphologyInfoTypes.length)
+        });
     }
 
 }

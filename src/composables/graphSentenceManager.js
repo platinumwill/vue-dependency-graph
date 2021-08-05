@@ -1,6 +1,7 @@
 import { ref, watch } from 'vue'
 import { useStore } from "vuex"
 import * as gremlinManager from "@/composables/gremlinManager"
+import * as sourcePatternManager from "@/composables/sourcePatternManager"
 import * as targetPatternPieceManager from "@/composables/targetPatternPieceManager"
 
 const morphologyInfoType = Object.freeze({
@@ -19,7 +20,11 @@ export default function(targetPattern) {
     
     const store = useStore()
     const spacyFormatSentences = ref([])
+    let toggledFlag = false
+
     const toggleMorphologySelection = (morphInfoType, tokenIndex) => {
+        toggledFlag = true
+
         const sentence = currentSentence()
         const selectedArcs = sentence.arcs.filter( arc => arc.selected)
         if (selectedArcs.length > 0) { // 如果有選 dependency
@@ -36,7 +41,7 @@ export default function(targetPattern) {
             word.sourcePatternVertexId = undefined
             const beginWord = findBeginWord()
             if (beginWord != undefined && beginWord.indexInSentence === tokenIndex) {
-                selectedSourcePattern.value = {}
+                selectedSourcePattern.value = undefined
                 sourcePatternOptions.value.splice(0, sourcePatternOptions.value.length)
                 targetPattern.selection.clearSelection()
                 targetPattern.selection.clearOptions()
@@ -49,19 +54,24 @@ export default function(targetPattern) {
             }
             // TODO PROGRESS POS 固定要選起來，選了其他的，要自動標記 POS 有選，這裡做反向控制
         }
-        reloadMatchingSourcePatternOptions()
-        findExistingMatchSourcePatternAndMark()
+        reloadMatchingSourcePatternOptions().then( () => {
+            findExistingMatchSourcePatternAndMark()
+        })
     }
-    const toggleDependencySelection = (dependencyIndex) => {
-        const dependency = currentSentence().arcs[dependencyIndex]
+
+    const toggleDependencySelection = (dependency) => {
+        toggledFlag = true
+
         if (dependency.selected || dependency.sourcePatternEdgeId) {
+            dependency.sourcePatternEdgeId = undefined
             dependency.selected = undefined
-            selectedSourcePattern.value = {}
+            selectedSourcePattern.value = undefined
         } else {
             dependency.selected = !dependency.selected
         }
-        reloadMatchingSourcePatternOptions()
-        findExistingMatchSourcePatternAndMark()
+        reloadMatchingSourcePatternOptions().then( () => {
+            findExistingMatchSourcePatternAndMark()
+        })
     }
     const findExistingMatchSourcePatternAndMark = () => {
         if (!findBeginWord()) return
@@ -104,6 +114,8 @@ export default function(targetPattern) {
         console.log(gremlinCommand)
         gremlinManager.submit(gremlinCommand).then( (resultData) => {
             if (resultData['@value'].length === 0) {
+                sourcePatternManager.clearSelection(selectedSourcePattern)
+                sourcePatternManager.clearOptions(sourcePatternOptions)
                 return
             }
             if (resultData['@value'].length > 1) {
@@ -150,36 +162,35 @@ export default function(targetPattern) {
 
     watch(selectedSourcePattern, (newValue, oldValue) => {
         console.log('watching selected source pattern change: ', newValue, oldValue)
+        const sentence = currentSentence()
+        if (! toggledFlag) {
+            sentence.clearSelection()
+        }
+        // TODO 這裡有點亂，待整理
+        sentence.arcs.forEach( arc => arc.sourcePatternEdgeId = undefined)
+        targetPattern.selection.clearOptions()
         if (newValue == undefined || newValue.id == undefined) {
-            clearSelectionAndMatchingAndOptions()
+            sentence.words.forEach( (word) => {
+                word.sourcePatternVertexId = undefined
+            })
             return
         }
+
         const currentBeginWord = findBeginWord()
         if (currentBeginWord == undefined) return
         
         const sourcePatternBeginningId = newValue.id
         currentBeginWord.sourcePatternVertexId = sourcePatternBeginningId
-        autoMarkMatchingSourcePattern(sourcePatternBeginningId) // TODO 這裡可能要用 Promise，因為可以執行得比後面慢
-        // 處理 target pattern
-        targetPattern.selection.clearSelection()
-        // TODO currentSentence 希望不用傳
-        targetPattern.selection.reloadOptions(sourcePatternBeginningId, currentSentence()).then( (targetPattern) => {
-            console.log('target pattern options reloaded: ', targetPattern)
+        autoMarkMatchingSourcePattern(sourcePatternBeginningId).then( () => {
+            // 處理 target pattern
+            targetPattern.selection.clearSelection()
+            // TODO currentSentence 希望不用傳
+            targetPattern.selection.reloadOptions(sourcePatternBeginningId, currentSentence()).then( (targetPattern) => {
+                console.log('target pattern options reloaded: ', targetPattern)
+            })
         })
     })
 
-    const clearSelectionAndMatchingAndOptions = () => {
-        const sentence = currentSentence()
-        sentence.arcs.forEach( arc => arc.sourcePatternEdgeId = undefined)
-        sentence.arcs.forEach( arc => arc.selected = false)
-        sentence.words.forEach( (word) => {
-            word.selectedMorphologyInfoTypes.splice(0, word.selectedMorphologyInfoTypes.length)
-            word.isBeginning = false
-            word.sourcePatternVertexId = undefined
-        })
-        sourcePatternOptions.value.splice(0, sourcePatternOptions.value.length)
-        targetPattern.selection.clearOptions()
-    }
     const setSelectedSourcePatternDropdownValue = (id) => {
         selectedSourcePattern.value = sourcePatternOptions.value.find( (option) => {
             return option.id == id
@@ -194,7 +205,6 @@ export default function(targetPattern) {
         const sentence = currentSentence()
         sentence.arcs.forEach( (dependency) => {
             dependency.sourcePatternEdgeId = undefined
-            dependency.selected = undefined
         })
 
         let gremlinCommand = new gremlinManager.GremlinInvoke()
@@ -204,21 +214,32 @@ export default function(targetPattern) {
         .call("limit", 20)
         .call("path")
         .command()
-        gremlinManager.submit(gremlinCommand).then( (resultData) => {
-            findBeginWord().sourcePatternVertexId = sourcePatternBeginningId
-            resultData['@value'].forEach( (path) => {
-                const outVId = path['@value'].objects['@value'][0]['@value'].id['@value']
-                const outELabel = path['@value'].objects['@value'][1]['@value'].label
-                const outEId = path['@value'].objects['@value'][1]['@value'].id['@value'].relationId
-                const matchingArc = sentence.arcs.find( (arc) => {
-                    return (
-                        sentence.words[arc.trueStart].sourcePatternVertexId === outVId
-                        && arc.label === outELabel
-                    )
+        return new Promise( (resolve, reject) => {
+            gremlinManager.submit(gremlinCommand).then( (resultData) => {
+                findBeginWord().sourcePatternVertexId = sourcePatternBeginningId
+
+                // TODO 這 2 個動作可能會造成以後的錯誤
+                findBeginWord().selectedMorphologyInfoTypes.splice(0, findBeginWord().selectedMorphologyInfoTypes.length)
+                findBeginWord().selectedMorphologyInfoTypes.push(morphologyInfoType.pos)
+
+                resultData['@value'].forEach( (path) => {
+                    const outVId = path['@value'].objects['@value'][0]['@value'].id['@value']
+                    const outELabel = path['@value'].objects['@value'][1]['@value'].label
+                    const outEId = path['@value'].objects['@value'][1]['@value'].id['@value'].relationId
+                    const matchingArc = sentence.arcs.find( (arc) => {
+                        return (
+                            sentence.words[arc.trueStart].sourcePatternVertexId === outVId
+                            && arc.label === outELabel
+                        )
+                    })
+                    matchingArc.sourcePatternEdgeId = outEId
+                    // 有了 sourcePatternEdgeId，視同被選取。應該要考慮用 getter 邏輯來處理
+                    matchingArc.selected = true
                 })
-                matchingArc.sourcePatternEdgeId = outEId
-                // 有了 sourcePatternEdgeId，視同被選取。應該要考慮用 getter 邏輯來處理
-                matchingArc.selected = true
+                toggledFlag = false
+            }).catch ( (error) => {
+                console.error(error)
+                reject(error)
             })
         })
     }
