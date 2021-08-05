@@ -54,8 +54,9 @@ export default function(targetPattern) {
             }
             // TODO PROGRESS POS 固定要選起來，選了其他的，要自動標記 POS 有選，這裡做反向控制
         }
-        reloadMatchingSourcePatternOptions()
-        findExistingMatchSourcePatternAndMark()
+        reloadMatchingSourcePatternOptions().then( () => {
+            findExistingMatchSourcePatternAndMark()
+        })
     }
 
     const toggleDependencySelection = (dependency) => {
@@ -68,8 +69,9 @@ export default function(targetPattern) {
         } else {
             dependency.selected = !dependency.selected
         }
-        reloadMatchingSourcePatternOptions()
-        findExistingMatchSourcePatternAndMark()
+        reloadMatchingSourcePatternOptions().then( () => {
+            findExistingMatchSourcePatternAndMark()
+        })
     }
     const findExistingMatchSourcePatternAndMark = () => {
         if (!findBeginWord()) return
