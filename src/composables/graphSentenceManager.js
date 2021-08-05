@@ -239,6 +239,7 @@ export default function(targetPattern) {
                     matchingArc.selected = true
                 })
                 toggledFlag = false
+                resolve(sourcePatternBeginningId)
             }).catch ( (error) => {
                 console.error(error)
                 reject(error)
