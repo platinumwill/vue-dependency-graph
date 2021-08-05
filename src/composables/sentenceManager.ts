@@ -27,6 +27,7 @@ export class ModifiedSpacyToken extends ModifiedSpacyElement {
     lemma: string
     selectedMorphologyInfoTypes: string[] = []
     sourcePatternVertexId?: number
+    isBeginning?: boolean
 
     constructor(spacyWord: any, index: number) {
         super(index, "token")

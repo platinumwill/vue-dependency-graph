@@ -53,7 +53,8 @@ export default {
             return this.token.sourcePatternVertexId !== undefined && this.selected
         }
         , isBeginning: function() {
-            return this.currentSpacyWord.beginningMorphologyInfoType === this.morphologyInfoType
+            // TODO 用常數判斷要改用 enum 判斷
+            return this.currentSpacyWord.isBeginning && this.morphologyInfoType.name == 'pos'
         }
         , currentSpacyWord: function() {
             return this.spacyFormatSentences[this.currentSentenceIndex].words[this.token.indexInSentence]
