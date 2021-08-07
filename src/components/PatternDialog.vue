@@ -9,23 +9,29 @@
                 >
             </Dropdown>
             <br/>
-            <Dropdown v-model="targetPattern.selection.selected.value"
-                :options="targetPattern.selection.options"
-                optionLabel="label"
-                placeholder="Existing target pattern"
-            >
-            </Dropdown>
         </div>
 
         <Button @click="openTranslationPatternWindow" :disabled="!isPatternSavable" >Add Pattern Segment</Button>
 
-        <Dialog header="Pattern Segment" 
+        <Dialog
             v-model:visible="displayModal" 
             :maximizable="true"
             :keepInViewport="false"
             @show="queryOrGenerateDefaultPieces"
             :style="{width: '100vw'}" :modal="true" :closeOnEscape="true" position="topleft"
             >
+
+            <template #header>
+                <h3>Target Pattern</h3>
+
+                <Dropdown v-model="targetPattern.selection.selected.value"
+                    :options="targetPattern.selection.options"
+                    optionLabel="label"
+                    placeholder="Existing target pattern"
+                >
+                </Dropdown>
+            </template>
+
             <div>
                 <Button icon="pi pi-replay" label="Revert" @click="revertPieces" />
                 <Button icon="pi pi-plus" label="Add Fixed Text" @click="targetPattern.addFixedTextPiece" style="margin-left: .5em" />
