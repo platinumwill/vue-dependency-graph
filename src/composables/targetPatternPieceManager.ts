@@ -273,9 +273,7 @@ export const processTargetPatternStoring = (segmentPieces: LinearTargetPatternPi
     return gremlinInvoke
 }
 
-class LinearTargetPattern {
-    // id: string
-    // label: string
+export class LinearTargetPattern {
     pieces: LinearTargetPatternPiece[] = []
 
     get label() {
@@ -283,9 +281,25 @@ class LinearTargetPattern {
     }
 
     constructor() {
-        // this.id = id
-        // this.label = label
     }
+
+    addPiece(piece: LinearTargetPatternPiece) {
+        this.pieces.push(piece)
+    }
+
+    piecesEqual(pieces: LinearTargetPatternPiece[]): boolean {
+        if (this.pieces.length !== pieces.length) return false
+
+        let result = true
+        this.pieces.forEach( (piece, index) => {
+            if (! piece.equalsForPattern(pieces[index])) {
+                result = false
+                return
+            }
+        })
+        return result
+    }
+
 }
 
 // TODO currentSpaceSentence 希望可以拿掉

@@ -27,6 +27,16 @@ describe('pattern comparison', () => {
     ]
     const piece3 = new targetPatternPieceManager.LinearTargetPatternPiece()
 
+    const pattern1 = new targetPatternPieceManager.LinearTargetPattern()
+    pattern1.addPiece(piece1)
+    pattern1.addPiece(piece2)
+    const pattern2 = new targetPatternPieceManager.LinearTargetPattern()
+    pattern2.addPiece(piece3)
+    pattern2.addPiece(piece2)
+    const pattern3 = new targetPatternPieceManager.LinearTargetPattern()
+    pattern3.addPiece(piece2)
+    pattern3.addPiece(piece1)
+
     it('piece compare equal', () => {
         expect(piece1.equalsForPattern(piece2)).toBe(true)
         expect(piece2.equalsForPattern(piece1)).toBe(true)
@@ -34,6 +44,14 @@ describe('pattern comparison', () => {
     it('piece compare not equal', () => {
         expect(piece1.equalsForPattern(piece3)).toBe(false)
         expect(piece3.equalsForPattern(piece1)).toBe(false)
+    })
+    it('pattern compare not equal', () => {
+        expect(pattern1.piecesEqual(pattern2.pieces)).toBe(false)
+        expect(pattern2.piecesEqual(pattern1.pieces)).toBe(false)
+    })
+    it('pattern compare equal', () => {
+        expect(pattern1.piecesEqual(pattern3.pieces)).toBe(true)
+        expect(pattern3.piecesEqual(pattern1.pieces)).toBe(true)
     })
 
 })
