@@ -64,7 +64,7 @@ export default function() {
         , targetPatternPieces: LinearTargetPatternPiece[]
         ) {
         const defaultTargetPattern = _generateDefaultPieces(currentSpacySentence, targetPatternPieces, targetPatternPiecesForRevert)
-        const matchTargetPattern = targetPatternOptions.value.find( tp => {return tp.piecesEqual(defaultTargetPattern.pieces) })
+        const matchTargetPattern = targetPatternOptions.value.find( tp => {return tp.piecesEqual(defaultTargetPattern) })
         console.log('match target pattern in options: ', matchTargetPattern)
     }
 
@@ -290,12 +290,12 @@ export class LinearTargetPattern {
         }
     }
 
-    piecesEqual(pieces: LinearTargetPatternPiece[]): boolean {
-        if (this.pieces.length !== pieces.length) return false
+    piecesEqual(anotherPattern: LinearTargetPattern): boolean {
+        if (this.pieces.length !== anotherPattern.pieces.length) return false
 
         let result = true
         this.pieces.forEach( (piece, index) => {
-            if (! piece.equalsForPattern(pieces[index])) {
+            if (! piece.equalsForPattern(anotherPattern.pieces[index])) {
                 result = false
                 return
             }

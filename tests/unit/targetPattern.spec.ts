@@ -46,12 +46,12 @@ describe('pattern comparison', () => {
         expect(piece3.equalsForPattern(piece1)).toBe(false)
     })
     it('pattern compare not equal', () => {
-        expect(pattern1.piecesEqual(pattern2.pieces)).toBe(false)
-        expect(pattern2.piecesEqual(pattern1.pieces)).toBe(false)
+        expect(pattern1.piecesEqual(pattern2)).toBe(false)
+        expect(pattern2.piecesEqual(pattern1)).toBe(false)
     })
     it('pattern compare equal', () => {
-        expect(pattern1.piecesEqual(pattern3.pieces)).toBe(true)
-        expect(pattern3.piecesEqual(pattern1.pieces)).toBe(true)
+        expect(pattern1.piecesEqual(pattern3)).toBe(true)
+        expect(pattern3.piecesEqual(pattern1)).toBe(true)
     })
 
 })
