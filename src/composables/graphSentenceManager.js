@@ -4,7 +4,7 @@ import * as gremlinManager from "@/composables/gremlinManager"
 import * as sourcePatternManager from "@/composables/sourcePatternManager"
 import * as targetPatternPieceManager from "@/composables/targetPatternPieceManager"
 
-const morphologyInfoTypeEnum = Object.freeze({
+export const morphologyInfoTypeEnum = Object.freeze({
     pos: {
         name: 'pos'
         , propertyInWord: 'tag'

@@ -154,6 +154,33 @@ export class LinearTargetPatternPiece {
         throw error
     }
 
+    equalsForPattern(anotherPiece: LinearTargetPatternPiece): boolean {
+        if (this.source == undefined || anotherPiece.source == undefined) {
+            return this.source == undefined && anotherPiece.source == undefined
+        }
+        if (this.source.constructor.name != anotherPiece.source.constructor.name) return false
+
+        let result = true
+        if (this.source instanceof sentenceManager.ModifiedSpacyToken && anotherPiece.source instanceof sentenceManager.ModifiedSpacyToken) {
+            if (! (anotherPiece.source instanceof sentenceManager.ModifiedSpacyToken)) return false
+            const selfMorphologyInfoTypes = this.source.selectedMorphologyInfoTypes
+            const anotherMorphInfoTypes = anotherPiece.source.selectedMorphologyInfoTypes
+            selfMorphologyInfoTypes.forEach( morphInfoType => {
+                if (! anotherMorphInfoTypes.includes(morphInfoType)) {
+                    result = false
+                    return
+                }
+            })
+            anotherPiece.source.selectedMorphologyInfoTypes.forEach( morphologyInfoType => {
+                if (! selfMorphologyInfoTypes.includes(morphologyInfoType)) {
+                    result = false
+                    return
+                }
+            })
+        }
+        return result
+    }
+
 }
 
 function _queryOrGenerateDefaultPieces (
