@@ -191,17 +191,11 @@ function _queryOrGenerateDefaultPieces (
 
     const segmentPieces: LinearTargetPatternPiece[] = []
 
-    // TODO 這裡用新的 API 來處理
-    const selectedWords = currentSpacySentence.words.filter((word) => {
-        return word.selectedMorphologyInfoTypes.length > 0
-    })
-    selectedWords.forEach((selectedWord) => {
+    currentSpacySentence.selectedTokens.forEach((selectedWord) => {
         const piece = new LinearTargetPatternPiece(selectedWord)
         segmentPieces.push(piece)
     })
-    currentSpacySentence.arcs.filter((arc) => {
-        return arc.selected
-    }).forEach((selectedArc) => {
+    currentSpacySentence.selectedDependencies.forEach((selectedArc) => {
         const piece = new LinearTargetPatternPiece(selectedArc)
         segmentPieces.push(piece)
     })
