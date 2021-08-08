@@ -4,6 +4,7 @@
 
 <script>
 import { mapGetters } from 'vuex'
+import graphSentenceManager from '@/composables/graphSentenceManager'
 
 export default {
     name: 'TokenInfo'
@@ -53,11 +54,18 @@ export default {
             return this.token.sourcePatternVertexId !== undefined && this.selected
         }
         , isBeginning: function() {
-            // TODO 用常數判斷要改用 enum 判斷
-            return this.currentSpacyWord.isBeginning && this.morphologyInfoType.name == 'pos'
+            return this.currentSpacyWord.isBeginning && this.morphologyInfoType == this.morphologyInfoTypeEnum.pos
         }
         , currentSpacyWord: function() {
             return this.spacyFormatSentences[this.currentSentenceIndex].words[this.token.indexInSentence]
+        }
+    }
+    , setup() {
+        const {
+            morphologyInfoTypeEnum
+        } = graphSentenceManager()
+        return {
+            morphologyInfoTypeEnum
         }
     }
 }

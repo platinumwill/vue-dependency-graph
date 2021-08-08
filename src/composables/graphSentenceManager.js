@@ -4,7 +4,7 @@ import * as gremlinManager from "@/composables/gremlinManager"
 import * as sourcePatternManager from "@/composables/sourcePatternManager"
 import * as targetPatternPieceManager from "@/composables/targetPatternPieceManager"
 
-const morphologyInfoType = Object.freeze({
+const morphologyInfoTypeEnum = Object.freeze({
     pos: {
         name: 'pos'
         , propertyInWord: 'tag'
@@ -222,7 +222,7 @@ export default function(targetPattern) {
 
                 // TODO 這 2 個動作可能會造成以後的錯誤
                 findBeginWord().selectedMorphologyInfoTypes.splice(0, findBeginWord().selectedMorphologyInfoTypes.length)
-                findBeginWord().selectedMorphologyInfoTypes.push(morphologyInfoType.pos)
+                findBeginWord().selectedMorphologyInfoTypes.push(morphologyInfoTypeEnum.pos)
 
                 resultData['@value'].forEach( (path) => {
                     const outVId = path['@value'].objects['@value'][0]['@value'].id['@value']
@@ -337,7 +337,7 @@ export default function(targetPattern) {
     return {
         spacyFormatSentences: spacyFormatSentences.value
         , toggleMorphologySelection
-        , morphologyInfoType
+        , morphologyInfoTypeEnum
         , toggleDependencySelection
         , sourcePattern: {
             selected: selectedSourcePattern

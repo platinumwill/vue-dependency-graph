@@ -1,13 +1,13 @@
 <template>
     <text class="displacy-token" fill="currentColor" text-anchor="middle" :y="y">
         <tspan class="displacy-word" fill="currentColor" :x="x">{{ word.text }}</tspan>
-        <TokenInfo :token="word" :morphologyInfoType="this.morphologyInfoType.lemma" :dy="'2em'">{{ word.lemma }}</TokenInfo>
-        <TokenInfo :token="word" :morphologyInfoType="this.morphologyInfoType.pos" :dy="'2em'">{{ word.tag }}</TokenInfo>
+        <TokenInfo :token="word" :morphologyInfoType="this.morphologyInfoTypeEnum.lemma" :dy="'2em'">{{ word.lemma }}</TokenInfo>
+        <TokenInfo :token="word" :morphologyInfoType="this.morphologyInfoTypeEnum.pos" :dy="'2em'">{{ word.tag }}</TokenInfo>
     </text>
 </template>
 
 <script>
-import TokenInfo from "./TokenInfo.vue";
+import TokenInfo from "./TokenInfo.vue"
 import graphSentenceManager from "@/composables/graphSentenceManager"
 
 export default {
@@ -49,10 +49,10 @@ export default {
     ]
     , setup() {
         const {
-            morphologyInfoType
+            morphologyInfoTypeEnum
         } = graphSentenceManager()
         return {
-            morphologyInfoType
+            morphologyInfoTypeEnum
         }
     }
 }
