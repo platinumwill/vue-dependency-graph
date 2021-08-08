@@ -117,6 +117,6 @@ export const findTokenByPatternVertexId = (sourceVertexId: number, sentence: Mod
     })
     if (result != undefined) return result
     const error = "source pattern vertex 記錄有問題"
-    console.error(error)
+    console.error(error, 'source vertex id: ', sourceVertexId, ' not found in tokens')
     throw error
 }
