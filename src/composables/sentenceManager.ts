@@ -31,7 +31,6 @@ export class ModifiedSpacyToken extends ModifiedSpacyElement {
 
     constructor(spacyWord: any, index: number) {
         super(index, "token")
-        this.indexInSentence
         this.text = spacyWord.text
         this.tag = spacyWord.tag
         this.lemma = spacyWord.lemma
