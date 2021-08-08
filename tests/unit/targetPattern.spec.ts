@@ -28,14 +28,14 @@ describe('pattern comparison', () => {
     const piece3 = new targetPatternPieceManager.LinearTargetPatternPiece()
 
     const pattern1 = new targetPatternPieceManager.LinearTargetPattern()
-    pattern1.addPiece(piece1)
-    pattern1.addPiece(piece2)
+    pattern1.addPieces(piece1)
+    pattern1.addPieces(piece2)
     const pattern2 = new targetPatternPieceManager.LinearTargetPattern()
-    pattern2.addPiece(piece3)
-    pattern2.addPiece(piece2)
+    pattern2.addPieces(piece3)
+    pattern2.addPieces(piece2)
     const pattern3 = new targetPatternPieceManager.LinearTargetPattern()
-    pattern3.addPiece(piece2)
-    pattern3.addPiece(piece1)
+    pattern3.addPieces(piece2)
+    pattern3.addPieces(piece1)
 
     it('piece compare equal', () => {
         expect(piece1.equalsForPattern(piece2)).toBe(true)

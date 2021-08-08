@@ -283,8 +283,12 @@ export class LinearTargetPattern {
     constructor() {
     }
 
-    addPiece(piece: LinearTargetPatternPiece) {
-        this.pieces.push(piece)
+    addPieces(pieces: LinearTargetPatternPiece | LinearTargetPatternPiece[]) {
+        if (Array.isArray(pieces)) {
+            this.pieces.push(...pieces)
+        } else {
+            this.pieces.push(pieces)
+        }
     }
 
     piecesEqual(pieces: LinearTargetPatternPiece[]): boolean {
@@ -435,7 +439,7 @@ export function reloadMatchingTargetPatternOptions (
                     }
                     if (targetPatternPiece != undefined) {
                         targetPatternPiece.mappedGraphVertexId = tracerVertexId
-                        targetPattern.pieces.push(targetPatternPiece)
+                        targetPattern.addPieces(targetPatternPiece)
                     }
                 })
                 targetPatternOptions.push(targetPattern)
