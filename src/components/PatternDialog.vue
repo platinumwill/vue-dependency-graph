@@ -61,7 +61,7 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
 // import PrimeVue from 'primevue/config';
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
