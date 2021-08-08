@@ -63,7 +63,9 @@ export default function() {
         currentSpacySentence: sentenceManager.ModifiedSpacySentence
         , targetPatternPieces: LinearTargetPatternPiece[]
         ) {
-        _queryOrGenerateDefaultPieces(currentSpacySentence, targetPatternPieces, targetPatternPiecesForRevert)
+        const defaultTargetPattern = _generateDefaultPieces(currentSpacySentence, targetPatternPieces, targetPatternPiecesForRevert)
+        const matchTargetPattern = targetPatternOptions.value.find( tp => {return tp.piecesEqual(defaultTargetPattern.pieces) })
+        console.log('match target pattern in options: ', matchTargetPattern)
     }
 
     function reloadTargetPatternOptions(sourcePatternBeginningId: number, currentSentence: sentenceManager.ModifiedSpacySentence) {
@@ -183,7 +185,7 @@ export class LinearTargetPatternPiece {
 
 }
 
-function _queryOrGenerateDefaultPieces (
+function _generateDefaultPieces (
     currentSpacySentence: sentenceManager.ModifiedSpacySentence
     , targetPatternPieces: LinearTargetPatternPiece[] 
     , targetPatternPiecesForRevert: LinearTargetPatternPiece[]
@@ -209,6 +211,9 @@ function _queryOrGenerateDefaultPieces (
         ,targetPatternPiecesForRevert.length
         , ...segmentPieces
     )
+    const defaultTargetPatternSample = new LinearTargetPattern()
+    defaultTargetPatternSample.addPieces(segmentPieces)
+    return defaultTargetPatternSample
     // TODO 還沒有實做查詢邏輯，查詢邏輯其實應該是和 options 比對
 }
 
