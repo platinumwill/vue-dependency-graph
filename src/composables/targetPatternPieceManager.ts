@@ -273,10 +273,14 @@ export const processTargetPatternStoring = (segmentPieces: LinearTargetPatternPi
 }
 
 export class LinearTargetPattern {
-    pieces: LinearTargetPatternPiece[] = []
+    $pieces: LinearTargetPatternPiece[] = []
 
     get label() {
-        return this.pieces[0].mappedGraphVertexId
+        return this.$pieces[0].mappedGraphVertexId
+    }
+
+    get pieces() {
+        return this.$pieces
     }
 
     constructor() {
@@ -284,18 +288,18 @@ export class LinearTargetPattern {
 
     addPieces(pieces: LinearTargetPatternPiece | LinearTargetPatternPiece[]) {
         if (Array.isArray(pieces)) {
-            this.pieces.push(...pieces)
+            this.$pieces.push(...pieces)
         } else {
-            this.pieces.push(pieces)
+            this.$pieces.push(pieces)
         }
     }
 
     piecesEqual(anotherPattern: LinearTargetPattern): boolean {
-        if (this.pieces.length !== anotherPattern.pieces.length) return false
+        if (this.$pieces.length !== anotherPattern.$pieces.length) return false
 
         let result = true
-        this.pieces.forEach( (piece, index) => {
-            if (! piece.equalsForPattern(anotherPattern.pieces[index])) {
+        this.$pieces.forEach( (piece: LinearTargetPatternPiece, index: number) => {
+            if (! piece.equalsForPattern(anotherPattern.$pieces[index])) {
                 result = false
                 return
             }
