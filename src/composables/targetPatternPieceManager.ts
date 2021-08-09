@@ -5,8 +5,7 @@ import * as gremlinManager from "@/composables/gremlinManager"
 // TODO 想要把 selectedTargetPattern 拿掉
 export default function() {
 
-    const selectedTargetPatternValue: LinearTargetPattern | undefined = undefined
-    const selectedTargetPattern = ref(selectedTargetPatternValue)
+    const selectedTargetPattern = ref<LinearTargetPattern | undefined>(undefined)
 
     // TODO 這裡是不是其實不需要 watch？
     watch(selectedTargetPattern, (newValue: any, oldValue) => {
@@ -65,7 +64,7 @@ export default function() {
         ) {
         const defaultTargetPattern = _generateDefaultPieces(currentSpacySentence, targetPatternPieces, targetPatternPiecesForRevert)
         const matchTargetPattern = targetPatternOptions.value.find( tp => {return tp.piecesEqual(defaultTargetPattern) })
-        console.log('match target pattern in options: ', matchTargetPattern)
+        selectedTargetPattern.value = matchTargetPattern
     }
 
     function reloadTargetPatternOptions(sourcePatternBeginningId: number, currentSentence: sentenceManager.ModifiedSpacySentence) {
@@ -214,7 +213,6 @@ function _generateDefaultPieces (
     const defaultTargetPatternSample = new LinearTargetPattern()
     defaultTargetPatternSample.addPieces(segmentPieces)
     return defaultTargetPatternSample
-    // TODO 還沒有實做查詢邏輯，查詢邏輯其實應該是和 options 比對
 }
 
 export const processTargetPatternStoring = (segmentPieces: LinearTargetPatternPiece[], gremlinInvoke: any) => {
