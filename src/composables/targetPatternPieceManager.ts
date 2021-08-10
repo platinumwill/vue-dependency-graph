@@ -41,7 +41,7 @@ export default function() {
 
     const pieces: LinearTargetPatternPiece[] = []
     const targetPatternPieces = ref(pieces)
-    const targetPatternPiecesForRevert: LinearTargetPatternPiece[] = []
+    const patternDialogTargetPatternPiecesForRevert: LinearTargetPatternPiece[] = []
 
     function addFixedTextPiece() {
         const fixedTextPiece = new LinearTargetPatternPiece()
@@ -53,18 +53,29 @@ export default function() {
         targetPatternPieces.value.splice(
             0
             , targetPatternPieces.value.length
-            , ...targetPatternPiecesForRevert
+            , ...patternDialogTargetPatternPiecesForRevert
         )
         // applied text 可能也要清空
     }
 
     function queryOrGenerateDefaultPieces (
         currentSpacySentence: sentenceManager.ModifiedSpacySentence
-        , targetPatternPieces: LinearTargetPatternPiece[]
+        , patternDialogTargetPatternPieces: LinearTargetPatternPiece[]
         ) {
-        const defaultTargetPattern = _generateDefaultPieces(currentSpacySentence, targetPatternPieces, targetPatternPiecesForRevert)
-        const matchTargetPattern = targetPatternOptions.value.find( tp => {return tp.piecesEqual(defaultTargetPattern) })
+        const defaultTargetPatternSample = _generateDefaultPieces(currentSpacySentence)
+        const matchTargetPattern = targetPatternOptions.value.find( tp => {return tp.piecesEqual(defaultTargetPatternSample) })
         selectedTargetPattern.value = matchTargetPattern
+        
+        // TODO 等到 dialog 的 pattern pieces 也放進這個 ts 管理後，這一段應該要移到 watch
+        if (selectedTargetPattern.value != undefined) {
+            const pieces = _duplicateTargetPattern(selectedTargetPattern.value)
+            patternDialogTargetPatternPieces.splice(0, patternDialogTargetPatternPieces.length, ...pieces)
+            patternDialogTargetPatternPiecesForRevert.splice(
+                0
+                ,patternDialogTargetPatternPiecesForRevert.length
+                , ...selectedTargetPattern.value.pieces
+            )
+        }
     }
 
     function reloadTargetPatternOptions(sourcePatternBeginningId: number, currentSentence: sentenceManager.ModifiedSpacySentence) {
@@ -74,7 +85,6 @@ export default function() {
     return {
         targetPattern: {
             pieces: targetPatternPieces
-            , piecesForRevert: targetPatternPiecesForRevert
             , queryOrGenerateDefaultPieces: queryOrGenerateDefaultPieces
             , addFixedTextPiece: addFixedTextPiece
             , revertPieces: revertPieces
@@ -186,8 +196,6 @@ export class LinearTargetPatternPiece {
 
 function _generateDefaultPieces (
     currentSpacySentence: sentenceManager.ModifiedSpacySentence
-    , targetPatternPieces: LinearTargetPatternPiece[] 
-    , targetPatternPiecesForRevert: LinearTargetPatternPiece[]
     ) {
 
     const segmentPieces: LinearTargetPatternPiece[] = []
@@ -204,15 +212,16 @@ function _generateDefaultPieces (
     segmentPieces.sort(function(a, b) {
         return a.sortOrder - b.sortOrder
     })
-    targetPatternPieces.splice(0, targetPatternPieces.length, ...segmentPieces)
-    targetPatternPiecesForRevert.splice(
-        0
-        ,targetPatternPiecesForRevert.length
-        , ...segmentPieces
-    )
     const defaultTargetPatternSample = new LinearTargetPattern()
     defaultTargetPatternSample.addPieces(segmentPieces)
     return defaultTargetPatternSample
+}
+function _duplicateTargetPattern(targetPattern: LinearTargetPattern) {
+    const pieces: LinearTargetPatternPiece[] = []
+    targetPattern.pieces.forEach( piece => {
+        pieces.push(new LinearTargetPatternPiece(piece.source))
+    })
+    return pieces
 }
 
 export const processTargetPatternStoring = (segmentPieces: LinearTargetPatternPiece[], gremlinInvoke: any) => {
