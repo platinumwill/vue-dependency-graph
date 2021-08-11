@@ -7,7 +7,6 @@ export default function() {
 
     const selectedTargetPattern = ref<LinearTargetPattern | undefined>(undefined)
 
-    // TODO 這裡是不是其實不需要 watch？
     watch(selectedTargetPattern, (newValue: any, oldValue) => {
         console.log('watching target pattern change: ', newValue, oldValue)
 
@@ -28,6 +27,7 @@ export default function() {
             // console.log('piece type: ', piece.type)
             // console.log('piece type compare: ', piece.type === LinearTargetPatternPiece.types.token)
         })
+        // renewDialogPieces(currentSentence())
     })
     function clearTargetPatternSelection() {
         selectedTargetPattern.value = undefined
@@ -61,15 +61,28 @@ export default function() {
     function queryOrGenerateDefaultPieces (
         currentSpacySentence: sentenceManager.ModifiedSpacySentence
         ) {
-        const defaultTargetPatternSample = _generateDefaultPieces(currentSpacySentence)
+        const defaultTargetPatternSample = _generateDefaultTargetPattern(currentSpacySentence)
         const matchTargetPattern = targetPatternOptions.value.find( tp => {return tp.piecesEqual(defaultTargetPatternSample) })
         selectedTargetPattern.value = matchTargetPattern
         
-        // TODO 等到 dialog 的 pattern pieces 也放進這個 ts 管理後，這一段應該要移到 watch
-        const dialogPieces = 
-        selectedTargetPattern.value != undefined 
-        ? _duplicateTargetPattern(selectedTargetPattern.value) 
-        : defaultTargetPatternSample.pieces
+        renewDialogPieces(currentSpacySentence, defaultTargetPatternSample)
+    }
+
+    function renewDialogPieces(
+        currentSpacySentence: sentenceManager.ModifiedSpacySentence
+        , defaultTargetPattern?: LinearTargetPattern
+        ) {
+        console.log('renewing dialog pieces')
+
+        let dialogPieces: LinearTargetPatternPiece[] = []
+
+        if (selectedTargetPattern.value != undefined) {
+            dialogPieces = _duplicateTargetPattern(selectedTargetPattern.value)
+        } else if (defaultTargetPattern != undefined) {
+            dialogPieces = defaultTargetPattern.pieces
+        } else {
+            dialogPieces = _generateDefaultPieces(currentSpacySentence)
+        }
 
         targetPatternPieces.value.splice(0, targetPatternPieces.value.length, ...dialogPieces)
         patternDialogTargetPatternPiecesForRevert.splice(
@@ -204,6 +217,13 @@ export class LinearTargetPatternPiece {
 
 }
 
+function _generateDefaultTargetPattern (currentSpacySentence: sentenceManager.ModifiedSpacySentence) {
+    const pieces = _generateDefaultPieces(currentSpacySentence)
+    const result = new LinearTargetPattern()
+    result.addPieces(pieces)
+    return result
+}
+
 function _generateDefaultPieces (
     currentSpacySentence: sentenceManager.ModifiedSpacySentence
     ) {
@@ -222,9 +242,8 @@ function _generateDefaultPieces (
     segmentPieces.sort(function(a, b) {
         return a.sortOrder - b.sortOrder
     })
-    const defaultTargetPatternSample = new LinearTargetPattern()
-    defaultTargetPatternSample.addPieces(segmentPieces)
-    return defaultTargetPatternSample
+
+    return segmentPieces
 }
 function _duplicateTargetPattern(targetPattern: LinearTargetPattern) {
     const pieces: LinearTargetPatternPiece[] = []
