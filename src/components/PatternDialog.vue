@@ -118,9 +118,7 @@ export default {
             // applied text 可能也要清空
         }
         , removePiece(piece) {
-            const index = this.targetPattern.pieces.value.indexOf(piece)
-            if (index < 0) return
-            this.targetPattern.pieces.value.splice(index, 1)
+            this.targetPattern.dialogPieces.removePiece(piece)
         }
         , changeAppliedText(pieceAndValue) {
             // 是 child component 的事件，但物件的值不能在 child component 修改，要在這裡才能修改

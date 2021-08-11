@@ -81,12 +81,21 @@ export default function() {
         return reloadMatchingTargetPatternOptions(sourcePatternBeginningId, currentSentence, targetPatternOptions.value)
     }
 
+    function removePiece(piece: LinearTargetPatternPiece) {
+        const index = targetPatternPieces.value.indexOf(piece)
+        if (index < 0) return
+        targetPatternPieces.value.splice(index, 1)
+    }
+
     return {
         targetPattern: {
             pieces: targetPatternPieces
             , queryOrGenerateDefaultPieces: queryOrGenerateDefaultPieces
             , addFixedTextPiece: addFixedTextPiece
             , revertPieces: revertPieces
+            , dialogPieces: {
+                removePiece: removePiece
+            }
             , selection: {
                 selected: selectedTargetPattern
                 , clearSelection: clearTargetPatternSelection
