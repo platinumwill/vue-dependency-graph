@@ -91,10 +91,10 @@ export default function() {
         targetPattern: {
             pieces: targetPatternPieces
             , queryOrGenerateDefaultPieces: queryOrGenerateDefaultPieces
-            , addFixedTextPiece: addFixedTextPiece
-            , revertPieces: revertPieces
             , dialogPieces: {
                 removePiece: removePiece
+                , addFixedTextPiece: addFixedTextPiece
+                , revertPieces: revertPieces
             }
             , selection: {
                 selected: selectedTargetPattern

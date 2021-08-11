@@ -35,8 +35,8 @@
             </template>
 
             <div>
-                <Button icon="pi pi-replay" label="Revert" @click="revertPieces" />
-                <Button icon="pi pi-plus" label="Add Fixed Text" @click="targetPattern.addFixedTextPiece" style="margin-left: .5em" />
+                <Button icon="pi pi-replay" label="Revert" @click="targetPattern.dialogPieces.revertPieces" />
+                <Button icon="pi pi-plus" label="Add Fixed Text" @click="targetPattern.dialogPieces.addFixedTextPiece" style="margin-left: .5em" />
             </div>
             <vue-horizontal responsive>
             <draggable v-model="targetPattern.pieces.value" tag="transition-group" item-key="vueKey">
@@ -112,10 +112,6 @@ export default {
         }
         , queryOrGenerateDefaultPieces: function() {
             this.targetPattern.queryOrGenerateDefaultPieces(this.$parent.currentSpacyFormatSentence)
-        }
-        , revertPieces() {
-            this.targetPattern.revertPieces()
-            // applied text 可能也要清空
         }
         , removePiece(piece) {
             this.targetPattern.dialogPieces.removePiece(piece)
