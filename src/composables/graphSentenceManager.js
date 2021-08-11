@@ -128,7 +128,7 @@ export default function(targetPattern) {
         })
     }
 
-    const selectedSourcePattern = ref({})
+    const selectedSourcePattern = ref(undefined)
     const sourcePatternOptions = ref([])
     const reloadMatchingSourcePatternOptions = () => {
         sourcePatternOptions.value.splice(0, sourcePatternOptions.value.length)

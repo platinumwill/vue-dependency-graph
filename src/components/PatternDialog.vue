@@ -22,7 +22,9 @@
             >
 
             <template #header>
-                <h3>Target Pattern</h3>
+                <h2>Target Pattern</h2>
+
+                <h3 v-if="isSourcePatternNew">New Source Pattern</h3>
 
                 <Dropdown v-model="targetPattern.selection.selected.value"
                     :options="targetPattern.selection.options"
@@ -71,7 +73,9 @@ import draggable from 'vuedraggable'
 import VueHorizontal from "vue-horizontal";
 import SegmentPiece from "./SegmentPiece.vue"
 import { mapGetters } from 'vuex'
-import { inject } from 'vue'
+import { computed, inject } from 'vue'
+
+import * as sourcePatternManager from '@/composables/sourcePatternManager'
 
 export default {
     components: {
@@ -138,14 +142,19 @@ export default {
     }
     , setup() {
 
-        const sourcePattern = inject('sourcePattern')
+        const sourcePattern: any = inject('sourcePattern')
         const patternHelper = inject('patternHelper')
         const targetPattern = inject('targetPattern')
+
+        const isSourcePatternNew = computed( () => {
+            return sourcePatternManager.isSourcePatternNew(sourcePattern.selected)
+        })
 
         return {
             patternHelper
             , sourcePattern
             , targetPattern
+            , isSourcePatternNew
         }
     }
 }
