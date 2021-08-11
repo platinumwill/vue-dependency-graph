@@ -114,9 +114,12 @@ export default {
             spacyFormatHelper
         } = spacyFormatManager()
         
-        const { spacyFormatSentences } = sentenceManager()
+        const {
+            spacyFormatSentences
+            , currentSentence
+        } = sentenceManager()
 
-        const { targetPattern } = targetPatternPieceManager()
+        const { targetPattern } = targetPatternPieceManager(currentSentence)
 
         const {
             toggleMorphologySelection

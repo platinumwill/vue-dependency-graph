@@ -1,13 +1,18 @@
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
+import { useStore } from "vuex"
 
 export default function () {
 
     const spacyFormatSentences = ref<ModifiedSpacySentence[]>([])
+    const store = useStore()
 
-    
+    const currentSentence = computed( () => {
+        return spacyFormatSentences.value[store.getters.currentSentenceIndex]
+    })
 
     return {
         spacyFormatSentences: spacyFormatSentences.value
+        , currentSentence
     }
 
 }

@@ -1,33 +1,16 @@
-import { ref, watch } from 'vue'
+import { ComputedRef, ref, watch } from 'vue'
 import * as sentenceManager from "@/composables/sentenceManager"
 import * as gremlinManager from "@/composables/gremlinManager"
 
 // TODO 想要把 selectedTargetPattern 拿掉
-export default function() {
+export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpacySentence>) {
 
     const selectedTargetPattern = ref<LinearTargetPattern | undefined>(undefined)
 
     watch(selectedTargetPattern, (newValue: any, oldValue) => {
         console.log('watching target pattern change: ', newValue, oldValue)
 
-        if (newValue == undefined || newValue.id == undefined) return
-
-        const targetPatternBeginnningVertexId = newValue.id
-        const gremlinInvoke = 
-        new gremlinManager.GremlinInvoke()
-        .call("V", targetPatternBeginnningVertexId)
-        .call("repeat", new gremlinManager.GremlinInvoke(true).call("out"))
-        .call("until", new gremlinManager.GremlinInvoke(true).call("out").call("count").call("is", 0))
-        .call("limit", 20)
-        .call("path")
-        console.log(gremlinInvoke.command)
-        gremlinManager.submit(gremlinInvoke).then( (resultData) => {
-            console.log('query target pattern result: ', resultData)
-            // const piece = new LinearTargetPatternPiece(LinearTargetPatternPiece.types.token)
-            // console.log('piece type: ', piece.type)
-            // console.log('piece type compare: ', piece.type === LinearTargetPatternPiece.types.token)
-        })
-        // renewDialogPieces(currentSentence())
+        renewDialogPieces(currentSentence.value)
     })
     function clearTargetPatternSelection() {
         selectedTargetPattern.value = undefined
@@ -312,7 +295,8 @@ export class LinearTargetPattern {
     $pieces: LinearTargetPatternPiece[] = []
 
     get label() {
-        return this.$pieces[0].mappedGraphVertexId
+        // 為了把數字轉換成文字所以這樣寫。不轉換成文字，Dropdown 會報錯
+        return '' + this.$pieces[0].mappedGraphVertexId
     }
 
     get pieces() {
