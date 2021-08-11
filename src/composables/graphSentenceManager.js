@@ -16,10 +16,9 @@ export const morphologyInfoTypeEnum = Object.freeze({
 })
 
 
-export default function(targetPattern) {
-    
+export default function(targetPattern, spacyFormatSentences) {
+
     const store = useStore()
-    const spacyFormatSentences = ref([])
     let toggledFlag = false
 
     const toggleMorphologySelection = (morphInfoType, tokenIndex) => {
@@ -248,7 +247,7 @@ export default function(targetPattern) {
     }
 
     const currentSentence = () => {
-        return spacyFormatSentences.value[store.getters.currentSentenceIndex]
+        return spacyFormatSentences[store.getters.currentSentenceIndex]
     }
     const findBeginWord = () => {
         const beginWords = currentSentence().words.filter( (word) => {
@@ -335,8 +334,7 @@ export default function(targetPattern) {
         return gremlinInvoke
     }
     return {
-        spacyFormatSentences: spacyFormatSentences.value
-        , toggleMorphologySelection
+        toggleMorphologySelection
         , morphologyInfoTypeEnum
         , toggleDependencySelection
         , sourcePattern: {
