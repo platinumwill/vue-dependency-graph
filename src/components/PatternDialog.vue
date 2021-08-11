@@ -57,7 +57,7 @@
                     {{ piece.displayText }}
             </span>
             <div>
-                <Button icon="pi pi-check" label="Save" @click="savePattern"></Button>
+                <Button :disabled="! isTargetPatternStorable" icon="pi pi-check" label="Save" @click="savePattern"></Button>
             </div>
         </Dialog>
     </div>
@@ -149,12 +149,17 @@ export default {
         const isSourcePatternNew = computed( () => {
             return sourcePatternManager.isSourcePatternNew(sourcePattern.selected)
         })
+        const isTargetPatternStorable = computed( () => {
+            // TODO 這裡的邏輯還沒實做完成
+            return sourcePatternManager.isSourcePatternNew(sourcePattern.selected)
+        })
 
         return {
             patternHelper
             , sourcePattern
             , targetPattern
             , isSourcePatternNew
+            , isTargetPatternStorable
         }
     }
 }
