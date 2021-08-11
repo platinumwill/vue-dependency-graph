@@ -66,15 +66,17 @@ export default function() {
         selectedTargetPattern.value = matchTargetPattern
         
         // TODO 等到 dialog 的 pattern pieces 也放進這個 ts 管理後，這一段應該要移到 watch
-        if (selectedTargetPattern.value != undefined) {
-            const duplicatedPieces = _duplicateTargetPattern(selectedTargetPattern.value)
-            targetPatternPieces.value.splice(0, targetPatternPieces.value.length, ...duplicatedPieces)
-            patternDialogTargetPatternPiecesForRevert.splice(
-                0
-                ,patternDialogTargetPatternPiecesForRevert.length
-                , ...selectedTargetPattern.value.pieces
-            )
-        }
+        const dialogPieces = 
+        selectedTargetPattern.value != undefined 
+        ? _duplicateTargetPattern(selectedTargetPattern.value) 
+        : defaultTargetPatternSample.pieces
+
+        targetPatternPieces.value.splice(0, targetPatternPieces.value.length, ...dialogPieces)
+        patternDialogTargetPatternPiecesForRevert.splice(
+            0
+            ,patternDialogTargetPatternPiecesForRevert.length
+            , ...dialogPieces
+        )
     }
 
     function reloadTargetPatternOptions(sourcePatternBeginningId: number, currentSentence: sentenceManager.ModifiedSpacySentence) {
