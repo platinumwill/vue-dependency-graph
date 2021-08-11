@@ -60,7 +60,6 @@ export default function() {
 
     function queryOrGenerateDefaultPieces (
         currentSpacySentence: sentenceManager.ModifiedSpacySentence
-        , patternDialogTargetPatternPieces: LinearTargetPatternPiece[]
         ) {
         const defaultTargetPatternSample = _generateDefaultPieces(currentSpacySentence)
         const matchTargetPattern = targetPatternOptions.value.find( tp => {return tp.piecesEqual(defaultTargetPatternSample) })
@@ -68,8 +67,8 @@ export default function() {
         
         // TODO 等到 dialog 的 pattern pieces 也放進這個 ts 管理後，這一段應該要移到 watch
         if (selectedTargetPattern.value != undefined) {
-            const pieces = _duplicateTargetPattern(selectedTargetPattern.value)
-            patternDialogTargetPatternPieces.splice(0, patternDialogTargetPatternPieces.length, ...pieces)
+            const duplicatedPieces = _duplicateTargetPattern(selectedTargetPattern.value)
+            targetPatternPieces.value.splice(0, targetPatternPieces.value.length, ...duplicatedPieces)
             patternDialogTargetPatternPiecesForRevert.splice(
                 0
                 ,patternDialogTargetPatternPiecesForRevert.length

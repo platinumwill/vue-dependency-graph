@@ -111,7 +111,7 @@ export default {
             this.displayModal = !this.displayModal
         }
         , queryOrGenerateDefaultPieces: function() {
-            this.targetPattern.queryOrGenerateDefaultPieces(this.$parent.currentSpacyFormatSentence, this.targetPattern.pieces.value)
+            this.targetPattern.queryOrGenerateDefaultPieces(this.$parent.currentSpacyFormatSentence)
         }
         , revertPieces() {
             this.targetPattern.revertPieces()
