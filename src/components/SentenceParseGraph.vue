@@ -134,6 +134,7 @@ export default {
         provide('sourcePattern', sourcePattern)
         provide('patternHelper', patternHelper)
         provide('targetPattern', targetPattern)
+        provide('currentSentence', currentSentence)
 
         return {
             spacyFormatHelper

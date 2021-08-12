@@ -63,7 +63,7 @@
     </div>
 </template>
 
-<script lang="ts">
+<script lang="js">
 // import PrimeVue from 'primevue/config';
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
@@ -95,7 +95,7 @@ export default {
         isPatternSavable: function() {
             let selectedWordCount = 0
             let beginningWordCount = 0
-            this.$parent.currentSpacyFormatSentence.words.forEach( (word) => {
+            this.currentSentence.words.forEach( (word) => {
                 if (word.selectedMorphologyInfoTypes.length > 0) selectedWordCount++
                 if (word.isBeginning) beginningWordCount++
             })
@@ -111,7 +111,7 @@ export default {
             this.displayModal = !this.displayModal
         }
         , queryOrGenerateDefaultPieces: function() {
-            this.targetPattern.queryOrGenerateDefaultPieces(this.$parent.currentSpacyFormatSentence)
+            this.targetPattern.queryOrGenerateDefaultPieces(this.currentSentence)
         }
         , removePiece(piece) {
             this.targetPattern.dialogPieces.removePiece(piece)
@@ -125,10 +125,10 @@ export default {
             pieceAndValue.piece.isOptional = pieceAndValue.value
         }
         , savePattern() {
-            const selectedWords = this.$parent.currentSpacyFormatSentence.words.filter((word) => {
+            const selectedWords = this.currentSentence.words.filter((word) => {
                 return word.selectedMorphologyInfoTypes.length > 0
             })
-            const selectedArcs = this.$parent.currentSpacyFormatSentence.arcs.filter((arc) => {
+            const selectedArcs = this.currentSentence.arcs.filter((arc) => {
                 return arc.selected
             })
             this.patternHelper.saveSelectedPattern(selectedWords, selectedArcs, this.targetPattern.pieces.value)
@@ -136,9 +136,10 @@ export default {
     }
     , setup() {
 
-        const sourcePattern: any = inject('sourcePattern')
+        const sourcePattern = inject('sourcePattern')
         const patternHelper = inject('patternHelper')
         const targetPattern = inject('targetPattern')
+        const currentSentence = inject('currentSentence')
 
         const isSourcePatternNew = computed( () => {
             return sourcePatternManager.isSourcePatternNew(sourcePattern.selected)
@@ -154,6 +155,7 @@ export default {
             , targetPattern
             , isSourcePatternNew
             , isTargetPatternStorable
+            , currentSentence
         }
     }
 }
