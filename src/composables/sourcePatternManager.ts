@@ -7,6 +7,5 @@ export function clearOptions(sourcePatternOptions: any) {
 }
 
 export function isSourcePatternNew(selectedSourcePattern: any) {
-    console.log('source pattern value: ', selectedSourcePattern.value)
     return selectedSourcePattern.value == undefined
 }
