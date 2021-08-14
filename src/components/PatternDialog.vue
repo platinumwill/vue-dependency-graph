@@ -39,7 +39,7 @@
                 <Button icon="pi pi-plus" label="Add Fixed Text" @click="targetPattern.dialogPieces.addFixedTextPiece" style="margin-left: .5em" />
             </div>
             <vue-horizontal responsive>
-            <draggable v-model="targetPattern.pieces.value" tag="transition-group" item-key="vueKey">
+            <draggable v-model="targetPattern.dialogPieces.pieces.value" tag="transition-group" item-key="vueKey">
                 <template #item="{element}">
                     <SegmentPiece :item="element"
                         @appliedTextChanged="changeAppliedText"
@@ -51,7 +51,7 @@
             </draggable>
             </vue-horizontal>
             <span 
-                v-for="piece in targetPattern.pieces.value"
+                v-for="piece in targetPattern.dialogPieces.pieces.value"
                 :class="piece.isOptional ? 'optional' : ''"
                 :key="piece.vueKey">
                     {{ piece.displayText }}
@@ -111,7 +111,7 @@ export default {
             this.displayModal = !this.displayModal
         }
         , queryOrGenerateDefaultPieces: function() {
-            this.targetPattern.queryOrGenerateDefaultPieces(this.currentSentence)
+            this.targetPattern.dialogPieces.queryOrGenerateDefaultPieces(this.currentSentence)
         }
         , removePiece(piece) {
             this.targetPattern.dialogPieces.removePiece(piece)
@@ -131,7 +131,7 @@ export default {
             const selectedArcs = this.currentSentence.arcs.filter((arc) => {
                 return arc.selected
             })
-            this.patternHelper.saveSelectedPattern(selectedWords, selectedArcs, this.targetPattern.pieces.value)
+            this.patternHelper.saveSelectedPattern(selectedWords, selectedArcs, this.targetPattern.dialogPieces.pieces.value)
         }
     }
     , setup() {

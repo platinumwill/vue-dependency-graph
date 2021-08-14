@@ -23,19 +23,19 @@ export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpa
     const targetPatternOptions = ref(targetPatternOptionsValue)
 
     const pieces: LinearTargetPatternPiece[] = []
-    const targetPatternPieces = ref(pieces)
+    const dialogPieces = ref(pieces)
     const patternDialogTargetPatternPiecesForRevert: LinearTargetPatternPiece[] = []
 
     function addFixedTextPiece() {
         const fixedTextPiece = new LinearTargetPatternPiece()
-        fixedTextPiece.specifiedVuekey = 'fixed-' + targetPatternPieces.value.filter(item => item.type === LinearTargetPatternPiece.types.text).length
-        targetPatternPieces.value.push(fixedTextPiece)
+        fixedTextPiece.specifiedVuekey = 'fixed-' + dialogPieces.value.filter(item => item.type === LinearTargetPatternPiece.types.text).length
+        dialogPieces.value.push(fixedTextPiece)
     }
 
     function revertPieces() {
-        targetPatternPieces.value.splice(
+        dialogPieces.value.splice(
             0
-            , targetPatternPieces.value.length
+            , dialogPieces.value.length
             , ...patternDialogTargetPatternPiecesForRevert
         )
         // applied text 可能也要清空
@@ -57,21 +57,21 @@ export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpa
         ) {
         console.log('renewing dialog pieces')
 
-        let dialogPieces: LinearTargetPatternPiece[] = []
+        let tempDialogPieces: LinearTargetPatternPiece[] = []
 
         if (selectedTargetPattern.value != undefined) {
-            dialogPieces = _duplicateTargetPattern(selectedTargetPattern.value)
+            tempDialogPieces = _duplicateTargetPattern(selectedTargetPattern.value)
         } else if (defaultTargetPattern != undefined) {
-            dialogPieces = defaultTargetPattern.pieces
+            tempDialogPieces = defaultTargetPattern.pieces
         } else {
-            dialogPieces = _generateDefaultPieces(currentSpacySentence)
+            tempDialogPieces = _generateDefaultPieces(currentSpacySentence)
         }
 
-        targetPatternPieces.value.splice(0, targetPatternPieces.value.length, ...dialogPieces)
+        dialogPieces.value.splice(0, dialogPieces.value.length, ...tempDialogPieces)
         patternDialogTargetPatternPiecesForRevert.splice(
             0
             ,patternDialogTargetPatternPiecesForRevert.length
-            , ...dialogPieces
+            , ...tempDialogPieces
         )
     }
 
@@ -80,9 +80,9 @@ export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpa
     }
 
     function removePiece(piece: LinearTargetPatternPiece) {
-        const index = targetPatternPieces.value.indexOf(piece)
+        const index = dialogPieces.value.indexOf(piece)
         if (index < 0) return
-        targetPatternPieces.value.splice(index, 1)
+        dialogPieces.value.splice(index, 1)
     }
 
     function isDialogPatternNew() {
@@ -91,13 +91,13 @@ export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpa
 
     return {
         targetPattern: {
-            pieces: targetPatternPieces
-            , queryOrGenerateDefaultPieces: queryOrGenerateDefaultPieces
-            , dialogPieces: {
-                removePiece: removePiece
+            dialogPieces: {
+                pieces: dialogPieces
+                , removePiece: removePiece
                 , addFixedTextPiece: addFixedTextPiece
                 , revertPieces: revertPieces
                 , isPatternNew: isDialogPatternNew
+                , queryOrGenerateDefaultPieces: queryOrGenerateDefaultPieces
             }
             , selection: {
                 selected: selectedTargetPattern
