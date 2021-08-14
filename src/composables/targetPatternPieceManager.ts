@@ -85,6 +85,10 @@ export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpa
         targetPatternPieces.value.splice(index, 1)
     }
 
+    function isDialogPatternNew() {
+        return selectedTargetPattern.value == undefined
+    }
+
     return {
         targetPattern: {
             pieces: targetPatternPieces
@@ -93,6 +97,7 @@ export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpa
                 removePiece: removePiece
                 , addFixedTextPiece: addFixedTextPiece
                 , revertPieces: revertPieces
+                , isPatternNew: isDialogPatternNew
             }
             , selection: {
                 selected: selectedTargetPattern
