@@ -8,10 +8,15 @@ export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpa
     const selectedTargetPattern = ref<LinearTargetPattern | undefined>(undefined)
 
     watch(selectedTargetPattern, (newValue: any, oldValue) => {
-        console.log('watching target pattern change: ', newValue, oldValue)
-
         renewDialogPieces(currentSentence.value)
     })
+
+    const dialogPieces = ref<LinearTargetPatternPiece[]>([])
+
+    watch(dialogPieces, (newValue, oldValue) => {
+        setSelectedTargetPatternByPieces(dialogPieces.value)
+    })
+
     function clearTargetPatternSelection() {
         selectedTargetPattern.value = undefined
     }
@@ -22,8 +27,6 @@ export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpa
     const targetPatternOptionsValue: LinearTargetPattern[] = []
     const targetPatternOptions = ref(targetPatternOptionsValue)
 
-    const pieces: LinearTargetPatternPiece[] = []
-    const dialogPieces = ref(pieces)
     const patternDialogTargetPatternPiecesForRevert: LinearTargetPatternPiece[] = []
 
     function addFixedTextPiece() {
@@ -44,16 +47,20 @@ export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpa
     function queryOrGenerateDefaultPieces (
         currentSpacySentence: sentenceManager.ModifiedSpacySentence
         ) {
-        const defaultTargetPatternSample = _generateDefaultTargetPattern(currentSpacySentence)
-        const matchTargetPattern = targetPatternOptions.value.find( tp => {return tp.piecesEqual(defaultTargetPatternSample) })
-        selectedTargetPattern.value = matchTargetPattern
-        
-        renewDialogPieces(currentSpacySentence, defaultTargetPatternSample)
+        const defaultTargetPatternSamplePieces = _generateDefaultTargetPattern(currentSpacySentence)
+        setSelectedTargetPatternByPieces(defaultTargetPatternSamplePieces)
+        renewDialogPieces(currentSpacySentence, defaultTargetPatternSamplePieces)
+    }
+
+    function setSelectedTargetPatternByPieces(patternPieces: LinearTargetPatternPiece[]) {
+        const defaultTargetPatternSample = new LinearTargetPattern(patternPieces)
+        selectedTargetPattern.value = targetPatternOptions.value.find( tp => {return tp.piecesEqual(defaultTargetPatternSample) })
+        console.log('set selected target pattern: ', selectedTargetPattern.value)
     }
 
     function renewDialogPieces(
         currentSpacySentence: sentenceManager.ModifiedSpacySentence
-        , defaultTargetPattern?: LinearTargetPattern
+        , defaultTargetPatternPieces?: LinearTargetPatternPiece[]
         ) {
         console.log('renewing dialog pieces')
 
@@ -61,8 +68,8 @@ export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpa
 
         if (selectedTargetPattern.value != undefined) {
             tempDialogPieces = _duplicateTargetPattern(selectedTargetPattern.value)
-        } else if (defaultTargetPattern != undefined) {
-            tempDialogPieces = defaultTargetPattern.pieces
+        } else if (defaultTargetPatternPieces != undefined) {
+            tempDialogPieces = defaultTargetPatternPieces
         } else {
             tempDialogPieces = _generateDefaultPieces(currentSpacySentence)
         }
@@ -206,10 +213,8 @@ export class LinearTargetPatternPiece {
 }
 
 function _generateDefaultTargetPattern (currentSpacySentence: sentenceManager.ModifiedSpacySentence) {
-    const pieces = _generateDefaultPieces(currentSpacySentence)
-    const result = new LinearTargetPattern()
-    result.addPieces(pieces)
-    return result
+    const defaultPieces = _generateDefaultPieces(currentSpacySentence)
+    return defaultPieces
 }
 
 function _generateDefaultPieces (
@@ -308,7 +313,8 @@ export class LinearTargetPattern {
         return this.$pieces
     }
 
-    constructor() {
+    constructor(patternPieces?: LinearTargetPatternPiece[]) {
+        if (patternPieces != undefined) this.addPieces(patternPieces)
     }
 
     addPieces(pieces: LinearTargetPatternPiece | LinearTargetPatternPiece[]) {
