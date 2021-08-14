@@ -4,7 +4,7 @@
 
 <script>
 import { mapGetters } from 'vuex'
-import graphSentenceManager from '@/composables/graphSentenceManager'
+import { morphologyInfoTypeEnum } from "@/composables/morphologyInfo"
 
 export default {
     name: 'TokenInfo'
@@ -61,9 +61,6 @@ export default {
         }
     }
     , setup() {
-        const {
-            morphologyInfoTypeEnum
-        } = graphSentenceManager()
         return {
             morphologyInfoTypeEnum
         }

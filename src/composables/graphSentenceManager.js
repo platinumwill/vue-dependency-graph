@@ -3,18 +3,7 @@ import { useStore } from "vuex"
 import * as gremlinManager from "@/composables/gremlinManager"
 import * as sourcePatternManager from "@/composables/sourcePatternManager"
 import * as targetPatternPieceManager from "@/composables/targetPatternPieceManager"
-
-export const morphologyInfoTypeEnum = Object.freeze({
-    pos: {
-        name: 'pos'
-        , propertyInWord: 'tag'
-    }
-    , lemma: {
-        name: 'lemma'
-        , propertyInWord: 'lemma'
-    }
-})
-
+import { morphologyInfoTypeEnum } from "@/composables/morphologyInfo"
 
 export default function(targetPattern, spacyFormatSentences) {
 
@@ -335,7 +324,6 @@ export default function(targetPattern, spacyFormatSentences) {
     }
     return {
         toggleMorphologySelection
-        , morphologyInfoTypeEnum
         , toggleDependencySelection
         , sourcePattern: {
             selected: selectedSourcePattern

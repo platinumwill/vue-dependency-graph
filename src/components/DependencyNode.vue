@@ -8,7 +8,7 @@
 
 <script>
 import TokenInfo from "./TokenInfo.vue"
-import graphSentenceManager from "@/composables/graphSentenceManager"
+import { morphologyInfoTypeEnum } from "@/composables/morphologyInfo"
 
 export default {
     name: 'DependencyeNode'
@@ -48,9 +48,6 @@ export default {
         'config'
     ]
     , setup() {
-        const {
-            morphologyInfoTypeEnum
-        } = graphSentenceManager()
         return {
             morphologyInfoTypeEnum
         }
