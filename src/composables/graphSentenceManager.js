@@ -1,4 +1,4 @@
-import { ref, watch } from 'vue'
+import { watch } from 'vue'
 import { useStore } from "vuex"
 import * as gremlinManager from "@/composables/gremlinManager"
 import * as sourcePatternUtil from "@/composables/sourcePatternManager"
@@ -116,7 +116,8 @@ export default function(sourcePatternManager, targetPattern, spacyFormatSentence
     }
 
     const selectedSourcePattern = sourcePatternManager.selection.selectedPattern
-    const sourcePatternOptions = ref([])
+    const sourcePatternOptions = sourcePatternManager.selection.options
+
     const reloadMatchingSourcePatternOptions = () => {
         sourcePatternOptions.value.splice(0, sourcePatternOptions.value.length)
         const beginWord = findBeginWord()

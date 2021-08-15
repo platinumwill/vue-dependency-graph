@@ -27,6 +27,7 @@ class SourcePatternOption {
 export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpacySentence>) {
 
     const selectedSourcePattern = ref<SourcePatternOption | undefined>(undefined)
+    const sourcePatternOptions = ref<SourcePatternOption[]>([])
     
     const processSelectedSourcePatternStoring = (gremlinInvoke: gremlinUtils.GremlinInvoke) => {
         const selectedWords = currentSentence.value.selectedTokens
@@ -86,6 +87,7 @@ export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpa
         sourcePatternManager: {
             selection: {
                 selectedPattern: selectedSourcePattern
+                , options: sourcePatternOptions
                 , save: processSelectedSourcePatternStoring
             }
         }
