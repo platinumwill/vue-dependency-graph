@@ -1,7 +1,11 @@
 import * as sentenceManager from "@/composables/sentenceManager"
 import axios from "axios"
 
-export function vertexAlias(word: sentenceManager.ModifiedSpacyToken) {
+export function vertexAlias(word: sentenceManager.ModifiedSpacyToken | undefined) {
+    if (word == undefined) {
+        const error = '程式控制有問題，不應該執行到這裡'
+        return
+    }
     return 'sourceV-' + word.indexInSentence
 }
 
@@ -45,7 +49,7 @@ export class GremlinInvoke {
         }
     }
 
-    call(method: string, ...values: string[] | number[] | boolean[] | GremlinInvoke[]) {
+    call(method: string, ...values: any[]) {
         if (this.commandBuffer !== '') {
             this.commandBuffer = this.commandBuffer.concat(".")
         }
