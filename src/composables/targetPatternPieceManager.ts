@@ -1,6 +1,7 @@
 import { ComputedRef, ref, watch } from 'vue'
 import * as sentenceManager from "@/composables/sentenceManager"
 import * as gremlinManager from "@/composables/gremlinManager"
+import { GremlinInvoke } from '@/composables/gremlinManager'
 
 // TODO 想要把 selectedTargetPattern 拿掉
 export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpacySentence>) {
@@ -96,6 +97,10 @@ export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpa
         return selectedTargetPattern.value == undefined
     }
 
+    function save(gremlinInvoke: GremlinInvoke) {
+        return processTargetPatternStoring(dialogPieces.value, gremlinInvoke)
+    }
+
     return {
         targetPattern: {
             dialogPieces: {
@@ -112,6 +117,9 @@ export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpa
                 , options: targetPatternOptions.value
                 , clearOptions: clearTargetPatternOptions
                 , reloadOptions: reloadTargetPatternOptions
+            }
+            , process: {
+                save: save
             }
         }
     }
@@ -246,7 +254,8 @@ function _duplicateTargetPattern(targetPattern: LinearTargetPattern) {
     return pieces
 }
 
-export const processTargetPatternStoring = (segmentPieces: LinearTargetPatternPiece[], gremlinInvoke: any) => {
+export const processTargetPatternStoring = (segmentPieces: LinearTargetPatternPiece[], gremlinInvoke: GremlinInvoke) => {
+    console.log('gremlin invoke: ', gremlinInvoke)
     // save target pattern
     let lastAddedPieceAlias: string
     segmentPieces.forEach((piece, pieceIdx) => {

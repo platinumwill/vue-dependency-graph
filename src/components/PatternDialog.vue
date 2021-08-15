@@ -125,7 +125,7 @@ export default {
             pieceAndValue.piece.isOptional = pieceAndValue.value
         }
         , savePattern() {
-            this.patternHelper.saveSelectedPattern(this.targetPattern.dialogPieces.pieces.value)
+            this.patternHelper.saveSelectedPattern()
         }
     }
     , setup() {

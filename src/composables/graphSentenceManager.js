@@ -2,7 +2,6 @@ import { ref, watch } from 'vue'
 import { useStore } from "vuex"
 import * as gremlinManager from "@/composables/gremlinManager"
 import * as sourcePatternUtil from "@/composables/sourcePatternManager"
-import * as targetPatternPieceManager from "@/composables/targetPatternPieceManager"
 import { morphologyInfoTypeEnum } from "@/composables/morphologyInfo"
 
 export default function(sourcePatternManager, targetPattern, spacyFormatSentences) {
@@ -251,12 +250,12 @@ export default function(sourcePatternManager, targetPattern, spacyFormatSentence
         return beginWords[0]
     }
 
-    const saveSelectedPattern = (segmentPieces) => {
+    const saveSelectedPattern = () => {
         let gremlinInvoke = new gremlinManager.GremlinInvoke()
 
         // TODO 判斷現在的 pattern 是不是既有的，是的話就不要再存
         gremlinInvoke = sourcePatternManager.selection.save(gremlinInvoke)
-        gremlinInvoke = targetPatternPieceManager.processTargetPatternStoring(segmentPieces, gremlinInvoke)
+        gremlinInvoke = targetPattern.process.save(gremlinInvoke)
         gremlinInvoke.call("select", gremlinManager.aliases.sourcePatternBeginning)
 
         console.log(gremlinInvoke.command())
