@@ -125,13 +125,7 @@ export default {
             pieceAndValue.piece.isOptional = pieceAndValue.value
         }
         , savePattern() {
-            const selectedWords = this.currentSentence.words.filter((word) => {
-                return word.selectedMorphologyInfoTypes.length > 0
-            })
-            const selectedArcs = this.currentSentence.arcs.filter((arc) => {
-                return arc.selected
-            })
-            this.patternHelper.saveSelectedPattern(selectedWords, selectedArcs, this.targetPattern.dialogPieces.pieces.value)
+            this.patternHelper.saveSelectedPattern(this.targetPattern.dialogPieces.pieces.value)
         }
     }
     , setup() {

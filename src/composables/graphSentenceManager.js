@@ -1,11 +1,11 @@
 import { ref, watch } from 'vue'
 import { useStore } from "vuex"
 import * as gremlinManager from "@/composables/gremlinManager"
-import * as sourcePatternManager from "@/composables/sourcePatternManager"
+import * as sourcePatternUtil from "@/composables/sourcePatternManager"
 import * as targetPatternPieceManager from "@/composables/targetPatternPieceManager"
 import { morphologyInfoTypeEnum } from "@/composables/morphologyInfo"
 
-export default function(targetPattern, spacyFormatSentences) {
+export default function(sourcePatternManager, targetPattern, spacyFormatSentences) {
 
     const store = useStore()
     let toggledFlag = false
@@ -102,8 +102,8 @@ export default function(targetPattern, spacyFormatSentences) {
         console.log(gremlinCommand)
         gremlinManager.submit(gremlinCommand).then( (resultData) => {
             if (resultData['@value'].length === 0) {
-                sourcePatternManager.clearSelection(selectedSourcePattern)
-                sourcePatternManager.clearOptions(sourcePatternOptions)
+                sourcePatternUtil.clearSelection(selectedSourcePattern)
+                sourcePatternUtil.clearOptions(sourcePatternOptions)
                 return
             }
             if (resultData['@value'].length > 1) {
@@ -116,7 +116,7 @@ export default function(targetPattern, spacyFormatSentences) {
         })
     }
 
-    const selectedSourcePattern = ref(undefined)
+    const selectedSourcePattern = sourcePatternManager.selection.selectedPattern
     const sourcePatternOptions = ref([])
     const reloadMatchingSourcePatternOptions = () => {
         sourcePatternOptions.value.splice(0, sourcePatternOptions.value.length)
@@ -251,11 +251,11 @@ export default function(targetPattern, spacyFormatSentences) {
         return beginWords[0]
     }
 
-    const saveSelectedPattern = (selectedWords, selectedArcs, segmentPieces) => {
+    const saveSelectedPattern = (segmentPieces) => {
         let gremlinInvoke = new gremlinManager.GremlinInvoke()
 
         // TODO 判斷現在的 pattern 是不是既有的，是的話就不要再存
-        gremlinInvoke = processSelectedNewSourcePatternStoring(selectedWords, selectedArcs, gremlinInvoke)
+        gremlinInvoke = sourcePatternManager.selection.save(gremlinInvoke)
         gremlinInvoke = targetPatternPieceManager.processTargetPatternStoring(segmentPieces, gremlinInvoke)
         gremlinInvoke.call("select", gremlinManager.aliases.sourcePatternBeginning)
 
@@ -271,56 +271,6 @@ export default function(targetPattern, spacyFormatSentences) {
         }).catch(function(error) {
             console.error(error)
         })
-    }
-    const processSelectedNewSourcePatternStoring = (selectedWords, selectedArcs, gremlinInvoke) => {
-        if (selectedSourcePattern.value != undefined && selectedSourcePattern.value.id != undefined) {
-            gremlinInvoke = gremlinInvoke
-            .call("V", selectedSourcePattern.value.id)
-            .call("as", gremlinManager.aliases.sourcePatternBeginning)
-            return gremlinInvoke
-        }
-        selectedWords.forEach( (word) => {
-            gremlinInvoke = gremlinInvoke
-                .call("addV", gremlinManager.vertexLabels.sourcePattern)
-            word.selectedMorphologyInfoTypes.forEach( (morphInfoType) => {
-                gremlinInvoke = gremlinInvoke.call("property", morphInfoType.name, word[morphInfoType.propertyInWord])
-            })
-            gremlinInvoke = gremlinInvoke.call("as", gremlinManager.vertexAlias(word))
-            if (word.isBeginning) {
-                gremlinInvoke = gremlinInvoke
-                .call("as", gremlinManager.aliases.sourcePatternBeginning)
-                .call("property", "isBeginning", true)
-                .call("property", "owner", "Chin")
-            }
-        })
-        selectedArcs.forEach( (arc) => {
-            const startWord = selectedWords.find( word => word.indexInSentence == arc.trueStart )
-            if (startWord === undefined
-                || startWord.selectedMorphologyInfoTypes.length === 0
-                ) {
-                    const error = "dependency 起點沒被選取"
-                    console.error(error)
-                    throw error
-                }
-            let startVName = gremlinManager.vertexAlias(startWord)
-            let endVName = undefined
-            if (arc.isPlaceholder) { // 這個 dependency 後面連著連接處
-                const connectorVName = gremlinManager.connectorAlias(arc)
-                endVName = connectorVName
-                gremlinInvoke = gremlinInvoke
-                .call("addV", gremlinManager.vertexLabels.sourcePattern)
-                .call("property", gremlinManager.propertyNames.isConnector, true)
-                .call("as", connectorVName)
-            } else {
-                const endWord = selectedWords.find( word => word.indexInSentence == arc.trueEnd ) 
-                endVName = gremlinManager.vertexAlias(endWord)
-            }
-            gremlinInvoke = gremlinInvoke
-            .call("addE", arc.label)
-            .call("from", startVName)
-            .call("to", endVName)
-        })
-        return gremlinInvoke
     }
     return {
         toggleMorphologySelection
