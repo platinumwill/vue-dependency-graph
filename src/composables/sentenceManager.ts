@@ -119,6 +119,20 @@ export class ModifiedSpacySentence {
         });
     }
 
+    // TODO 暫時把邏輯搬過來，可能還要再修正整理
+    findBeginWord() {
+        const beginWords = this.words.filter( (word) => {
+            return word.isBeginning
+        })
+        if (beginWords.length <= 0) return undefined
+        if (beginWords.length > 1) {
+            const error = "begin word 超過一個，程式控制有問題"
+            console.error(error)
+            throw error
+        }
+        return beginWords[0]
+    }
+
 }
 
 export const findDependencyByPatternEdgeId = (sourceEdgeId: string, sentence: ModifiedSpacySentence): ModifiedSpacyDependency => {

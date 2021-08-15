@@ -1,4 +1,4 @@
-import { ComputedRef, ref } from 'vue'
+import { ComputedRef, Ref, ref } from 'vue'
 import * as sentenceManager from "@/composables/sentenceManager"
 import * as gremlinUtils from "@/composables/gremlinManager"
 
@@ -83,13 +83,76 @@ export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpa
         })
         return gremlinInvoke
     }
+
+    const reloadOptions = () => {
+        return reloadMatchingSourcePatternOptions(sourcePatternOptions, currentSentence.value)
+    }
+
+    const setSelectedSourcePatternDropdownValue = (id: any) => {
+        selectedSourcePattern.value = sourcePatternOptions.value.find( (option) => {
+            return option.id == id
+        })
+    }
+
     return {
         sourcePatternManager: {
             selection: {
                 selectedPattern: selectedSourcePattern
                 , options: sourcePatternOptions
-                , save: processSelectedSourcePatternStoring
+                , reloadOptions: reloadOptions
+                , setAsSelected: setSelectedSourcePatternDropdownValue
+            }
+            , process: {
+                save: processSelectedSourcePatternStoring
             }
         }
     }
+}
+
+export type SourcePatternManager = {
+    selection: {
+        selectedPattern: any
+        , options: any
+        , save: any
+        , reloadOptions: any
+        , setAsSelected: any
+    }
+    , process: {
+        save: Function
+    }
+}
+
+// TODO 暫時把邏輯搬過來，可能還要再整理
+const reloadMatchingSourcePatternOptions = (
+    sourcePatternOptions: Ref<SourcePatternOption[]>
+    , currentSentence: sentenceManager.ModifiedSpacySentence) => {
+
+    sourcePatternOptions.value.splice(0, sourcePatternOptions.value.length)
+    const beginWord = currentSentence.findBeginWord()
+    if (! beginWord) {
+        return new Promise( (resolve) => {
+            resolve(undefined)
+        })
+    }
+    let gremlinCommand = new gremlinUtils.GremlinInvoke().call("V")
+    beginWord.selectedMorphologyInfoTypes.forEach( (morphInfoType) => {
+        gremlinCommand = gremlinCommand.call("has", morphInfoType.name, beginWord[morphInfoType.propertyInWord])
+    })
+    gremlinCommand = gremlinCommand.call("inE", 'applicable')
+    .call("inV")
+    .call("dedup")
+    return new Promise((resolve, reject) => {
+        gremlinUtils.submit(gremlinCommand).then( (resultData: any) => {
+            resultData['@value'].forEach( (sourcePatternBeginning: any) => {
+                sourcePatternOptions.value.push({
+                    id: sourcePatternBeginning['@value'].id['@value']
+                    , label: sourcePatternBeginning['@value'].label + '-' + sourcePatternBeginning['@value'].id['@value']
+                })
+            })
+            resolve(resultData)
+        }).catch ( function(error) {
+            console.error(error)
+            reject(error)
+        })
+    })
 }

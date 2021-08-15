@@ -24,6 +24,7 @@ import graphSentenceManager from "@/composables/graphSentenceManager"
 import targetPatternPieceManager from '@/composables/targetPatternPieceManager'
 import sourcePatternLogic from '@/composables/sourcePatternManager'
 import sentenceManager from '@/composables/sentenceManager'
+import patternLogic from '@/composables/patternLogic'
 
 export default {
     data() {
@@ -120,23 +121,24 @@ export default {
             , currentSentence
         } = sentenceManager()
 
+        // TODO 變數名稱待調整
         const { targetPattern } = targetPatternPieceManager(currentSentence)
         const { sourcePatternManager } = sourcePatternLogic(currentSentence)
+        const { patternManager } = patternLogic(sourcePatternManager, targetPattern)
 
         const {
             toggleMorphologySelection
             , toggleDependencySelection
             , sourcePattern
-            , patternHelper
         } = graphSentenceManager(sourcePatternManager, targetPattern, spacyFormatSentences)
 
         provide('spacyFormatSentences', spacyFormatSentences)
         provide('toggleMorphologySelection', toggleMorphologySelection)
         provide('toggleDependencySelection', toggleDependencySelection)
         provide('sourcePattern', sourcePattern)
-        provide('patternHelper', patternHelper)
         provide('targetPattern', targetPattern)
         provide('currentSentence', currentSentence)
+        provide('patternManager', patternManager)
 
         return {
             spacyFormatHelper

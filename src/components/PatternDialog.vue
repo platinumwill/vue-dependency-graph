@@ -125,15 +125,15 @@ export default {
             pieceAndValue.piece.isOptional = pieceAndValue.value
         }
         , savePattern() {
-            this.patternHelper.saveSelectedPattern()
+            this.patternManager.saveSelectedPattern()
         }
     }
     , setup() {
 
         const sourcePattern = inject('sourcePattern')
-        const patternHelper = inject('patternHelper')
         const targetPattern = inject('targetPattern')
         const currentSentence = inject('currentSentence')
+        const patternManager = inject('patternManager')
 
         const isSourcePatternNew = computed( () => {
             return sourcePatternManager.isSourcePatternNew(sourcePattern.selected)
@@ -144,7 +144,7 @@ export default {
         })
 
         return {
-            patternHelper
+            patternManager
             , sourcePattern
             , targetPattern
             , isSourcePatternNew

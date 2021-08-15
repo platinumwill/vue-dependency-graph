@@ -41,7 +41,7 @@ export default function(sourcePatternManager, targetPattern, spacyFormatSentence
             }
             // TODO PROGRESS POS 固定要選起來，選了其他的，要自動標記 POS 有選，這裡做反向控制
         }
-        reloadMatchingSourcePatternOptions().then( () => {
+        sourcePatternManager.selection.reloadOptions().then( () => {
             findExistingMatchSourcePatternAndMark()
         })
     }
@@ -56,7 +56,7 @@ export default function(sourcePatternManager, targetPattern, spacyFormatSentence
         } else {
             dependency.selected = !dependency.selected
         }
-        reloadMatchingSourcePatternOptions().then( () => {
+        sourcePatternManager.selection.reloadOptions().then( () => {
             findExistingMatchSourcePatternAndMark()
         })
     }
@@ -111,44 +111,12 @@ export default function(sourcePatternManager, targetPattern, spacyFormatSentence
                 throw error
             }
             const sourcePatternBeginningId = resultData['@value'][0]['@value'].id['@value']
-            setSelectedSourcePatternDropdownValue(sourcePatternBeginningId)
+            sourcePatternManager.selection.setAsSelected(sourcePatternBeginningId)
         })
     }
 
     const selectedSourcePattern = sourcePatternManager.selection.selectedPattern
     const sourcePatternOptions = sourcePatternManager.selection.options
-
-    const reloadMatchingSourcePatternOptions = () => {
-        sourcePatternOptions.value.splice(0, sourcePatternOptions.value.length)
-        const beginWord = findBeginWord()
-        if (! beginWord) {
-            return new Promise( (resolve) => {
-                resolve(undefined)
-            })
-        }
-        let gremlinCommand = new gremlinManager.GremlinInvoke().call("V")
-        beginWord.selectedMorphologyInfoTypes.forEach( (morphInfoType) => {
-            gremlinCommand = gremlinCommand.call("has", morphInfoType.name, beginWord[morphInfoType.propertyInWord])
-        })
-        gremlinCommand = gremlinCommand.call("inE", 'applicable')
-        .call("inV")
-        .call("dedup")
-        .command()
-        return new Promise((resolve, reject) => {
-            gremlinManager.submit(gremlinCommand).then( (resultData) => {
-                resultData['@value'].forEach( (sourcePatternBeginning) => {
-                    sourcePatternOptions.value.push({
-                        id: sourcePatternBeginning['@value'].id['@value']
-                        , label: sourcePatternBeginning['@value'].label + '-' + sourcePatternBeginning['@value'].id['@value']
-                    })
-                })
-                resolve(resultData)
-            }).catch ( function(error) {
-                console.error(error)
-                reject(error)
-            })
-        })
-    }
 
     watch(selectedSourcePattern, (newValue, oldValue) => {
         console.log('watching selected source pattern change: ', newValue, oldValue)
@@ -181,16 +149,11 @@ export default function(sourcePatternManager, targetPattern, spacyFormatSentence
         })
     })
 
-    const setSelectedSourcePatternDropdownValue = (id) => {
-        selectedSourcePattern.value = sourcePatternOptions.value.find( (option) => {
-            return option.id == id
-        })
-    }
     const autoMarkMatchingSourcePattern = (sourcePatternBeginningId) => {
-        setSelectedSourcePatternDropdownValue(sourcePatternBeginningId)
+        sourcePatternManager.selection.setAsSelected(sourcePatternBeginningId)
         // 這裡必須要用 ==，因為 Primevue 的值是存 null，不是存 undefined
         if (selectedSourcePattern.value == undefined || selectedSourcePattern.value.id == undefined) {
-            setSelectedSourcePatternDropdownValue(sourcePatternBeginningId)
+            sourcePatternManager.selection.setAsSelected(sourcePatternBeginningId)
         }
         const sentence = currentSentence()
         sentence.arcs.forEach( (dependency) => {
@@ -251,36 +214,12 @@ export default function(sourcePatternManager, targetPattern, spacyFormatSentence
         return beginWords[0]
     }
 
-    const saveSelectedPattern = () => {
-        let gremlinInvoke = new gremlinManager.GremlinInvoke()
-
-        // TODO 判斷現在的 pattern 是不是既有的，是的話就不要再存
-        gremlinInvoke = sourcePatternManager.selection.save(gremlinInvoke)
-        gremlinInvoke = targetPattern.process.save(gremlinInvoke)
-        gremlinInvoke.call("select", gremlinManager.aliases.sourcePatternBeginning)
-
-        console.log(gremlinInvoke.command())
-        gremlinManager.submit(gremlinInvoke.command())
-        .then((resultData) => {
-            const sourcePatternBeginningVertexId = resultData['@value'][0]['@value'].id['@value']
-            console.log('Source Pattern Begin Vertex Id: ', sourcePatternBeginningVertexId)
-            reloadMatchingSourcePatternOptions().then(() => {
-                setSelectedSourcePatternDropdownValue(sourcePatternBeginningVertexId)
-            })
-            return sourcePatternBeginningVertexId
-        }).catch(function(error) {
-            console.error(error)
-        })
-    }
     return {
         toggleMorphologySelection
         , toggleDependencySelection
         , sourcePattern: {
             selected: selectedSourcePattern
             , options: sourcePatternOptions.value
-        }
-        , patternHelper: {
-            saveSelectedPattern: saveSelectedPattern
         }
     }
 }
