@@ -31,6 +31,7 @@ export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpa
     const processSelectedSourcePatternStoring = (gremlinInvoke: gremlinUtils.GremlinInvoke) => {
         const selectedWords = currentSentence.value.selectedTokens
         const selectedArcs = currentSentence.value.selectedDependencies
+        // 如果 source pattern 下拉選單已經有值（表示資料庫裡已經有目前選取的 source pattern），就不必儲存 source pattern
         if (selectedSourcePattern.value != undefined && selectedSourcePattern.value.id != undefined) {
             gremlinInvoke = gremlinInvoke
             .call("V", selectedSourcePattern.value.id)
@@ -47,6 +48,7 @@ export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpa
             if (word.isBeginning) {
                 gremlinInvoke = gremlinInvoke
                 .call("as", gremlinUtils.aliases.sourcePatternBeginning)
+                // TODO 這一行不確定還需不需要
                 .call("property", "isBeginning", true)
                 .call("property", "owner", "Chin")
             }
