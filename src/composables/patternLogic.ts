@@ -6,7 +6,6 @@ export default function patternManager (sourcePatternManager: SourcePatternManag
     const saveSelectedPattern = () => {
         let gremlinInvoke = new gremlinApi.GremlinInvoke()
 
-        // TODO 判斷現在的 pattern 是不是既有的，是的話就不要再存
         gremlinInvoke = sourcePatternManager.process.save(gremlinInvoke)
         gremlinInvoke = targetPattern.process.save(gremlinInvoke)
         gremlinInvoke.call("select", gremlinApi.aliases.sourcePatternBeginning)
