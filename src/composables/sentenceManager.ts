@@ -1,5 +1,6 @@
 import { computed, ref } from 'vue'
 import { useStore } from "vuex"
+import { MorphologyInfo } from "@/composables/morphologyInfo"
 
 export default function () {
 
@@ -44,7 +45,7 @@ export class ModifiedSpacyToken extends ModifiedSpacyElement {
     text: string
     tag: string
     lemma: string
-    selectedMorphologyInfoTypes: string[] = []
+    selectedMorphologyInfoTypes: MorphologyInfo[] = []
     sourcePatternVertexId?: number
     isBeginning?: boolean
 
