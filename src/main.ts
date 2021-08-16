@@ -39,6 +39,17 @@ const store = createStore({
         }
       }
     }
+    , flags: {
+      namespaced: true
+      , state: () => ({
+        toggling: false
+      })
+      , mutations: {
+        setToggling (state, toggling) {
+          state.toggling = toggling
+        }
+      }
+    }
   }
   , actions: {
     async parseAndStoreDocument({commit}, documentText) {
@@ -60,6 +71,9 @@ const store = createStore({
           commit('storeOriginalText', documentText)
         })
       })
+    }
+    , setToggling({commit}, toggling) {
+      commit('flags/setToggling', toggling)
     }
   }
   , mutations: {
@@ -92,6 +106,9 @@ const store = createStore({
     }
     , currentSentence (state, getters) {
       return getters.baselineSentences[getters.currentSentenceIndex]
+    }
+    , toggling (state: any) {
+      return state.flags.toggling
     }
   }
 })

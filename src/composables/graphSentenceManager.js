@@ -7,10 +7,9 @@ import { morphologyInfoTypeEnum } from "@/composables/morphologyInfo"
 export default function(sourcePatternManager, targetPattern, spacyFormatSentences) {
 
     const store = useStore()
-    let toggledFlag = false
 
     const toggleMorphologySelection = (morphInfoType, tokenIndex) => {
-        toggledFlag = true
+        store.dispatch('setToggling', true)
 
         const sentence = currentSentence()
         const selectedArcs = sentence.arcs.filter( arc => arc.selected)
@@ -47,7 +46,7 @@ export default function(sourcePatternManager, targetPattern, spacyFormatSentence
     }
 
     const toggleDependencySelection = (dependency) => {
-        toggledFlag = true
+        store.dispatch('setToggling', true)
 
         if (dependency.selected || dependency.sourcePatternEdgeId) {
             dependency.sourcePatternEdgeId = undefined
@@ -121,7 +120,7 @@ export default function(sourcePatternManager, targetPattern, spacyFormatSentence
     watch(selectedSourcePattern, (newValue, oldValue) => {
         console.log('watching selected source pattern change: ', newValue, oldValue)
         const sentence = currentSentence()
-        if (! toggledFlag) {
+        if (! store.getters.toggling) {
             sentence.clearSelection()
         }
         // TODO 這裡有點亂，待整理
@@ -146,6 +145,7 @@ export default function(sourcePatternManager, targetPattern, spacyFormatSentence
                 console.log('target pattern options reloaded: ', targetPattern)
             })
         })
+        store.dispatch('setToggling', false)
     })
 
     const autoMarkMatchingSourcePattern = (sourcePatternBeginningId) => {
@@ -188,7 +188,6 @@ export default function(sourcePatternManager, targetPattern, spacyFormatSentence
                     // 有了 sourcePatternEdgeId，視同被選取。應該要考慮用 getter 邏輯來處理
                     matchingArc.selected = true
                 })
-                toggledFlag = false
                 resolve(sourcePatternBeginningId)
             }).catch ( (error) => {
                 console.error(error)
