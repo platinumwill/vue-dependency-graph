@@ -83,8 +83,8 @@ export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpa
         )
     }
 
-    function reloadTargetPatternOptions(sourcePatternBeginningId: number, currentSentence: sentenceManager.ModifiedSpacySentence) {
-        return reloadMatchingTargetPatternOptions(sourcePatternBeginningId, currentSentence, targetPatternOptions.value)
+    function reloadTargetPatternOptions(sourcePatternBeginningId: number) {
+        return reloadMatchingTargetPatternOptions(sourcePatternBeginningId, currentSentence.value, targetPatternOptions.value)
     }
 
     function removePiece(piece: LinearTargetPatternPiece) {

@@ -142,8 +142,7 @@ export default function(sourcePatternManager, targetPattern, spacyFormatSentence
         autoMarkMatchingSourcePattern(sourcePatternBeginningId).then( () => {
             // 處理 target pattern
             targetPattern.selection.clearSelection()
-            // TODO currentSentence 希望不用傳
-            targetPattern.selection.reloadOptions(sourcePatternBeginningId, currentSentence()).then( (targetPattern) => {
+            targetPattern.selection.reloadOptions(sourcePatternBeginningId).then( (targetPattern) => {
                 console.log('target pattern options reloaded: ', targetPattern)
             })
         })
