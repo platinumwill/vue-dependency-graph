@@ -1,8 +1,6 @@
-import { watch } from 'vue'
 import { useStore } from "vuex"
 import * as gremlinManager from "@/composables/gremlinManager"
 import * as sourcePatternUtil from "@/composables/sourcePatternManager"
-import { morphologyInfoTypeEnum } from "@/composables/morphologyInfo"
 
 export default function(sourcePatternManager, targetPattern, spacyFormatSentences) {
 
@@ -116,85 +114,6 @@ export default function(sourcePatternManager, targetPattern, spacyFormatSentence
 
     const selectedSourcePattern = sourcePatternManager.selection.selectedPattern
     const sourcePatternOptions = sourcePatternManager.selection.options
-
-    watch(selectedSourcePattern, (newValue, oldValue) => {
-        console.log('watching selected source pattern change: ', newValue, oldValue)
-        const sentence = currentSentence()
-        if (! store.getters.toggling) {
-            sentence.clearSelection()
-        }
-        // TODO 這裡有點亂，待整理
-        sentence.arcs.forEach( arc => arc.sourcePatternEdgeId = undefined)
-        targetPattern.selection.clearOptions()
-        if (newValue == undefined || newValue.id == undefined) {
-            sentence.words.forEach( (word) => {
-                word.sourcePatternVertexId = undefined
-            })
-            return
-        }
-
-        const currentBeginWord = findBeginWord()
-        if (currentBeginWord == undefined) return
-        
-        const sourcePatternBeginningId = newValue.id
-        currentBeginWord.sourcePatternVertexId = sourcePatternBeginningId
-        autoMarkMatchingSourcePattern(sourcePatternBeginningId).then( () => {
-            // 處理 target pattern
-            targetPattern.selection.clearSelection()
-            targetPattern.selection.reloadOptions(sourcePatternBeginningId).then( (targetPattern) => {
-                console.log('target pattern options reloaded: ', targetPattern)
-            })
-        })
-        store.dispatch('setToggling', false)
-    })
-
-    const autoMarkMatchingSourcePattern = (sourcePatternBeginningId) => {
-        sourcePatternManager.selection.setAsSelected(sourcePatternBeginningId)
-        // 這裡必須要用 ==，因為 Primevue 的值是存 null，不是存 undefined
-        if (selectedSourcePattern.value == undefined || selectedSourcePattern.value.id == undefined) {
-            sourcePatternManager.selection.setAsSelected(sourcePatternBeginningId)
-        }
-        const sentence = currentSentence()
-        sentence.arcs.forEach( (dependency) => {
-            dependency.sourcePatternEdgeId = undefined
-        })
-
-        let gremlinCommand = new gremlinManager.GremlinInvoke()
-        .call("V", sourcePatternBeginningId)
-        .call("repeat", new gremlinManager.GremlinInvoke(true).call("outE").call("inV"))
-        .call("until", new gremlinManager.GremlinInvoke(true).call("outE").call("count").call("is", 0))
-        .call("limit", 20)
-        .call("path")
-        .command()
-        return new Promise( (resolve, reject) => {
-            gremlinManager.submit(gremlinCommand).then( (resultData) => {
-                findBeginWord().sourcePatternVertexId = sourcePatternBeginningId
-
-                // TODO 這 2 個動作可能會造成以後的錯誤
-                findBeginWord().selectedMorphologyInfoTypes.splice(0, findBeginWord().selectedMorphologyInfoTypes.length)
-                findBeginWord().selectedMorphologyInfoTypes.push(morphologyInfoTypeEnum.pos)
-
-                resultData['@value'].forEach( (path) => {
-                    const outVId = path['@value'].objects['@value'][0]['@value'].id['@value']
-                    const outELabel = path['@value'].objects['@value'][1]['@value'].label
-                    const outEId = path['@value'].objects['@value'][1]['@value'].id['@value'].relationId
-                    const matchingArc = sentence.arcs.find( (arc) => {
-                        return (
-                            sentence.words[arc.trueStart].sourcePatternVertexId === outVId
-                            && arc.label === outELabel
-                        )
-                    })
-                    matchingArc.sourcePatternEdgeId = outEId
-                    // 有了 sourcePatternEdgeId，視同被選取。應該要考慮用 getter 邏輯來處理
-                    matchingArc.selected = true
-                })
-                resolve(sourcePatternBeginningId)
-            }).catch ( (error) => {
-                console.error(error)
-                reject(error)
-            })
-        })
-    }
 
     const currentSentence = () => {
         return spacyFormatSentences[store.getters.currentSentenceIndex]

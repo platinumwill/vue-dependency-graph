@@ -124,7 +124,7 @@ export default {
         // TODO 變數名稱待調整
         const { targetPattern } = targetPatternPieceManager(currentSentence)
         const { sourcePatternManager } = sourcePatternLogic(currentSentence)
-        const { patternManager } = patternLogic(sourcePatternManager, targetPattern)
+        const { patternManager } = patternLogic(sourcePatternManager, targetPattern, currentSentence)
 
         const {
             toggleMorphologySelection
