@@ -35,48 +35,39 @@ export default function patternManager (
     }
 
     const store = useStore()
+
+    // 因為 watch source pattern 的邏輯牽涉到 target pattern，所以實做放在這裡
     watch(sourcePatternManager.selection.selectedPattern, (newValue, oldValue) => {
         console.log('watching selected source pattern change: ', newValue, oldValue)
+        // TODO 跟 sentence 相關的邏輯要歸 sentence manager，跟 source pattern 相關的邏輯要歸 source pattern manager
         const sentence = currentSentence.value
         if (! store.getters.toggling) {
             sentence.clearSelection()
         }
-        // TODO 這裡有點亂，待整理
         sentence.arcs.forEach( arc => arc.sourcePatternEdgeId = undefined)
-        targetPattern.selection.clearOptions()
-        if (newValue == undefined || newValue.id == undefined) {
-            sentence.words.forEach( (word) => {
-                word.sourcePatternVertexId = undefined
-            })
-            return
-        }
+        sentence.words.forEach( word => word.sourcePatternVertexId = undefined)
 
         const currentBeginWord = currentSentence.value.findBeginWord()
-        if (currentBeginWord == undefined) return
+        if (currentBeginWord == undefined || newValue == undefined) return
         
         const sourcePatternBeginningId = newValue.id
         currentBeginWord.sourcePatternVertexId = sourcePatternBeginningId
-        autoMarkMatchingSourcePattern(sourcePatternBeginningId).then( () => {
-            // 處理 target pattern
-            targetPattern.selection.clearSelection()
-            targetPattern.selection.reloadOptions(sourcePatternBeginningId).then( (targetPatternOptions: LinearTargetPattern[]) => {
-                console.log('target pattern options reloaded: ', targetPatternOptions)
-            })
+        autoMarkMatchingSourcePattern(sourcePatternBeginningId).then()
+        // 處理 target pattern
+        targetPattern.selection.clearSelection()
+        targetPattern.selection.clearOptions()
+        targetPattern.selection.reloadOptions(sourcePatternBeginningId).then( (targetPatternOptions: LinearTargetPattern[]) => {
+            console.log('target pattern options reloaded: ', targetPatternOptions)
         })
         store.dispatch('setToggling', false)
     })
 
-    const autoMarkMatchingSourcePattern = (sourcePatternBeginningId: number) => {
-        sourcePatternManager.selection.setAsSelected(sourcePatternBeginningId)
-        // 這裡必須要用 ==，因為 Primevue 的值是存 null，不是存 undefined
-        if (sourcePatternManager.selection.selectedPattern.value == undefined 
-            || sourcePatternManager.selection.selectedPattern.value.id == undefined
-        ) {
-            sourcePatternManager.selection.setAsSelected(sourcePatternBeginningId)
-        }
-        currentSentence.value.arcs.forEach( (dependency) => {
-            dependency.sourcePatternEdgeId = undefined
-        })
+    const autoMarkMatchingSourcePattern = async (sourcePatternBeginningId: number) => {
+
+        currentSentence.value.arcs.forEach( dependency => dependency.sourcePatternEdgeId = undefined)
+        currentSentence.value.words.forEach( word => word.sourcePatternVertexId = undefined)
+
+        // 下面的邏輯也許應該切到 setence manager
 
         let gremlinCommand = new gremlinApi.GremlinInvoke()
         .call("V", sourcePatternBeginningId)
