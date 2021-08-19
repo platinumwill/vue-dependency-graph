@@ -15,7 +15,7 @@ export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpa
     const dialogPieces = ref<LinearTargetPatternPiece[]>([])
 
     watch(dialogPieces, (newValue, oldValue) => {
-        setSelectedTargetPatternByPieces(dialogPieces.value)
+        setSelectedTargetPatternByDialog()
     })
 
     function clearTargetPatternSelection() {
@@ -53,6 +53,9 @@ export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpa
         renewDialogPieces(currentSpacySentence, defaultTargetPatternSamplePieces)
     }
 
+    function setSelectedTargetPatternByDialog() {
+        setSelectedTargetPatternByPieces(dialogPieces.value)
+    }
     function setSelectedTargetPatternByPieces(patternPieces: LinearTargetPatternPiece[]) {
         const defaultTargetPatternSample = new LinearTargetPattern(patternPieces)
         selectedTargetPattern.value = targetPatternOptions.value.find( tp => {return tp.piecesEqual(defaultTargetPatternSample) })
@@ -83,8 +86,10 @@ export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpa
         )
     }
 
-    function reloadTargetPatternOptions(sourcePatternBeginningId: number) {
-        return reloadMatchingTargetPatternOptions(sourcePatternBeginningId, currentSentence.value, targetPatternOptions.value)
+    async function reloadTargetPatternOptions(sourcePatternBeginningId: number) {
+        const result: LinearTargetPattern[] = await reloadMatchingTargetPatternOptions(sourcePatternBeginningId, currentSentence.value, targetPatternOptions.value)
+        setSelectedTargetPatternByDialog()
+        return result
     }
 
     function removePiece(piece: LinearTargetPatternPiece) {
@@ -406,7 +411,7 @@ export function reloadMatchingTargetPatternOptions (
                     .call("fold")
             )
         )
-    return new Promise( (resolve, reject) => {
+    return new Promise<LinearTargetPattern[]>( (resolve, reject) => {
         gremlinManager.submit(gremlinCommand).then( (resultData: any) => {
             resultData['@value'].forEach( (targetPatternPath: any) => {
                 const targetPattern = new LinearTargetPattern()
