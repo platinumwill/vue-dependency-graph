@@ -29,6 +29,7 @@ export const aliases = Object.freeze({
 export const propertyNames = Object.freeze({
     isConnector: "isConnector"
     , isPlaceholder: "isPlaceholder"
+    , seqNo: "seqNo"
 })
 
 export const projectKeys = Object.freeze({
@@ -70,6 +71,15 @@ export class GremlinInvoke {
 
     outE(...values: string[] | number[] | boolean[] | GremlinInvoke[]) {
         return this.call("outE", ...values)
+    }
+    property(...values: any[]) {
+        return this.call("property", ...values)
+    }
+    as(alias: string) {
+        return this.call("as", alias)
+    }
+    select(key: string) {
+        return this.call("select", key)
     }
 
     command() {

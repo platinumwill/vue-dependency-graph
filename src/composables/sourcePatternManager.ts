@@ -39,13 +39,21 @@ export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpa
             .call("as", gremlinUtils.aliases.sourcePatternBeginning)
             return gremlinInvoke
         }
-        selectedWords.forEach( (word) => {
-            gremlinInvoke = gremlinInvoke
-                .call("addV", gremlinUtils.vertexLabels.sourcePattern)
+        const elements: sentenceManager.ModifiedSpacyElement[] = []
+        elements.push(...selectedWords)
+        elements.push(...selectedArcs)
+        // token 和 dependency 拼在一起是為了要順序的資料
+        elements.sort( (e1, e2) => { return e1.indexInSentence - e2.indexInSentence})
+        elements.forEach( (ele, index) => {
+            if (! (ele instanceof sentenceManager.ModifiedSpacyToken)) return
+
+            const word = ele
+            gremlinInvoke.call("addV", gremlinUtils.vertexLabels.sourcePattern)
+            gremlinInvoke.property(gremlinUtils.propertyNames.seqNo, index + 1)
             word.selectedMorphologyInfoTypes.forEach( (morphInfoType) => {
                 gremlinInvoke = gremlinInvoke.call("property", morphInfoType.name, word[morphInfoType.propertyInWord])
             })
-            gremlinInvoke = gremlinInvoke.call("as", gremlinUtils.vertexAlias(word))
+            gremlinInvoke.call("as", gremlinUtils.vertexAlias(word))
             if (word.isBeginning) {
                 gremlinInvoke = gremlinInvoke
                 .call("as", gremlinUtils.aliases.sourcePatternBeginning)
@@ -54,7 +62,10 @@ export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpa
                 .call("property", "owner", "Chin")
             }
         })
-        selectedArcs.forEach( (arc) => {
+        elements.forEach( (ele, index) => {
+            if (! (ele instanceof sentenceManager.ModifiedSpacyDependency)) return
+
+            const arc = ele
             const startWord = selectedWords.find( word => word.indexInSentence == arc.trueStart )
             if (startWord === undefined
                 || startWord.selectedMorphologyInfoTypes.length === 0
@@ -80,6 +91,7 @@ export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpa
             .call("addE", arc.label)
             .call("from", startVName)
             .call("to", endVName)
+            .property(gremlinUtils.propertyNames.seqNo, index + 1)
         })
         return gremlinInvoke
     }
