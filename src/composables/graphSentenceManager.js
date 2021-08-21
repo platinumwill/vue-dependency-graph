@@ -1,15 +1,19 @@
 import { useStore } from "vuex"
 import * as gremlinManager from "@/composables/gremlinManager"
 import * as sourcePatternUtil from "@/composables/sourcePatternManager"
+import * as sentenceManager from "@/composables/sentenceManager"
 
 export default function(sourcePatternManager, targetPattern, spacyFormatSentences) {
 
     const store = useStore()
 
     const toggleMorphologySelection = (morphInfoType, tokenIndex) => {
+        const sentence = currentSentence()
+        const word = sentence.words[tokenIndex]
+        if (word[morphInfoType.propertyInWord].endsWith(sentenceManager.morphologyInfoUnknownValuePostfix)) return
+
         store.dispatch('setToggling', true)
 
-        const sentence = currentSentence()
         const selectedArcs = sentence.arcs.filter( arc => arc.selected)
         if (selectedArcs.length > 0) { // 如果有選 dependency
             if (selectedArcs.filter( (selectedArc) => { // 選起來的 dependency 又都沒有連著現在要選的 token
@@ -19,7 +23,6 @@ export default function(sourcePatternManager, targetPattern, spacyFormatSentence
         // TODO 選取還是都要連起來比較保險
         // 執行 toggle
         // TODO PROGRESS POS 固定要選起來，選了其他的，要自動標記 POS 有選
-        const word = sentence.words[tokenIndex]
         if (word.selectedMorphologyInfoTypes.includes(morphInfoType)) { // toggle off
             word.selectedMorphologyInfoTypes.splice(word.selectedMorphologyInfoTypes.indexOf(morphInfoType, 1))
             word.sourcePatternVertexId = undefined
