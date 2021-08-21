@@ -8,21 +8,21 @@ describe('pattern comparison', () => {
     const spacyWord1 = { text: 'sent', tag: 'VERB', lemma: 'send' }
     const token1 = new sentenceManager.ModifiedSpacyToken(spacyWord1, 1)
     token1.selectedMorphologyInfoTypes = [
-        morphologyInfoTypeEnum.pos.name
+        morphologyInfoTypeEnum.pos
     ]
     const piece1 = new targetPatternPieceManager.LinearTargetPatternPiece(token1)
 
     const spacyWord2 = { text: 'get', tag: 'VERB', lemma: 'get'}
     const token2 = new sentenceManager.ModifiedSpacyToken(spacyWord2, 3)
     token2.selectedMorphologyInfoTypes = [
-        morphologyInfoTypeEnum.pos.name
+        morphologyInfoTypeEnum.pos
     ]
     const piece2 = new targetPatternPieceManager.LinearTargetPatternPiece(token2)
 
     const token3 = new sentenceManager.ModifiedSpacyToken(spacyWord1, 1)
     token3.selectedMorphologyInfoTypes = [
-        morphologyInfoTypeEnum.pos.name
-        , morphologyInfoTypeEnum.lemma.name
+        morphologyInfoTypeEnum.pos
+        , morphologyInfoTypeEnum.lemma
     ]
     const piece3 = new targetPatternPieceManager.LinearTargetPatternPiece()
 
