@@ -3,7 +3,7 @@ import { useStore } from "vuex"
 
 import * as gremlinApi from "@/composables/gremlinManager"
 import { SourcePatternManager } from "@/composables/sourcePatternManager"
-import { ModifiedSpacySentence, ModifiedSpacyToken, morphologyInfoUnknownValuePostfix } from "./sentenceManager"
+import { ModifiedSpacyDependency, ModifiedSpacySentence, ModifiedSpacyToken, morphologyInfoUnknownValuePostfix } from "./sentenceManager"
 import { LinearTargetPattern } from "./targetPatternPieceManager"
 import { MorphologyInfo, morphologyInfoTypeEnum } from "./morphologyInfo"
 
@@ -148,10 +148,26 @@ export default function patternManager (
         })
     }
 
+    const toggleDependencySelection = (dependency: ModifiedSpacyDependency) => {
+        store.dispatch('setToggling', true)
+
+        if (dependency.selected || dependency.sourcePatternEdgeId) {
+            dependency.sourcePatternEdgeId = undefined
+            dependency.selected = false
+            sourcePatternManager.selection.setAsSelected(undefined)
+        } else {
+            dependency.selected = !dependency.selected
+        }
+        sourcePatternManager.selection.reloadOptions().then( () => {
+            findExistingMatchSourcePatternAndMark(currentSentence.value, sourcePatternManager)
+        })
+    }
+
     return {
         patternManager: {
             saveSelectedPattern: saveSelectedPattern
             , toggleMorphologyInfoSelection: toggleMorphologyInfoSelection
+            , toggleDependencySelection: toggleDependencySelection
         }
     }
 

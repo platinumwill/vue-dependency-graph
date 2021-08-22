@@ -127,12 +127,10 @@ export default {
         const { patternManager } = patternLogic(sourcePatternManager, targetPattern, currentSentence)
 
         const {
-            toggleDependencySelection
-            , sourcePattern
+            sourcePattern
         } = graphSentenceManager(sourcePatternManager, targetPattern, spacyFormatSentences)
 
         provide('spacyFormatSentences', spacyFormatSentences)
-        provide('toggleDependencySelection', toggleDependencySelection)
         provide('sourcePattern', sourcePattern)
         provide('targetPattern', targetPattern)
         provide('currentSentence', currentSentence)
