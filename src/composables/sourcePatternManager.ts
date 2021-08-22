@@ -10,10 +10,6 @@ export function clearOptions(sourcePatternOptions: any) {
     sourcePatternOptions.value.splice(0, sourcePatternOptions.value.length)
 }
 
-export function isSourcePatternNew(selectedSourcePattern: any) {
-    return selectedSourcePattern.value == undefined
-}
-
 class SourcePatternOption {
     id: number
     label: string
@@ -110,6 +106,10 @@ export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpa
         })
     }
 
+    function isSourcePatternNew() {
+        return selectedSourcePattern.value == undefined
+    }
+
     return {
         sourcePatternManager: {
             selection: {
@@ -121,6 +121,9 @@ export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpa
             }
             , process: {
                 save: processSelectedSourcePatternStoring
+            }
+            , status: {
+                isSourcePatternNew: isSourcePatternNew
             }
         }
     }

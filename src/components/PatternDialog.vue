@@ -24,7 +24,7 @@
             <template #header>
                 <h2>Target Pattern</h2>
 
-                <h3 v-if="isSourcePatternNew">New Source Pattern</h3>
+                <h3 v-if="sourcePattern.status.isSourcePatternNew()">New Source Pattern</h3>
 
                 <Dropdown v-model="targetPattern.selection.selected.value"
                     :options="targetPattern.selection.options"
@@ -74,8 +74,6 @@ import VueHorizontal from "vue-horizontal";
 import SegmentPiece from "./SegmentPiece.vue"
 import { mapGetters } from 'vuex'
 import { computed, inject } from 'vue'
-
-import * as sourcePatternManager from '@/composables/sourcePatternManager'
 
 export default {
     components: {
@@ -135,11 +133,8 @@ export default {
         const currentSentence = inject('currentSentence')
         const patternManager = inject('patternManager')
 
-        const isSourcePatternNew = computed( () => {
-            return sourcePatternManager.isSourcePatternNew(sourcePattern.selection.selectedPattern)
-        })
         const isTargetPatternStorable = computed( () => {
-            return sourcePatternManager.isSourcePatternNew(sourcePattern.selection.selectedPattern)
+            return sourcePattern.status.isSourcePatternNew()
             || targetPattern.dialogPieces.isPatternNew()
         })
 
@@ -147,7 +142,6 @@ export default {
             patternManager
             , sourcePattern
             , targetPattern
-            , isSourcePatternNew
             , isTargetPatternStorable
             , currentSentence
         }
