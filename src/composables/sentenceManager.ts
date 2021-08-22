@@ -40,6 +40,8 @@ export class ModifiedSpacyElement {
     }
 
 }
+
+export const morphologyInfoUnknownValuePostfix = "_UNKNOWN"
 export class ModifiedSpacyToken extends ModifiedSpacyElement {
 
     text: string
@@ -48,12 +50,20 @@ export class ModifiedSpacyToken extends ModifiedSpacyElement {
     selectedMorphologyInfoTypes: MorphologyInfo[] = []
     sourcePatternVertexId?: number
     isBeginning?: boolean
+    $tense: string
 
     constructor(spacyWord: any, index: number) {
         super(index, "token")
         this.text = spacyWord.text
         this.tag = spacyWord.tag
         this.lemma = spacyWord.lemma
+        this.$tense = spacyWord.tense == undefined || spacyWord.tense.endsWith(morphologyInfoUnknownValuePostfix) 
+        ? morphologyInfoUnknownValuePostfix
+        : spacyWord.tense
+    }
+
+    get tense() {
+        return this.$tense
     }
 
 }

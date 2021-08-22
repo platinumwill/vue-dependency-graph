@@ -1,7 +1,7 @@
 import { ModifiedSpacyToken } from "@/composables/sentenceManager"
 
-type GoogleMorphologyInfoType = "pos" | "lemma"
-type GoogleMorphologyInfoTypeProperty = "tag" | "lemma"
+type GoogleMorphologyInfoType = "pos" | "lemma" | "tense"
+type GoogleMorphologyInfoTypeProperty = "tag" | "lemma" | "tense"
 
 export class MorphologyInfo {
     name: GoogleMorphologyInfoType
@@ -17,4 +17,5 @@ export class MorphologyInfo {
 export const morphologyInfoTypeEnum = Object.freeze({
     pos: new MorphologyInfo('pos', 'tag')
     , lemma: new MorphologyInfo('lemma', 'lemma')
+    , tense: new MorphologyInfo('tense', 'tense')
 })

@@ -2,6 +2,7 @@
     <text class="displacy-token" fill="currentColor" text-anchor="middle" :y="y">
         <tspan class="displacy-word" fill="currentColor" :x="x">{{ word.text }}</tspan>
         <TokenInfo :token="word" :morphologyInfoType="this.morphologyInfoTypeEnum.lemma" :dy="'2em'">{{ word.lemma }}</TokenInfo>
+        <TokenInfo :token="word" :morphologyInfoType="this.morphologyInfoTypeEnum.tense" :dy="'2em'">{{ word.tense }}</TokenInfo>
         <TokenInfo :token="word" :morphologyInfoType="this.morphologyInfoTypeEnum.pos" :dy="'2em'">{{ word.tag }}</TokenInfo>
     </text>
 </template>
