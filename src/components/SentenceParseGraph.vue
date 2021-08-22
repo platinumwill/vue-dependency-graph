@@ -127,13 +127,11 @@ export default {
         const { patternManager } = patternLogic(sourcePatternManager, targetPattern, currentSentence)
 
         const {
-            toggleMorphologySelection
-            , toggleDependencySelection
+            toggleDependencySelection
             , sourcePattern
         } = graphSentenceManager(sourcePatternManager, targetPattern, spacyFormatSentences)
 
         provide('spacyFormatSentences', spacyFormatSentences)
-        provide('toggleMorphologySelection', toggleMorphologySelection)
         provide('toggleDependencySelection', toggleDependencySelection)
         provide('sourcePattern', sourcePattern)
         provide('targetPattern', targetPattern)

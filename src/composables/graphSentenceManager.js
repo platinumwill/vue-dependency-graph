@@ -1,50 +1,10 @@
 import { useStore } from "vuex"
 import * as gremlinManager from "@/composables/gremlinManager"
 import * as sourcePatternUtil from "@/composables/sourcePatternManager"
-import * as sentenceManager from "@/composables/sentenceManager"
 
 export default function(sourcePatternManager, targetPattern, spacyFormatSentences) {
 
     const store = useStore()
-
-    const toggleMorphologySelection = (morphInfoType, tokenIndex) => {
-        const sentence = currentSentence()
-        const word = sentence.words[tokenIndex]
-        if (word[morphInfoType.propertyInWord].endsWith(sentenceManager.morphologyInfoUnknownValuePostfix)) return
-
-        store.dispatch('setToggling', true)
-
-        const selectedArcs = sentence.arcs.filter( arc => arc.selected)
-        if (selectedArcs.length > 0) { // 如果有選 dependency
-            if (selectedArcs.filter( (selectedArc) => { // 選起來的 dependency 又都沒有連著現在要選的 token
-                return (selectedArc.trueStart === tokenIndex || selectedArc.trueEnd === tokenIndex)
-            }).length <= 0) return // 就不要選取
-        }
-        // TODO 選取還是都要連起來比較保險
-        // 執行 toggle
-        // TODO PROGRESS POS 固定要選起來，選了其他的，要自動標記 POS 有選
-        if (word.selectedMorphologyInfoTypes.includes(morphInfoType)) { // toggle off
-            word.selectedMorphologyInfoTypes.splice(word.selectedMorphologyInfoTypes.indexOf(morphInfoType, 1))
-            word.sourcePatternVertexId = undefined
-            const beginWord = findBeginWord()
-            if (beginWord != undefined && beginWord.indexInSentence === tokenIndex) {
-                selectedSourcePattern.value = undefined
-                sourcePatternOptions.value.splice(0, sourcePatternOptions.value.length)
-                targetPattern.selection.clearSelection()
-                targetPattern.selection.clearOptions()
-                word.isBeginning = false
-            }
-        } else { // toggle on
-            word.selectedMorphologyInfoTypes.push(morphInfoType)
-            if (findBeginWord() === undefined) {
-                word.isBeginning = true
-            }
-            // TODO PROGRESS POS 固定要選起來，選了其他的，要自動標記 POS 有選，這裡做反向控制
-        }
-        sourcePatternManager.selection.reloadOptions().then( () => {
-            findExistingMatchSourcePatternAndMark()
-        })
-    }
 
     const toggleDependencySelection = (dependency) => {
         store.dispatch('setToggling', true)
@@ -135,8 +95,7 @@ export default function(sourcePatternManager, targetPattern, spacyFormatSentence
     }
 
     return {
-        toggleMorphologySelection
-        , toggleDependencySelection
+        toggleDependencySelection
         , sourcePattern: {
             selected: selectedSourcePattern
             , options: sourcePatternOptions.value
