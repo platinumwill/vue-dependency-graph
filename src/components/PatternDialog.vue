@@ -1,8 +1,8 @@
 <template>
     <div>
         <div>
-            <Dropdown v-model="sourcePattern.selected.value"
-                :options="sourcePattern.options"
+            <Dropdown v-model="sourcePattern.selection.selectedPattern"
+                :options="sourcePattern.selection.options.value"
                 optionLabel="label"
                 placeholder="Existing source pattern"
                 :showClear="true"
@@ -136,10 +136,10 @@ export default {
         const patternManager = inject('patternManager')
 
         const isSourcePatternNew = computed( () => {
-            return sourcePatternManager.isSourcePatternNew(sourcePattern.selected)
+            return sourcePatternManager.isSourcePatternNew(sourcePattern.selection.selectedPattern)
         })
         const isTargetPatternStorable = computed( () => {
-            return sourcePatternManager.isSourcePatternNew(sourcePattern.selected)
+            return sourcePatternManager.isSourcePatternNew(sourcePattern.selection.selectedPattern)
             || targetPattern.dialogPieces.isPatternNew()
         })
 

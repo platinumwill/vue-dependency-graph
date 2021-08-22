@@ -20,7 +20,6 @@ import { provide } from 'vue'
 import PatternDialog from "./PatternDialog.vue"
 
 import spacyFormatManager from "@/composables/spacyFormatManager"
-import graphSentenceManager from "@/composables/graphSentenceManager"
 import targetPatternPieceManager from '@/composables/targetPatternPieceManager'
 import sourcePatternLogic from '@/composables/sourcePatternManager'
 import sentenceManager from '@/composables/sentenceManager'
@@ -126,12 +125,8 @@ export default {
         const { sourcePatternManager } = sourcePatternLogic(currentSentence)
         const { patternManager } = patternLogic(sourcePatternManager, targetPattern, currentSentence)
 
-        const {
-            sourcePattern
-        } = graphSentenceManager(sourcePatternManager, targetPattern, spacyFormatSentences)
-
         provide('spacyFormatSentences', spacyFormatSentences)
-        provide('sourcePattern', sourcePattern)
+        provide('sourcePattern', sourcePatternManager)
         provide('targetPattern', targetPattern)
         provide('currentSentence', currentSentence)
         provide('patternManager', patternManager)
