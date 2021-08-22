@@ -72,7 +72,6 @@ export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpa
         currentSpacySentence: sentenceManager.ModifiedSpacySentence
         , defaultTargetPatternPieces?: LinearTargetPatternPiece[]
         ) {
-        console.log('renewing dialog pieces')
 
         let tempDialogPieces: LinearTargetPatternPiece[] = []
 
