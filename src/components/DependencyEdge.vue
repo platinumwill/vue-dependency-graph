@@ -40,12 +40,12 @@ export default {
     }
     , inject: [
         'config'
-        , 'toggleDependencySelection'
         , 'spacyFormatSentences'
+        , 'patternManager'
     ]
     , methods: {
         edgeLabelClicked: function() {
-            this.toggleDependencySelection(this.arc)
+            this.patternManager.toggleDependencySelection(this.arc)
         }
     }
     , computed: {

@@ -3,9 +3,9 @@ import { useStore } from "vuex"
 
 import * as gremlinApi from "@/composables/gremlinManager"
 import { SourcePatternManager } from "@/composables/sourcePatternManager"
-import { ModifiedSpacySentence } from "./sentenceManager"
+import { ModifiedSpacyDependency, ModifiedSpacySentence, ModifiedSpacyToken, morphologyInfoUnknownValuePostfix } from "./sentenceManager"
 import { LinearTargetPattern } from "./targetPatternPieceManager"
-import { morphologyInfoTypeEnum } from "./morphologyInfo"
+import { MorphologyInfo, morphologyInfoTypeEnum } from "./morphologyInfo"
 
 // TODO 變數名稱待調整
 export default function patternManager (
@@ -109,10 +109,124 @@ export default function patternManager (
         })
     }
 
+    const toggleMorphologyInfoSelection = (morphInfoType: MorphologyInfo, token: ModifiedSpacyToken) => {
+        const sentence = currentSentence.value
+        const word = token
+        if (word[morphInfoType.propertyInWord].endsWith(morphologyInfoUnknownValuePostfix)) return
+
+        store.dispatch('setToggling', true)
+
+        const selectedArcs = sentence.arcs.filter( arc => arc.selected)
+        if (selectedArcs.length > 0) { // 如果有選 dependency
+            if (selectedArcs.filter( (selectedArc) => { // 選起來的 dependency 又都沒有連著現在要選的 token
+                return (selectedArc.trueStart === token.indexInSentence || selectedArc.trueEnd === token.indexInSentence)
+            }).length <= 0) return // 就不要選取
+        }
+        // TODO 選取還是都要連起來比較保險
+        // 執行 toggle
+        // TODO PROGRESS POS 固定要選起來，選了其他的，要自動標記 POS 有選
+        if (word.selectedMorphologyInfoTypes.includes(morphInfoType)) { // toggle off
+            word.selectedMorphologyInfoTypes.splice(word.selectedMorphologyInfoTypes.indexOf(morphInfoType, 1))
+            word.sourcePatternVertexId = undefined
+            const beginWord = currentSentence.value.findBeginWord()
+            if (beginWord != undefined && beginWord.indexInSentence === token.indexInSentence) {
+                sourcePatternManager.selection.setAsSelected(undefined)
+                sourcePatternManager.selection.clearOptions()
+                targetPattern.selection.clearSelection()
+                targetPattern.selection.clearOptions()
+                word.isBeginning = false
+            }
+        } else { // toggle on
+            word.selectedMorphologyInfoTypes.push(morphInfoType)
+            if (currentSentence.value.findBeginWord() === undefined) {
+                word.isBeginning = true
+            }
+            // TODO PROGRESS POS 固定要選起來，選了其他的，要自動標記 POS 有選，這裡做反向控制
+        }
+        sourcePatternManager.selection.reloadOptions().then( () => {
+            findExistingMatchSourcePatternAndMark(currentSentence.value, sourcePatternManager)
+        })
+    }
+
+    const toggleDependencySelection = (dependency: ModifiedSpacyDependency) => {
+        store.dispatch('setToggling', true)
+
+        if (dependency.selected || dependency.sourcePatternEdgeId) {
+            dependency.sourcePatternEdgeId = undefined
+            dependency.selected = false
+            sourcePatternManager.selection.setAsSelected(undefined)
+        } else {
+            dependency.selected = !dependency.selected
+        }
+        sourcePatternManager.selection.reloadOptions().then( () => {
+            findExistingMatchSourcePatternAndMark(currentSentence.value, sourcePatternManager)
+        })
+    }
+
     return {
         patternManager: {
             saveSelectedPattern: saveSelectedPattern
+            , toggleMorphologyInfoSelection: toggleMorphologyInfoSelection
+            , toggleDependencySelection: toggleDependencySelection
         }
     }
 
+}
+const findExistingMatchSourcePatternAndMark = (
+    currentSentence: ModifiedSpacySentence
+    , sourcePatternManager: SourcePatternManager
+    ) => {
+
+    const beginWord = currentSentence.findBeginWord()
+    if (! beginWord) return
+    const selectedArcsFromBegin = currentSentence.arcs.filter( (arc) => {
+        return (arc.selected && arc.trueStart === beginWord.indexInSentence)
+    })
+    if (selectedArcsFromBegin.length === 0) return
+    let gremlinInvoke = new gremlinApi.GremlinInvoke()
+    .call("V")
+    beginWord.selectedMorphologyInfoTypes.forEach( (morphInfoType) => {
+        gremlinInvoke = gremlinInvoke.call("has", morphInfoType.name, beginWord[morphInfoType.propertyInWord])
+    })
+    gremlinInvoke.call(
+        "where"
+        , new gremlinApi.GremlinInvoke(true)
+        .call("outE")
+        .call("count")
+        .call("is", selectedArcsFromBegin.length)
+    )
+    const arcSum = new Map();
+    selectedArcsFromBegin.forEach( (selectedArc) => {
+        if ( arcSum.has(selectedArc.label) ) {
+            arcSum.set(selectedArc.label, arcSum.get(selectedArc.label) + 1)
+        } else {
+            arcSum.set(selectedArc.label, 1)
+        }
+    })
+    arcSum.forEach( (value, key) => {
+        gremlinInvoke.call(
+            "and"
+            , new gremlinApi.GremlinInvoke(true)
+            .call("outE", key)
+            .call("count")
+            .call("is", value)
+        )
+    })
+    // TODO 到這裡只完成第一層的 edge 判斷，還有後續的 vertex 和 edge 要查
+    const gremlinCommand = gremlinInvoke.command()
+    console.log(gremlinCommand)
+    gremlinApi.submit(gremlinCommand).then( (resultData: any) => {
+        if (resultData['@value'].length === 0) {
+            sourcePatternManager.selection.setAsSelected(undefined)
+            sourcePatternManager.selection.clearOptions()
+            return
+        }
+        if (resultData['@value'].length > 1) {
+            const error = "資料庫存的 pattern 重覆"
+            console.error(error, resultData)
+            throw error
+        }
+        const sourcePatternBeginningId = resultData['@value'][0]['@value'].id['@value']
+        sourcePatternManager.selection.setAsSelected(sourcePatternBeginningId)
+    })
 }

@@ -11,8 +11,8 @@ export default {
     , inject: [
         'config'
         , 'tokenIndex'
-        , 'toggleMorphologySelection'
         , 'spacyFormatSentences'
+        , 'patternManager'
         ]
     , props: {
         dy: {
@@ -32,7 +32,7 @@ export default {
     }
     , methods: {
         posClicked: function() {
-            this.toggleMorphologySelection(this.morphologyInfoType, this.token.indexInSentence)
+            this.patternManager.toggleMorphologyInfoSelection(this.morphologyInfoType, this.token)
         }
     }
     , computed: {

@@ -100,6 +100,10 @@ export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpa
         return reloadMatchingSourcePatternOptions(sourcePatternOptions, currentSentence.value)
     }
 
+    const clearOptions = () => {
+        sourcePatternOptions.value.splice(0, sourcePatternOptions.value.length)
+    }
+
     const setSelectedSourcePatternDropdownValue = (id: any) => {
         selectedSourcePattern.value = sourcePatternOptions.value.find( (option) => {
             return option.id == id
@@ -113,6 +117,7 @@ export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpa
                 , options: sourcePatternOptions
                 , reloadOptions: reloadOptions
                 , setAsSelected: setSelectedSourcePatternDropdownValue
+                , clearOptions: clearOptions
             }
             , process: {
                 save: processSelectedSourcePatternStoring
@@ -128,6 +133,7 @@ export type SourcePatternManager = {
         , save: any
         , reloadOptions: any
         , setAsSelected: any
+        , clearOptions: Function
     }
     , process: {
         save: Function
