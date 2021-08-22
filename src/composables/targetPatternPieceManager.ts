@@ -7,14 +7,20 @@ import { GremlinInvoke } from '@/composables/gremlinManager'
 export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpacySentence>) {
 
     const selectedTargetPattern = ref<LinearTargetPattern | undefined>(undefined)
+    let dialogPiecesDragged = false
 
     watch(selectedTargetPattern, (newValue: any, oldValue) => {
+        if (dialogPiecesDragged) {
+            dialogPiecesDragged = false
+            return
+        }
         renewDialogPieces(currentSentence.value)
     })
 
     const dialogPieces = ref<LinearTargetPatternPiece[]>([])
 
     watch(dialogPieces, (newValue, oldValue) => {
+        dialogPiecesDragged = true
         setSelectedTargetPatternByDialog()
     })
 
@@ -58,8 +64,8 @@ export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpa
     }
     function setSelectedTargetPatternByPieces(patternPieces: LinearTargetPatternPiece[]) {
         const defaultTargetPatternSample = new LinearTargetPattern(patternPieces)
-        selectedTargetPattern.value = targetPatternOptions.value.find( tp => {return tp.piecesEqual(defaultTargetPatternSample) })
-        console.log('set selected target pattern: ', selectedTargetPattern.value)
+        let matchOption = targetPatternOptions.value.find( tp => {return tp.piecesEqual(defaultTargetPatternSample) })
+        selectedTargetPattern.value = matchOption
     }
 
     function renewDialogPieces(
