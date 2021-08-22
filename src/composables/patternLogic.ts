@@ -126,7 +126,7 @@ export default function patternManager (
         // 執行 toggle
         // TODO PROGRESS POS 固定要選起來，選了其他的，要自動標記 POS 有選
         if (word.selectedMorphologyInfoTypes.includes(morphInfoType)) { // toggle off
-            word.selectedMorphologyInfoTypes.splice(word.selectedMorphologyInfoTypes.indexOf(morphInfoType, 1))
+            word.selectedMorphologyInfoTypes.splice(word.selectedMorphologyInfoTypes.indexOf(morphInfoType))
             word.sourcePatternVertexId = undefined
             const beginWord = currentSentence.value.findBeginWord()
             if (beginWord != undefined && beginWord.indexInSentence === token.indexInSentence) {
