@@ -39,7 +39,10 @@ export default function patternManager (
     // 因為 watch source pattern 的邏輯牽涉到 target pattern，所以實做放在這裡
     watch(sourcePatternManager.selection.selectedPattern, (newValue, oldValue) => {
         console.log('watching selected source pattern change: ', newValue, oldValue)
-        // TODO 跟 sentence 相關的邏輯要歸 sentence manager，跟 source pattern 相關的邏輯要歸 source pattern manager
+        // reset target patter 下拉選單
+        targetPattern.selection.clearSelection()
+        targetPattern.selection.clearOptions()
+
         const sentence = currentSentence.value
         if (! store.getters.toggling) {
             sentence.clearSelection()
@@ -54,8 +57,6 @@ export default function patternManager (
         currentBeginWord.sourcePatternVertexId = sourcePatternBeginningId
         autoMarkMatchingSourcePattern(sourcePatternBeginningId).then()
         // 處理 target pattern
-        targetPattern.selection.clearSelection()
-        targetPattern.selection.clearOptions()
         targetPattern.selection.reloadOptions(sourcePatternBeginningId).then( (targetPatternOptions: LinearTargetPattern[]) => {
             console.log('target pattern options reloaded: ', targetPatternOptions)
         })
