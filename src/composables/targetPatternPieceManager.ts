@@ -297,7 +297,11 @@ export const processTargetPatternStoring = (segmentPieces: LinearTargetPatternPi
                     .call("inV")
                 )
             } else {
-                gremlinInvoke.call("to", gremlinManager.connectorAlias(piece.source))
+                if (piece.source.isPlaceholder) {
+                    gremlinInvoke.call("to", gremlinManager.connectorAlias(piece.source))
+                } else {
+                    gremlinInvoke.call("to", gremlinManager.vertexAlias(piece.source.endToken))
+                }
             }
         }
         if (piece.source instanceof sentenceManager.ModifiedSpacyToken) {

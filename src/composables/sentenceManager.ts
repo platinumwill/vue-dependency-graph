@@ -99,6 +99,10 @@ export class ModifiedSpacyDependency extends ModifiedSpacyElement {
         })
         return result
     }
+    
+    get endToken() {
+        return this.sentence?.words[this.trueEnd]
+    }
 }
 
 export class ModifiedSpacySentence {
