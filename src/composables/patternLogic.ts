@@ -235,8 +235,7 @@ const findExistingMatchSourcePatternAndSetDropdown = (
         )
     })
     // TODO 到這裡只完成第一層的 edge 判斷，還有後續的 vertex 和 edge 要查
-    const gremlinCommand = gremlinInvoke.command()
-    gremlinApi.submit(gremlinCommand).then( (resultData: any) => {
+    gremlinApi.submit(gremlinInvoke).then( (resultData: any) => {
         if (resultData['@value'].length === 0) {
             sourcePatternManager.selection.setAsSelected(undefined)
             sourcePatternManager.selection.clearOptions()
