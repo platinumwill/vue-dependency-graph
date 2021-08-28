@@ -55,12 +55,13 @@ export default function patternManager (
         
         const sourcePatternBeginningId = newValue.id
         currentBeginWord.sourcePatternVertexId = sourcePatternBeginningId
-        autoMarkMatchingSourcePattern(sourcePatternBeginningId).then()
-        // 處理 target pattern
-        targetPattern.selection.reloadOptions(sourcePatternBeginningId).then( (targetPatternOptions: LinearTargetPattern[]) => {
-            console.log('target pattern options reloaded: ', targetPatternOptions)
+        autoMarkMatchingSourcePattern(sourcePatternBeginningId).then( () => {
+            // 處理 target pattern
+            targetPattern.selection.reloadOptions(sourcePatternBeginningId).then( (targetPatternOptions: LinearTargetPattern[]) => {
+                console.log('target pattern options reloaded: ', targetPatternOptions)
+            })
+            store.dispatch('setToggling', false)
         })
-        store.dispatch('setToggling', false)
     })
 
     const autoMarkMatchingSourcePattern = async (sourcePatternBeginningId: number) => {
@@ -76,9 +77,10 @@ export default function patternManager (
         .call("until", new gremlinApi.GremlinInvoke(true).call("outE").call("count").call("is", 0))
         .call("limit", 20)
         .call("path")
+        // .call("by", new gremlinApi.GremlinInvoke(true).call("elementMap"))
         .command()
         return new Promise( (resolve, reject) => {
-            gremlinApi.submit(gremlinCommand).then( (resultData: any) => {
+            gremlinApi.submit(gremlinCommand).then( async (resultData: any) => {
                 const beginWord = currentSentence.value.findBeginWord()
                 if (beginWord == undefined) return
                 beginWord.sourcePatternVertexId = sourcePatternBeginningId
@@ -87,10 +89,12 @@ export default function patternManager (
                 beginWord.selectedMorphologyInfoTypes.splice(0, beginWord.selectedMorphologyInfoTypes.length)
                 beginWord.selectedMorphologyInfoTypes.push(morphologyInfoTypeEnum.pos)
 
-                resultData['@value'].forEach( (path: any) => {
+                resultData['@value'].forEach( async (path: any) => {
+                    // 因為這裡是以 v -e-> v 的模式在處理，所以 source pattern 註定不能是單一個 token
                     const outVId = path['@value'].objects['@value'][0]['@value'].id['@value']
                     const outELabel = path['@value'].objects['@value'][1]['@value'].label
                     const outEId = path['@value'].objects['@value'][1]['@value'].id['@value'].relationId
+                    const inVId = path['@value'].objects['@value'][2]['@value'].id['@value']
                     const matchingArc = currentSentence.value.arcs.find( (arc) => {
                         return (
                             currentSentence.value.words[arc.trueStart].sourcePatternVertexId === outVId
@@ -101,6 +105,23 @@ export default function patternManager (
                     matchingArc.sourcePatternEdgeId = outEId
                     // 有了 sourcePatternEdgeId，視同被選取。應該要考慮用 getter 邏輯來處理
                     matchingArc.selected = true
+                    
+                    let pathEndIsConnector = false
+                    await gremlinApi.isConnector(inVId).then( (isConnector) => {
+                        if (isConnector == undefined) return
+                        pathEndIsConnector = isConnector
+                    })
+                    if (! pathEndIsConnector) {
+                        const tokenAtEndOfDependency = currentSentence.value.words.find( (word) => {
+                            return word.indexInSentence === matchingArc.trueEnd
+                        })
+                        if (tokenAtEndOfDependency == undefined) {
+                            const error = '搜尋、自動標示 source pattern 的邏輯有問題'
+                            console.error(error)
+                            throw error
+                        }
+                        tokenAtEndOfDependency.sourcePatternVertexId = inVId
+                    }
                 })
                 resolve(sourcePatternBeginningId)
             }).catch ( (error: string) => {

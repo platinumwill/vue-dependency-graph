@@ -69,6 +69,12 @@ export class GremlinInvoke {
         return this
     }
 
+    V(...values: string[] | number[] | boolean[] | GremlinInvoke[]) {
+        return this.call("V", ...values)
+    }
+    valueMap(...values: string[] | number[] | boolean[] | GremlinInvoke[]) {
+        return this.call("valueMap", ...values)
+    }
     outE(...values: string[] | number[] | boolean[] | GremlinInvoke[]) {
         return this.call("outE", ...values)
     }
@@ -107,4 +113,34 @@ export const submit = (commandOrObject: string | GremlinInvoke) => {
             reject(error)
         })
     })
+}
+
+const valueKey = '@value'
+
+export const isConnector = async (id: number) => {
+    let keyValueList: any = undefined
+    let resultData = undefined
+    await loadValueMap(id).then( (returnedResultData: any) => {
+        resultData = returnedResultData
+    })
+    if (resultData == undefined) return Promise.resolve(undefined)
+    
+    let result = false
+    keyValueList = resultData[valueKey][0][valueKey]
+    keyValueList.forEach( (ele: any, index: number) => {
+        if (propertyNames.isConnector == ele) {
+            result = keyValueList[index + 1][valueKey][0]
+            return
+        }
+    })
+    return Promise.resolve(result)
+}
+
+export const loadValueMap = async (id: number) => {
+    const command: GremlinInvoke = new GremlinInvoke().V(id).valueMap()
+    let result = undefined
+    await submit(command).then( (resultData) => {
+        result = resultData
+    })
+    return Promise.resolve(result)
 }
