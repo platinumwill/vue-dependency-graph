@@ -215,7 +215,7 @@ const findExistingMatchSourcePatternAndSetDropdown = (
         , new gremlinApi.GremlinInvoke(true)
         .call("outE")
         .call("count")
-        .call("is", selectedArcsFromBegin.length)
+        .call("is", new gremlinApi.GremlinInvoke(true).gte(selectedArcsFromBegin.length))
     )
     const arcSum = new Map();
     selectedArcsFromBegin.forEach( (selectedArc) => {
@@ -231,7 +231,7 @@ const findExistingMatchSourcePatternAndSetDropdown = (
             , new gremlinApi.GremlinInvoke(true)
             .call("outE", key)
             .call("count")
-            .call("is", value)
+            .call("is", new gremlinApi.GremlinInvoke(true).gte(value))
         )
     })
     // TODO 到這裡只完成第一層的 edge 判斷，還有後續的 vertex 和 edge 要查
