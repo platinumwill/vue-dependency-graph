@@ -166,7 +166,7 @@ export default function patternManager (
             // TODO PROGRESS POS 固定要選起來，選了其他的，要自動標記 POS 有選，這裡做反向控制
         }
         sourcePatternManager.selection.reloadOptions().then( () => {
-            findExistingMatchSourcePatternAndMark(currentSentence.value, sourcePatternManager)
+            findExistingMatchSourcePatternAndSetDropdown(currentSentence.value, sourcePatternManager)
         })
     }
 
@@ -181,7 +181,7 @@ export default function patternManager (
             dependency.selected = !dependency.selected
         }
         sourcePatternManager.selection.reloadOptions().then( () => {
-            findExistingMatchSourcePatternAndMark(currentSentence.value, sourcePatternManager)
+            findExistingMatchSourcePatternAndSetDropdown(currentSentence.value, sourcePatternManager)
         })
     }
 
@@ -194,7 +194,7 @@ export default function patternManager (
     }
 
 }
-const findExistingMatchSourcePatternAndMark = (
+const findExistingMatchSourcePatternAndSetDropdown = (
     currentSentence: ModifiedSpacySentence
     , sourcePatternManager: SourcePatternManager
     ) => {
