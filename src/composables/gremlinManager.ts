@@ -75,11 +75,20 @@ export class GremlinInvoke {
     valueMap(...values: string[] | number[] | boolean[] | GremlinInvoke[]) {
         return this.call("valueMap", ...values)
     }
+    out(...values: string[] | number[] | boolean[] | GremlinInvoke[]) {
+        return this.call("out", ...values)
+    }
     outE(...values: string[] | number[] | boolean[] | GremlinInvoke[]) {
         return this.call("outE", ...values)
     }
     property(...values: any[]) {
         return this.call("property", ...values)
+    }
+    has(...values: any[]) {
+        return this.call("has", ...values)
+    }
+    hasNot(...values: any[]) {
+        return this.call("hasNot", ...values)
     }
     as(alias: string) {
         return this.call("as", alias)
@@ -89,6 +98,24 @@ export class GremlinInvoke {
     }
     gte(value: number) {
         return this.call("gte", value)
+    }
+    lt(value: number) {
+        return this.call("lt", value)
+    }
+    where(value: GremlinInvoke) {
+        return this.call("where", value)
+    }
+    and(value: GremlinInvoke) {
+        return this.call("and", value)
+    }
+    not(value: GremlinInvoke) {
+        return this.call("not", value)
+    }
+    is(value: GremlinInvoke) {
+        return this.call("is", value)
+    }
+    count() {
+        return this.call("count")
     }
 
     command() {

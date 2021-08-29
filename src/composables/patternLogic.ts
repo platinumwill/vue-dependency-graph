@@ -224,6 +224,26 @@ const findExistingMatchSourcePatternAndSetDropdown = (
         } else {
             arcSum.set(selectedArc.label, 1)
         }
+        // 目前暫時支援查詢到第 1 層的 edge 和隨後的 vertex。如果要再支搜查詢到更後面的線和端，就要用遞迴了
+        if (selectedArc.endToken && selectedArc.endToken?.selectedMorphologyInfoTypes.length > 0) {
+            const endToken = selectedArc.endToken
+            const endTokenCriteria = new gremlinApi.GremlinInvoke(true).out(selectedArc.label)
+            Object.values(morphologyInfoTypeEnum).forEach( (morphInfoType, index) => {
+                const endTokenPropertyCriteria = new gremlinApi.GremlinInvoke(true)
+                if (endToken.selectedMorphologyInfoTypes.includes(morphInfoType)) {
+                    endTokenPropertyCriteria.has(morphInfoType.name, endToken[morphInfoType.propertyInWord])
+                } else {
+                    endTokenPropertyCriteria.hasNot(morphInfoType.name)
+                }
+                const whereOrAnd = index === 0 ? 'where' : 'and'
+                endTokenCriteria.call(whereOrAnd, endTokenPropertyCriteria)
+            })
+            gremlinInvoke.and(endTokenCriteria)
+        } else {
+            gremlinInvoke.and(
+                new gremlinApi.GremlinInvoke(true).out(selectedArc.label).count().is(new gremlinApi.GremlinInvoke(true).lt(1))
+            )
+        }
     })
     arcSum.forEach( (value, key) => {
         gremlinInvoke.call(
@@ -234,7 +254,6 @@ const findExistingMatchSourcePatternAndSetDropdown = (
             .call("is", new gremlinApi.GremlinInvoke(true).gte(value))
         )
     })
-    // TODO 到這裡只完成第一層的 edge 判斷，還有後續的 vertex 和 edge 要查
     gremlinApi.submit(gremlinInvoke).then( (resultData: any) => {
         if (resultData['@value'].length === 0) {
             sourcePatternManager.selection.setAsSelected(undefined)
