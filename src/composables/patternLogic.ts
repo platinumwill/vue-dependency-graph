@@ -240,8 +240,13 @@ const findExistingMatchSourcePatternAndSetDropdown = (
             })
             gremlinInvoke.and(endTokenCriteria)
         } else {
+            // connector 的狀況
             gremlinInvoke.and(
-                new gremlinApi.GremlinInvoke(true).out(selectedArc.label).count().is(new gremlinApi.GremlinInvoke(true).lt(1))
+                new gremlinApi.GremlinInvoke(true)
+                .out(selectedArc.label)
+                .where(new gremlinApi.GremlinInvoke(true).has(gremlinApi.propertyNames.isConnector, true))
+                .count()
+                .is(new gremlinApi.GremlinInvoke(true).eq(1))
             )
         }
     })

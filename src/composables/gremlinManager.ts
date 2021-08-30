@@ -96,6 +96,9 @@ export class GremlinInvoke {
     select(key: string) {
         return this.call("select", key)
     }
+    eq(value: number) {
+        return this.call("eq", value)
+    }
     gte(value: number) {
         return this.call("gte", value)
     }
