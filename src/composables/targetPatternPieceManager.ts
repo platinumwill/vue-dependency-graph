@@ -433,12 +433,19 @@ export function reloadMatchingTargetPatternOptions (
                 const targetPattern = new LinearTargetPattern()
                 const path: any[] = targetPatternPath['@value'].objects['@value'] // pathArray[0] 是 source pattern beginning
                 // 一個 path 就是一條 LinearTargetPattern
-                path.forEach(projected => { // 一個元素內含一個 target pattern piece 的相關資料，例如 source pattern 和之間的 edge
+                path.forEach( (projected, index) => { // 一個元素內含一個 target pattern piece 的相關資料，例如 source pattern 和之間的 edge
+                    if (index === 0) return // 第一個是 source pattern 的頭
                     let targetPatternPiece = undefined
 
                     const projectedMapArray = projected['@value']
                     const projectedTraceToEdge = projectedMapArray[1]['@value']
-                    if (projectedTraceToEdge.length <= 0) return
+                    if (projectedTraceToEdge.length <= 0) {
+                        // text piece
+                        targetPatternPiece = new LinearTargetPatternPiece()
+                        // TODO 這裡還要再抓 text 選項 (？)
+                        targetPattern.addPieces(targetPatternPiece)
+                        return
+                    }
                     const foldedTraceToEdgeElementMap = projectedTraceToEdge[0]['@value']
                     const foldedTraceToInVElementMapArray = projectedMapArray[3]['@value'][0]['@value']
                     const foldedTracerElementMapArray = projectedMapArray[7]['@value'][0]['@value']
