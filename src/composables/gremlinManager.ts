@@ -31,6 +31,9 @@ export const propertyNames = Object.freeze({
     , isPlaceholder: "isPlaceholder"
     , seqNo: "seqNo"
 })
+export enum edgePropertyNames {
+    traceToDep = "traceToDep"
+}
 
 export const projectKeys = Object.freeze({
     traceToEdge: "traceToEdge"

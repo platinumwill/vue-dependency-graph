@@ -297,6 +297,7 @@ export const processTargetPatternStoring = (segmentPieces: LinearTargetPatternPi
                     .call("inV")
                 )
             } else {
+                gremlinInvoke.property(gremlinManager.edgePropertyNames.traceToDep, true)
                 if (piece.source.isPlaceholder) {
                     gremlinInvoke.call("to", gremlinManager.connectorAlias(piece.source))
                 } else {
