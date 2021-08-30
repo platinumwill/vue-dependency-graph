@@ -446,7 +446,7 @@ export function reloadMatchingTargetPatternOptions (
                         targetPattern.addPieces(targetPatternPiece)
                         return
                     }
-                    const foldedTraceToEdgeElementMap = projectedTraceToEdge[0]['@value']
+                    const foldedTraceToEdgeElementMapArray = projectedTraceToEdge[0]['@value']
                     const foldedTraceToInVElementMapArray = projectedMapArray[3]['@value'][0]['@value']
                     const foldedTracerElementMapArray = projectedMapArray[7]['@value'][0]['@value']
 
@@ -461,6 +461,12 @@ export function reloadMatchingTargetPatternOptions (
                     let isPlaceholder = undefined
                     let tracerVertexId = undefined
                     let tracedVertexId = undefined
+                    let traceToDep = false
+                    foldedTraceToEdgeElementMapArray.forEach( (element: any, index: number) => {
+                        if (element != undefined && element == gremlinManager.edgePropertyNames.traceToDep) {
+                            traceToDep = foldedTraceToEdgeElementMapArray[index + 1]
+                        }
+                    })
                     foldedTraceToInVElementMapArray.forEach( (element: any, index: number) => {
                         if (element['@value'] != undefined) {
                             if (element['@value'] == 'id') {
@@ -486,8 +492,8 @@ export function reloadMatchingTargetPatternOptions (
                             }
                         }
                     })
-                    // 處理 target pattern vertex 是 placeholder 的狀況
-                    if (isPlaceholder) {
+                    if (traceToDep) {
+                        // target pattern piece 的 source 是 dependency 的處理邏輯
                         let depEdgeId: string = ''
                         let depEdgeLabel = undefined
                         foldedTraceToInVInDependencyElementMapArray.forEach( (element: any, index: number) => {
