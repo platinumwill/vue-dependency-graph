@@ -208,7 +208,10 @@ export class LinearTargetPatternPiece {
         if (this.source.constructor.name != anotherPiece.source.constructor.name) return false
 
         let result = true
-        if (this.source instanceof sentenceManager.ModifiedSpacyToken && anotherPiece.source instanceof sentenceManager.ModifiedSpacyToken) {
+        // source 是 token 的比對邏輯
+        if (this.source instanceof sentenceManager.ModifiedSpacyToken 
+            && anotherPiece.source instanceof sentenceManager.ModifiedSpacyToken
+        ) {
             if (! (anotherPiece.source instanceof sentenceManager.ModifiedSpacyToken)) return false
             const selfMorphologyInfoTypes = this.source.selectedMorphologyInfoTypes
             const anotherMorphInfoTypes = anotherPiece.source.selectedMorphologyInfoTypes
@@ -224,6 +227,12 @@ export class LinearTargetPatternPiece {
                     return
                 }
             })
+        }
+        // source 是 dependency 的比對邏輯
+        if (this.source instanceof sentenceManager.ModifiedSpacyDependency 
+            && anotherPiece.source instanceof sentenceManager.ModifiedSpacyDependency
+        ) {
+            return (this.source.label == anotherPiece.source.label)
         }
         return result
     }
