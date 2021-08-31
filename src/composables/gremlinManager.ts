@@ -32,7 +32,7 @@ export const propertyNames = Object.freeze({
     , seqNo: "seqNo"
 })
 export enum edgePropertyNames {
-    traceToDep = "traceToDep"
+    traceToInDep = "traceToInDep"
 }
 
 export const projectKeys = Object.freeze({

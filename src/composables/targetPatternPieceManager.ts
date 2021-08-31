@@ -306,7 +306,7 @@ export const processTargetPatternStoring = (segmentPieces: LinearTargetPatternPi
                     .call("inV")
                 )
             } else {
-                gremlinInvoke.property(gremlinManager.edgePropertyNames.traceToDep, true)
+                gremlinInvoke.property(gremlinManager.edgePropertyNames.traceToInDep, true)
                 if (piece.source.isPlaceholder) {
                     gremlinInvoke.call("to", gremlinManager.connectorAlias(piece.source))
                 } else {
@@ -463,7 +463,7 @@ export function reloadMatchingTargetPatternOptions (
                     let tracedVertexId = undefined
                     let traceToDep = false
                     foldedTraceToEdgeElementMapArray.forEach( (element: any, index: number) => {
-                        if (element != undefined && element == gremlinManager.edgePropertyNames.traceToDep) {
+                        if (element != undefined && element == gremlinManager.edgePropertyNames.traceToInDep) {
                             traceToDep = foldedTraceToEdgeElementMapArray[index + 1]
                         }
                     })
