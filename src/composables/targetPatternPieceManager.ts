@@ -208,7 +208,10 @@ export class LinearTargetPatternPiece {
         if (this.source.constructor.name != anotherPiece.source.constructor.name) return false
 
         let result = true
-        if (this.source instanceof sentenceManager.ModifiedSpacyToken && anotherPiece.source instanceof sentenceManager.ModifiedSpacyToken) {
+        // source 是 token 的比對邏輯
+        if (this.source instanceof sentenceManager.ModifiedSpacyToken 
+            && anotherPiece.source instanceof sentenceManager.ModifiedSpacyToken
+        ) {
             if (! (anotherPiece.source instanceof sentenceManager.ModifiedSpacyToken)) return false
             const selfMorphologyInfoTypes = this.source.selectedMorphologyInfoTypes
             const anotherMorphInfoTypes = anotherPiece.source.selectedMorphologyInfoTypes
@@ -224,6 +227,12 @@ export class LinearTargetPatternPiece {
                     return
                 }
             })
+        }
+        // source 是 dependency 的比對邏輯
+        if (this.source instanceof sentenceManager.ModifiedSpacyDependency 
+            && anotherPiece.source instanceof sentenceManager.ModifiedSpacyDependency
+        ) {
+            return (this.source.label == anotherPiece.source.label)
         }
         return result
     }
@@ -284,11 +293,11 @@ export const processTargetPatternStoring = (segmentPieces: LinearTargetPatternPi
             .call("to", gremlinManager.aliases.sourcePatternBeginning)
         }
         // 建立和 source 的關連
+        gremlinInvoke
+        .call("addE", gremlinManager.edgeLabels.traceTo)
+        .call("from", currentPieceAlias)
         if (piece.source instanceof sentenceManager.ModifiedSpacyDependency) {
             // 和 dependency 的關連
-            gremlinInvoke
-            .call("addE", gremlinManager.edgeLabels.traceTo)
-            .call("from", currentPieceAlias)
             if (piece.source.sourcePatternEdgeId != undefined) { // 如果 source pattern 是既有的的狀況
                 gremlinInvoke.call(
                     "to"
@@ -297,6 +306,7 @@ export const processTargetPatternStoring = (segmentPieces: LinearTargetPatternPi
                     .call("inV")
                 )
             } else {
+                gremlinInvoke.property(gremlinManager.edgePropertyNames.traceToDep, true)
                 if (piece.source.isPlaceholder) {
                     gremlinInvoke.call("to", gremlinManager.connectorAlias(piece.source))
                 } else {
@@ -305,9 +315,6 @@ export const processTargetPatternStoring = (segmentPieces: LinearTargetPatternPi
             }
         }
         if (piece.source instanceof sentenceManager.ModifiedSpacyToken) {
-            gremlinInvoke
-            .call("addE", gremlinManager.edgeLabels.traceTo)
-            .call("from", currentPieceAlias)
             if (piece.source.sourcePatternVertexId != undefined) {
                 gremlinInvoke.call(
                     "to"
@@ -426,13 +433,20 @@ export function reloadMatchingTargetPatternOptions (
                 const targetPattern = new LinearTargetPattern()
                 const path: any[] = targetPatternPath['@value'].objects['@value'] // pathArray[0] 是 source pattern beginning
                 // 一個 path 就是一條 LinearTargetPattern
-                path.forEach(projected => { // 一個元素內含一個 target pattern piece 的相關資料，例如 source pattern 和之間的 edge
+                path.forEach( (projected, index) => { // 一個元素內含一個 target pattern piece 的相關資料，例如 source pattern 和之間的 edge
+                    if (index === 0) return // 第一個是 source pattern 的頭
                     let targetPatternPiece = undefined
 
                     const projectedMapArray = projected['@value']
                     const projectedTraceToEdge = projectedMapArray[1]['@value']
-                    if (projectedTraceToEdge.length <= 0) return
-                    const foldedTraceToEdgeElementMap = projectedTraceToEdge[0]['@value']
+                    if (projectedTraceToEdge.length <= 0) {
+                        // text piece
+                        targetPatternPiece = new LinearTargetPatternPiece()
+                        // TODO 這裡還要再抓 text 選項 (？)
+                        targetPattern.addPieces(targetPatternPiece)
+                        return
+                    }
+                    const foldedTraceToEdgeElementMapArray = projectedTraceToEdge[0]['@value']
                     const foldedTraceToInVElementMapArray = projectedMapArray[3]['@value'][0]['@value']
                     const foldedTracerElementMapArray = projectedMapArray[7]['@value'][0]['@value']
 
@@ -447,6 +461,12 @@ export function reloadMatchingTargetPatternOptions (
                     let isPlaceholder = undefined
                     let tracerVertexId = undefined
                     let tracedVertexId = undefined
+                    let traceToDep = false
+                    foldedTraceToEdgeElementMapArray.forEach( (element: any, index: number) => {
+                        if (element != undefined && element == gremlinManager.edgePropertyNames.traceToDep) {
+                            traceToDep = foldedTraceToEdgeElementMapArray[index + 1]
+                        }
+                    })
                     foldedTraceToInVElementMapArray.forEach( (element: any, index: number) => {
                         if (element['@value'] != undefined) {
                             if (element['@value'] == 'id') {
@@ -472,8 +492,8 @@ export function reloadMatchingTargetPatternOptions (
                             }
                         }
                     })
-                    // 處理 target pattern vertex 是 placeholder 的狀況
-                    if (isPlaceholder) {
+                    if (traceToDep) {
+                        // target pattern piece 的 source 是 dependency 的處理邏輯
                         let depEdgeId: string = ''
                         let depEdgeLabel = undefined
                         foldedTraceToInVInDependencyElementMapArray.forEach( (element: any, index: number) => {
