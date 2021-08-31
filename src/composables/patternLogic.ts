@@ -146,9 +146,12 @@ export default function patternManager (
         }
         // TODO 選取還是都要連起來比較保險
         // 執行 toggle
-        // TODO PROGRESS POS 固定要選起來，選了其他的，要自動標記 POS 有選
         if (word.selectedMorphologyInfoTypes.includes(morphInfoType)) { // toggle off
-            word.selectedMorphologyInfoTypes.splice(word.selectedMorphologyInfoTypes.indexOf(morphInfoType))
+            if (morphInfoType == morphologyInfoTypeEnum.pos) {
+                word.selectedMorphologyInfoTypes.splice(0, word.selectedMorphologyInfoTypes.length)
+            } else {
+                word.selectedMorphologyInfoTypes.splice(word.selectedMorphologyInfoTypes.indexOf(morphInfoType))
+            }
             word.sourcePatternVertexId = undefined
             const beginWord = currentSentence.value.findBeginWord()
             if (beginWord != undefined && beginWord.indexInSentence === token.indexInSentence) {
@@ -159,11 +162,11 @@ export default function patternManager (
                 word.isBeginning = false
             }
         } else { // toggle on
+            if (! word.selectedMorphologyInfoTypes.includes(morphologyInfoTypeEnum.pos)) word.selectedMorphologyInfoTypes.push(morphologyInfoTypeEnum.pos)
             word.selectedMorphologyInfoTypes.push(morphInfoType)
             if (currentSentence.value.findBeginWord() === undefined) {
                 word.isBeginning = true
             }
-            // TODO PROGRESS POS 固定要選起來，選了其他的，要自動標記 POS 有選，這裡做反向控制
         }
         sourcePatternManager.selection.reloadOptions().then( () => {
             findExistingMatchSourcePatternAndSetDropdown(currentSentence.value, sourcePatternManager)
