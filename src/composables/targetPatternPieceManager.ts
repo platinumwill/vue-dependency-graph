@@ -334,9 +334,19 @@ export const processTargetPatternStoring = (segmentPieces: LinearTargetPatternPi
 export class LinearTargetPattern {
     $pieces: LinearTargetPatternPiece[] = []
 
-    get label() {
-        // 為了把數字轉換成文字所以這樣寫。不轉換成文字，Dropdown 會報錯
-        return '' + this.$pieces[0].mappedGraphVertexId
+    get dropdownOptionLabel() {
+        let result = ''
+        this.$pieces.forEach( (piece, index) => {
+            if (index !== 0) result += '-'
+            if (piece.source == undefined) result += 'text'
+            if (piece.source instanceof sentenceManager.ModifiedSpacyToken) result += piece.source.tag
+            if (piece.source instanceof sentenceManager.ModifiedSpacyDependency) {
+                if (piece.source.isPlaceholder) result += '{'
+                result += piece.source.label.toLowerCase()
+                if (piece.source.isPlaceholder) result += '}'
+            }
+        })
+        return result
     }
 
     get pieces() {

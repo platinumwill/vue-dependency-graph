@@ -28,7 +28,7 @@
 
                 <Dropdown v-model="targetPattern.selection.selected.value"
                     :options="targetPattern.selection.options"
-                    optionLabel="label"
+                    optionLabel="dropdownOptionLabel"
                     placeholder="Existing target pattern"
                 >
                 </Dropdown>
