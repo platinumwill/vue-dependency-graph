@@ -370,7 +370,6 @@ export class LinearTargetPattern {
 
 }
 
-// TODO currentSpaceSentence 希望可以拿掉
 export function reloadMatchingTargetPatternOptions (
     sourcePatternBeginningId: number
     , currentSpacySentence: sentenceManager.ModifiedSpacySentence
