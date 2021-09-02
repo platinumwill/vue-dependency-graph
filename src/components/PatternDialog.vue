@@ -3,7 +3,7 @@
         <div>
             <Dropdown v-model="sourcePattern.selection.selectedPattern.value"
                 :options="sourcePattern.selection.options.value"
-                optionLabel="label"
+                optionLabel="dropdownOptionLabel"
                 placeholder="Existing source pattern"
                 :showClear="true"
                 >

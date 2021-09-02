@@ -12,11 +12,11 @@ export function clearOptions(sourcePatternOptions: any) {
 
 class SourcePatternOption {
     id: number
-    label: string
+    dropdownOptionLabel: string
 
-    constructor(id: number, label: string) {
+    constructor(id: number, dropdownOptionLabel: string) {
         this.id = id
-        this.label = label
+        this.dropdownOptionLabel = dropdownOptionLabel
     }
 }
 
@@ -167,7 +167,7 @@ const reloadMatchingSourcePatternOptions = (
             resultData['@value'].forEach( (sourcePatternBeginning: any) => {
                 sourcePatternOptions.value.push({
                     id: sourcePatternBeginning['@value'].id['@value']
-                    , label: sourcePatternBeginning['@value'].label + '-' + sourcePatternBeginning['@value'].id['@value']
+                    , dropdownOptionLabel: sourcePatternBeginning['@value'].label + '-' + sourcePatternBeginning['@value'].id['@value']
                 })
             })
             resolve(resultData)
