@@ -55,9 +55,10 @@ export default function patternManager (
         
         const sourcePatternBeginningId = newValue.id
         currentBeginWord.sourcePatternVertexId = sourcePatternBeginningId
-        await autoMarkMatchingSourcePattern(sourcePatternBeginningId)
-        await targetPattern.selection.reloadOptions(sourcePatternBeginningId).then( (targetPatternOptions: LinearTargetPattern[]) => {
-            console.log('target pattern options reloaded: ', targetPatternOptions)
+        await autoMarkMatchingSourcePattern(sourcePatternBeginningId).then( () => {
+            targetPattern.selection.reloadOptions(sourcePatternBeginningId).then( (targetPatternOptions: LinearTargetPattern[]) => {
+                console.log('target pattern options reloaded: ', targetPatternOptions)
+            })
         })
         store.dispatch('setToggling', false)
     })
