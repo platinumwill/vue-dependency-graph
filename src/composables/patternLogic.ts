@@ -37,7 +37,7 @@ export default function patternManager (
     const store = useStore()
 
     // 因為 watch source pattern 的邏輯牽涉到 target pattern，所以實做放在這裡
-    watch(sourcePatternManager.selection.selectedPattern, (newValue, oldValue) => {
+    watch(sourcePatternManager.selection.selectedPattern, async (newValue, oldValue) => {
         console.log('watching selected source pattern change: ', newValue, oldValue)
         // reset target patter 下拉選單
         targetPattern.selection.clearSelection()
@@ -55,13 +55,11 @@ export default function patternManager (
         
         const sourcePatternBeginningId = newValue.id
         currentBeginWord.sourcePatternVertexId = sourcePatternBeginningId
-        autoMarkMatchingSourcePattern(sourcePatternBeginningId).then( () => {
-            // 處理 target pattern
-            targetPattern.selection.reloadOptions(sourcePatternBeginningId).then( (targetPatternOptions: LinearTargetPattern[]) => {
-                console.log('target pattern options reloaded: ', targetPatternOptions)
-            })
-            store.dispatch('setToggling', false)
+        await autoMarkMatchingSourcePattern(sourcePatternBeginningId)
+        await targetPattern.selection.reloadOptions(sourcePatternBeginningId).then( (targetPatternOptions: LinearTargetPattern[]) => {
+            console.log('target pattern options reloaded: ', targetPatternOptions)
         })
+        store.dispatch('setToggling', false)
     })
 
     const autoMarkMatchingSourcePattern = async (sourcePatternBeginningId: number) => {
@@ -80,8 +78,8 @@ export default function patternManager (
         // .call("by", new gremlinApi.GremlinInvoke(true).call("elementMap"))
         .command()
 
-            // 下面這行不加開頭的 return 會有問題
-            return gremlinApi.submit(gremlinCommand).then( async (resultData: any) => {
+            // 下面這行不加開頭的 await 會有問題
+            await gremlinApi.submit(gremlinCommand).then( async (resultData: any) => {
                 const beginWord = currentSentence.value.findBeginWord()
                 if (beginWord == undefined) return
                 beginWord.sourcePatternVertexId = sourcePatternBeginningId
