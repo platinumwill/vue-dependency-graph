@@ -79,8 +79,9 @@ export default function patternManager (
         .call("path")
         // .call("by", new gremlinApi.GremlinInvoke(true).call("elementMap"))
         .command()
-        return new Promise( (resolve, reject) => {
-            gremlinApi.submit(gremlinCommand).then( async (resultData: any) => {
+
+            // 下面這行不加開頭的 return 會有問題
+            return gremlinApi.submit(gremlinCommand).then( async (resultData: any) => {
                 const beginWord = currentSentence.value.findBeginWord()
                 if (beginWord == undefined) return
                 beginWord.sourcePatternVertexId = sourcePatternBeginningId
@@ -123,12 +124,7 @@ export default function patternManager (
                         tokenAtEndOfDependency.sourcePatternVertexId = inVId
                     }
                 })
-                resolve(sourcePatternBeginningId)
-            }).catch ( (error: string) => {
-                console.error(error)
-                reject(error)
             })
-        })
     }
 
     const toggleMorphologyInfoSelection = (morphInfoType: MorphologyInfo, token: ModifiedSpacyToken) => {
