@@ -159,7 +159,7 @@ const reloadMatchingSourcePatternOptions = (
     beginWord.selectedMorphologyInfoTypes.forEach( (morphInfoType) => {
         gremlinCommand = gremlinCommand.call("has", morphInfoType.name, beginWord[morphInfoType.propertyInWord])
     })
-    gremlinCommand = gremlinCommand.call("inE", 'applicable')
+    gremlinCommand = gremlinCommand.call("inE", gremlinUtils.edgeLabels.applicable)
     .call("inV")
     .call("dedup")
     return new Promise((resolve, reject) => {
