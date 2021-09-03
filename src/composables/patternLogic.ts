@@ -56,9 +56,6 @@ export default function patternManager (
         const sourcePatternBeginningId = newValue.id
         currentBeginWord.sourcePatternVertexId = sourcePatternBeginningId
         await autoMarkMatchingSourcePattern(sourcePatternBeginningId).then( () => {
-            targetPattern.selection.reloadOptions(sourcePatternBeginningId).then( (targetPatternOptions: LinearTargetPattern[]) => {
-                console.log('target pattern options reloaded: ', targetPatternOptions)
-            })
         })
         store.dispatch('setToggling', false)
     })
@@ -122,6 +119,10 @@ export default function patternManager (
                         }
                         tokenAtEndOfDependency.sourcePatternVertexId = inVId
                     }
+                    // 這行放在這裡有點奇怪，但是為了控制執行順序，必須先這樣
+                    targetPattern.selection.reloadOptions(sourcePatternBeginningId).then( (targetPatternOptions: LinearTargetPattern[]) => {
+                        console.log('target pattern options reloaded: ', targetPatternOptions)
+                    })
                 })
             })
     }
