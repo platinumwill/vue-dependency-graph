@@ -51,7 +51,10 @@ export default function patternManager (
         sentence.words.forEach( word => word.sourcePatternVertexId = undefined)
 
         const currentBeginWord = currentSentence.value.findBeginWord()
-        if (currentBeginWord == undefined || newValue == undefined) return
+        if (currentBeginWord == undefined || newValue == undefined) {
+            store.dispatch('setToggling', false)
+            return
+        }
         
         const sourcePatternBeginningId = newValue.id
         currentBeginWord.sourcePatternVertexId = sourcePatternBeginningId
@@ -276,7 +279,6 @@ const findExistingMatchSourcePatternAndSetDropdown = (
     gremlinApi.submit(gremlinInvoke).then( (resultData: any) => {
         if (resultData['@value'].length === 0) {
             sourcePatternManager.selection.setAsSelected(undefined)
-            sourcePatternManager.selection.clearOptions()
             return
         }
         if (resultData['@value'].length > 1) {
