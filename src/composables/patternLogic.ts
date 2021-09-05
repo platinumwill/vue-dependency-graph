@@ -174,8 +174,7 @@ export default function patternManager (
                 word.isBeginning = false
             }
         } else { // toggle on
-            if (! word.selectedMorphologyInfoTypes.includes(morphologyInfoTypeEnum.pos)) word.selectedMorphologyInfoTypes.push(morphologyInfoTypeEnum.pos)
-            word.selectedMorphologyInfoTypes.push(morphInfoType)
+            word.markMorphologyInfoAsSelected(morphInfoType)
             if (currentSentence.value.findBeginWord() === undefined) {
                 word.isBeginning = true
             }
