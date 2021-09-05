@@ -1,6 +1,8 @@
 import { ModifiedSpacyToken } from "@/composables/sentenceManager"
 
-type GoogleMorphologyInfoType = "pos" | "lemma" | "tense"
+// 新學寫法的範例
+const GoogleMorphologyInfoTypeKeys = ["pos", "lemma", "tense"]
+type GoogleMorphologyInfoType = typeof GoogleMorphologyInfoTypeKeys[number]
 type GoogleMorphologyInfoTypeProperty = "tag" | "lemma" | "tense"
 
 export class MorphologyInfo {
