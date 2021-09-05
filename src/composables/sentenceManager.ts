@@ -1,6 +1,6 @@
 import { computed, ref } from 'vue'
 import { useStore } from "vuex"
-import { MorphologyInfo } from "@/composables/morphologyInfo"
+import { MorphologyInfo, morphologyInfoTypeEnum } from "@/composables/morphologyInfo"
 
 export default function () {
 
@@ -60,6 +60,11 @@ export class ModifiedSpacyToken extends ModifiedSpacyElement {
         this.$tense = spacyWord.tense == undefined || spacyWord.tense.endsWith(morphologyInfoUnknownValuePostfix) 
         ? morphologyInfoUnknownValuePostfix
         : spacyWord.tense
+    }
+
+    markMorphologyInfoAsSelected(morphologyInfo: MorphologyInfo) {
+        this.selectedMorphologyInfoTypes.push(morphologyInfo)
+        if (! this.selectedMorphologyInfoTypes.includes(morphologyInfoTypeEnum.pos)) this.selectedMorphologyInfoTypes.push(morphologyInfoTypeEnum.pos)
     }
 
     get tense() {

@@ -117,8 +117,24 @@ export default function patternManager (
                             console.error(error)
                             throw error
                         }
+                        // token 的 source pattern vertex id 在這裡設定，這一行很重要
                         tokenAtEndOfDependency.sourcePatternVertexId = inVId
                     }
+
+                    const tokenMatchingInV = currentSentence.value.words.find( (token) => {
+                        return token.sourcePatternVertexId === inVId
+                    })
+                    if (tokenMatchingInV != undefined) {
+                        await gremlinApi.loadValueMap(inVId).then( (outVValueMap: any) => {
+                            const morphTypeInfoTokenPropertyNames = Object.values(morphologyInfoTypeEnum).map(infoType => infoType.name)
+                            outVValueMap[gremlinApi.valueKey][0][gremlinApi.valueKey].forEach( (valueMapArrayElement: any, index: number) => {
+                                const matchingMorphologyInfo = Object.values(morphologyInfoTypeEnum).find(infoType => infoType.name === valueMapArrayElement)
+                                if (matchingMorphologyInfo == undefined) return
+                                tokenMatchingInV.markMorphologyInfoAsSelected(matchingMorphologyInfo)
+                            })
+                        })
+                    }
+
                     // 這行放在這裡有點奇怪，但是為了控制執行順序，必須先這樣
                     targetPattern.selection.reloadOptions(sourcePatternBeginningId).then( (targetPatternOptions: LinearTargetPattern[]) => {
                         console.log('target pattern options reloaded: ', targetPatternOptions)
