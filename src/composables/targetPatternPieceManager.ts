@@ -297,9 +297,11 @@ export const processTargetPatternStoring = (segmentPieces: LinearTargetPatternPi
             .call("to", gremlinManager.aliases.sourcePatternBeginning)
         }
         // 建立和 source 的關連
-        gremlinInvoke
-        .call("addE", gremlinManager.edgeLabels.traceTo)
-        .call("from", currentPieceAlias)
+        if (piece.source != undefined) {
+            gremlinInvoke
+            .call("addE", gremlinManager.edgeLabels.traceTo)
+            .call("from", currentPieceAlias)
+        }
         if (piece.source instanceof sentenceManager.ModifiedSpacyDependency) {
             // 和 dependency 的關連
             if (piece.source.sourcePatternEdgeId != undefined) { // 如果 source pattern 是既有的的狀況
