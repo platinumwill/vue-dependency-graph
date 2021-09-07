@@ -59,6 +59,9 @@ export default function patternManager (
         const sourcePatternBeginningId = newValue.id
         currentBeginWord.sourcePatternVertexId = sourcePatternBeginningId
         await autoMarkMatchingSourcePattern(sourcePatternBeginningId).then( () => {
+            targetPattern.selection.reloadOptions(sourcePatternBeginningId).then( (targetPatternOptions: LinearTargetPattern[]) => {
+                console.log('target pattern options reloaded: ', targetPatternOptions)
+            })
         })
         store.dispatch('setToggling', false)
     })
@@ -89,7 +92,7 @@ export default function patternManager (
                 beginWord.selectedMorphologyInfoTypes.splice(0, beginWord.selectedMorphologyInfoTypes.length)
                 beginWord.selectedMorphologyInfoTypes.push(morphologyInfoTypeEnum.pos)
 
-                resultData['@value'].forEach( async (path: any) => {
+                await resultData['@value'].forEach( async (path: any) => {
                     // 因為這裡是以 v -e-> v 的模式在處理，所以 source pattern 註定不能是單一個 token
                     const outVId = path['@value'].objects['@value'][0]['@value'].id['@value']
                     const outELabel = path['@value'].objects['@value'][1]['@value'].label
@@ -107,7 +110,7 @@ export default function patternManager (
                     matchingArc.selected = true
                     
                     let pathEndIsConnector = false
-                    await gremlinApi.isConnector(inVId).then( (isConnector) => {
+                    gremlinApi.isConnector(inVId).then( (isConnector) => {
                         if (isConnector == undefined) return
                         pathEndIsConnector = isConnector
                     })
@@ -138,10 +141,6 @@ export default function patternManager (
                         })
                     }
 
-                    // 這行放在這裡有點奇怪，但是為了控制執行順序，必須先這樣
-                    targetPattern.selection.reloadOptions(sourcePatternBeginningId).then( (targetPatternOptions: LinearTargetPattern[]) => {
-                        console.log('target pattern options reloaded: ', targetPatternOptions)
-                    })
                 })
             })
     }
