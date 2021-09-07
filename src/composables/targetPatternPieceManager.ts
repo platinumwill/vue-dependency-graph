@@ -304,6 +304,7 @@ export const processTargetPatternStoring = (segmentPieces: LinearTargetPatternPi
         }
         if (piece.source instanceof sentenceManager.ModifiedSpacyDependency) {
             // 和 dependency 的關連
+            gremlinInvoke.property(gremlinManager.edgePropertyNames.traceToInDep, true)
             if (piece.source.sourcePatternEdgeId != undefined) { // 如果 source pattern 是既有的的狀況
                 gremlinInvoke.call(
                     "to"
@@ -312,7 +313,6 @@ export const processTargetPatternStoring = (segmentPieces: LinearTargetPatternPi
                     .call("inV")
                 )
             } else {
-                gremlinInvoke.property(gremlinManager.edgePropertyNames.traceToInDep, true)
                 if (piece.source.isPlaceholder) {
                     gremlinInvoke.call("to", gremlinManager.connectorAlias(piece.source))
                 } else {
