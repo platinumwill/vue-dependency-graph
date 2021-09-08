@@ -41,9 +41,7 @@ export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpa
     const patternDialogTargetPatternPiecesForRevert: LinearTargetPatternPiece[] = []
 
     function addFixedTextPiece() {
-        const fixedTextPiece = new LinearTargetPatternPiece()
-        fixedTextPiece.specifiedVuekey = 'fixed-' + dialogPieces.value.filter(item => item.type === LinearTargetPatternPiece.types.text).length
-        dialogPieces.value.push(fixedTextPiece)
+        dialogPieces.value.push(_createTargetPatternPiece(undefined, dialogPieces.value))
     }
 
     function revertPieces() {
@@ -272,9 +270,21 @@ function _generateDefaultPieces (
 function _duplicateTargetPattern(targetPattern: LinearTargetPattern) {
     const pieces: LinearTargetPatternPiece[] = []
     targetPattern.pieces.forEach( piece => {
-        pieces.push(new LinearTargetPatternPiece(piece.source))
+        pieces.push(_createTargetPatternPiece(piece.source, targetPattern.pieces))
     })
     return pieces
+}
+
+function _createTargetPatternPiece(source?: sentenceManager.ModifiedSpacyElement, targetPatternPieces?: LinearTargetPatternPiece[]) {
+    if (source == undefined && targetPatternPieces == undefined) {
+        const error = '傳入參數都是 undefined，這樣是錯的'
+        throw error
+    }
+    const tempPiece = new LinearTargetPatternPiece(source)
+    if (source == undefined && targetPatternPieces != undefined) {
+        tempPiece.specifiedVuekey = 'fixed-' + targetPatternPieces.filter(item => item.type === LinearTargetPatternPiece.types.text).length
+    }
+    return tempPiece
 }
 
 export const processTargetPatternStoring = (segmentPieces: LinearTargetPatternPiece[], gremlinInvoke: GremlinInvoke) => {
