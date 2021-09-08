@@ -11,7 +11,7 @@
             <br/>
         </div>
 
-        <Button @click="openTranslationPatternWindow" :disabled="!isPatternSavable" >Add Pattern Segment</Button>
+        <Button @click="openTranslationPatternWindow" :disabled="!isPatternSavable" >Target Pattern...</Button>
 
         <Dialog
             v-model:visible="displayModal" 
