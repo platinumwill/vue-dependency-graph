@@ -141,7 +141,7 @@ export const submit = (commandOrObject: string | GremlinInvoke) => {
         gremlin: command
     }
     return new Promise((resolve, reject) => {
-        axios.post('http://stanford-local:8182/', JSON.stringify(argument)).then(function(response) {
+        axios.post('http://janusgraph-server:8182/', JSON.stringify(argument)).then(function(response) {
             const result = response.data.result
             resolve(result.data)
         }).catch(function(error) {
