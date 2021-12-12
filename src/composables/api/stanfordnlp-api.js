@@ -5,7 +5,7 @@ export default async function (documentText) {
             // Stanford CoreNLP
             // properties={"annotators":"tokenize,pos,parse,lemma","outputFormat":"json"}
             const encodedQueryString = encodeURI('?properties={"annotators": "tokenize,ssplit,pos,ner,depparse,openie"}&pipelineLanguage=en')
-            axios.post('http://stanford-server:9000/' + encodedQueryString
+            axios.post('http://stanfordnlp-server:9000/' + encodedQueryString
                 , documentText)
             .then(function(response) {
                 resolve(response.data)
