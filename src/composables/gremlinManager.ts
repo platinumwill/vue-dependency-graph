@@ -137,7 +137,7 @@ export const submit = (commandOrObject: string | GremlinInvoke) => {
         command = commandOrObject
     }
 
-    let argument = {
+    const argument = {
         gremlin: command
     }
     return new Promise((resolve, reject) => {
