@@ -70,7 +70,7 @@ export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpa
                     console.error(error)
                     throw error
                 }
-            let startVName = gremlinUtils.vertexAlias(startWord)
+            const startVName = gremlinUtils.vertexAlias(startWord)
             let endVName = undefined
             if (arc.isPlaceholder) { // 這個 dependency 後面連著連接處
                 const connectorVName = gremlinUtils.connectorAlias(arc)

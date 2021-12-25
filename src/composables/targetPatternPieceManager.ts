@@ -66,7 +66,7 @@ export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpa
     }
     function setSelectedTargetPatternByPieces(patternPieces: LinearTargetPatternPiece[]) {
         const defaultTargetPatternSample = new LinearTargetPattern(patternPieces)
-        let matchOption = targetPatternOptions.value.find( tp => {return tp.piecesEqual(defaultTargetPatternSample) })
+        const matchOption = targetPatternOptions.value.find( tp => {return tp.piecesEqual(defaultTargetPatternSample) })
         selectedTargetPattern.value = matchOption
     }
 

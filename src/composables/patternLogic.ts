@@ -73,7 +73,7 @@ export default function patternManager (
 
         // 下面的邏輯也許應該切到 setence manager
 
-        let gremlinCommand = new gremlinApi.GremlinInvoke()
+        const gremlinCommand = new gremlinApi.GremlinInvoke()
         .call("V", sourcePatternBeginningId)
         .call("repeat", new gremlinApi.GremlinInvoke(true).call("outE").call("inV"))
         .call("until", new gremlinApi.GremlinInvoke(true).call("outE").call("count").call("is", 0))
