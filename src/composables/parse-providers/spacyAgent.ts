@@ -1,5 +1,5 @@
 import axios from 'axios'
-export default async function (documentText) {
+export default async function (documentText: string) {
     return new Promise((resolve, reject) => {
             const params = new URLSearchParams();
             params.append('text', documentText);
