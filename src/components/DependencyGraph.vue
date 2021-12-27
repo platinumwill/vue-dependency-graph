@@ -9,7 +9,7 @@
 import DocumentPanel from "./DocumentPanel.vue"
 import DocumentInput from "./DocumentInput.vue"
 import SentenceParseGraph from "./SentenceParseGraph.vue"
-import parseProviderManager from "@/composables/parse-providers/parseProviderManager.js"
+import parseProviderManager from "@/composables/parse-providers/parseProviderManager"
 
 export default {
   name: 'DependencyGraph'
