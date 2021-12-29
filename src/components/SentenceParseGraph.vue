@@ -74,7 +74,7 @@ export default {
     }
     , methods: {
         async delegateToSpaceFormatParserProvider(documentText) {
-            await this.spacyFormatParseProvider(documentText).then((spacyFormatParsedResult) => {
+            await this.spacyFormatParseProvider.parse(documentText).then((spacyFormatParsedResult) => {
                 this.spacyFormatHelper.documentParse = spacyFormatParsedResult
                 const sentences = this.spacyFormatHelper.generateSentences()
                 this.spacyFormatSentences.push(...sentences)
@@ -101,7 +101,7 @@ export default {
             }
         }
         , spacyFormatParseProvider: {
-            type: Function
+            type: Object
         }
     }
     , components: {

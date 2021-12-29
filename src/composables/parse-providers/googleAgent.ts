@@ -1,6 +1,7 @@
 import googleApi from "@/composables/api/google-api"
-export default async function (documentText: string) {
-    return new Promise((resolve, reject) => {
+export default {
+    parse: async function (documentText: string) {
+        return new Promise((resolve, reject) => {
             googleApi(documentText).then((parse) => {
                 console.log("GOOGLE parse:")
                 console.log(parse)
@@ -21,5 +22,6 @@ export default async function (documentText: string) {
                 console.error(error)
                 reject(error)
             })
-    })
+        })
+    }
 }

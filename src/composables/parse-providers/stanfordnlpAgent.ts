@@ -1,6 +1,8 @@
 import stanfordnlpApi from '@/composables/api/stanfordnlp-api'
 
-export default async function (documentText: string) {
+export default {
+    parse: async function (documentText: string) {
+    
     return new Promise((resolve, reject) => {
         setTimeout(() => {
             stanfordnlpApi(documentText).then((stanfordParse) => {
@@ -34,4 +36,6 @@ export default async function (documentText: string) {
             })
         }, 1000)
     })
+
+    }
 }
