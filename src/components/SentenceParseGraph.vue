@@ -24,6 +24,7 @@ import targetPatternPieceManager from '@/composables/targetPatternPieceManager'
 import sourcePatternLogic from '@/composables/sourcePatternManager'
 import sentenceManager from '@/composables/sentenceManager'
 import patternLogic from '@/composables/patternLogic'
+import * as gremlinApi from "@/composables/gremlinManager"
 
 export default {
     data() {
@@ -78,6 +79,17 @@ export default {
                 this.spacyFormatHelper.documentParse = spacyFormatParsedResult
                 const sentences = this.spacyFormatHelper.generateSentences()
                 this.spacyFormatSentences.push(...sentences)
+                if (this.spacyFormatParseProvider.name != undefined) {
+                    console.log('parse provider name: ', this.spacyFormatParseProvider.name)
+                    let gremlinInvoke = new gremlinApi.GremlinInvoke()
+
+                    gremlinInvoke
+                    .addV(gremlinApi.vertexLabels.document)
+                    .property('content', documentText)
+                    .property('rawParse', JSON.stringify(spacyFormatParsedResult))
+
+                    gremlinApi.submit(gremlinInvoke)
+                }
             })
         }
     }

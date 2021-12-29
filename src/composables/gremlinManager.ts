@@ -16,6 +16,7 @@ export function connectorAlias(dependency: sentenceManager.ModifiedSpacyDependen
 export const vertexLabels = Object.freeze({
     linearTargetPattern: "LinearTargetPatternPiece"
     , sourcePattern: "SourcePatternPiece"
+    , document: "Document"
 })
 export const edgeLabels = Object.freeze({
     applicable: 'applicable'
@@ -74,6 +75,9 @@ export class GremlinInvoke {
 
     V(...values: string[] | number[] | boolean[] | GremlinInvoke[]) {
         return this.call("V", ...values)
+    }
+    addV(...values: string[] | number[] | boolean[] | GremlinInvoke[]) {
+        return this.call("addV", ...values)
     }
     valueMap(...values: string[] | number[] | boolean[] | GremlinInvoke[]) {
         return this.call("valueMap", ...values)
