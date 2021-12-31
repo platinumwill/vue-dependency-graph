@@ -75,22 +75,24 @@ export default {
     }
     , methods: {
         async delegateToSpaceFormatParserProvider(documentText) {
-            await this.spacyFormatParseProvider.parse(documentText).then((spacyFormatParsedResult) => {
-                this.spacyFormatHelper.documentParse = spacyFormatParsedResult
-                const sentences = this.spacyFormatHelper.generateSentences()
-                this.spacyFormatSentences.push(...sentences)
-                if (this.spacyFormatParseProvider.name != undefined) {
-                    console.log('parse provider name: ', this.spacyFormatParseProvider.name)
-                    let gremlinInvoke = new gremlinApi.GremlinInvoke()
+            this.documentText = documentText
+            await this.spacyFormatParseProvider.parse(this.documentText).then(this.processParseResult)
+        }
+        , processParseResult(spacyFormatParsedResult) {
+            this.spacyFormatHelper.documentParse = spacyFormatParsedResult
+            const sentences = this.spacyFormatHelper.generateSentences()
+            this.spacyFormatSentences.push(...sentences)
+            if (this.spacyFormatParseProvider.name != undefined) {
+                console.log('parse provider name: ', this.spacyFormatParseProvider.name)
+                let gremlinInvoke = new gremlinApi.GremlinInvoke()
 
-                    gremlinInvoke
-                    .addV(gremlinApi.vertexLabels.document)
-                    .property('content', documentText)
-                    .property('rawParse', JSON.stringify(spacyFormatParsedResult))
+                gremlinInvoke
+                .addV(gremlinApi.vertexLabels.document)
+                .property('content', this.documentText)
+                .property('rawParse', JSON.stringify(spacyFormatParsedResult))
 
-                    gremlinApi.submit(gremlinInvoke)
-                }
-            })
+                gremlinApi.submit(gremlinInvoke)
+            }
         }
     }
     , props: {
@@ -143,9 +145,11 @@ export default {
         provide('currentSentence', currentSentence)
         provide('patternManager', patternManager)
 
+        let documentText = undefined
         return {
             spacyFormatHelper
             , spacyFormatSentences
+            , documentText
         }
     }
     , provide() {
