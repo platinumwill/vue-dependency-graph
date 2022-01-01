@@ -26,6 +26,9 @@ import sentenceManager from '@/composables/sentenceManager'
 import patternLogic from '@/composables/patternLogic'
 import * as gremlinApi from "@/composables/gremlinManager"
 
+// const contentProperty = 'content'
+// const rawParseProperty = 'rawParse'
+
 export default {
     data() {
         return {
@@ -69,16 +72,13 @@ export default {
     }
     , watch: {
         // 這裡是大部分流程的起頭
-        originalText (newText) {
-            this.delegateToSpaceFormatParserProvider(newText)
+        async originalText (newText) {
+            this.documentText = newText
+            this.spacyFormatParseProvider.parse(this.documentText).then(this.processParseResult)
         }
     }
     , methods: {
-        async delegateToSpaceFormatParserProvider(documentText) {
-            this.documentText = documentText
-            await this.spacyFormatParseProvider.parse(this.documentText).then(this.processParseResult)
-        }
-        , processParseResult(spacyFormatParsedResult) {
+        processParseResult(spacyFormatParsedResult) {
             this.spacyFormatHelper.documentParse = spacyFormatParsedResult
             const sentences = this.spacyFormatHelper.generateSentences()
             this.spacyFormatSentences.push(...sentences)

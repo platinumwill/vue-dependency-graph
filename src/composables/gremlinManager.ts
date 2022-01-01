@@ -156,6 +156,10 @@ export const submit = (commandOrObject: string | GremlinInvoke) => {
 }
 
 export const valueKey = '@value'
+export const keys = {
+    value: '@value'
+    , properties: 'properties'
+}
 
 export const isConnector = async (id: number) => {
     let keyValueList: any = undefined
