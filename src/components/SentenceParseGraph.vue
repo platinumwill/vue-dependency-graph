@@ -26,8 +26,8 @@ import sentenceManager from '@/composables/sentenceManager'
 import patternLogic from '@/composables/patternLogic'
 import * as gremlinApi from "@/composables/gremlinManager"
 
-// const contentProperty = 'content'
-// const rawParseProperty = 'rawParse'
+const contentProperty = 'content'
+const rawParseProperty = 'rawParse'
 
 export default {
     data() {
@@ -78,7 +78,36 @@ export default {
         }
     }
     , methods: {
-        processParseResult(spacyFormatParsedResult) {
+        async queryExistingParse(documentText) {
+
+            let gremlinInvoke = new gremlinApi.GremlinInvoke()
+
+            gremlinInvoke
+            .V()
+            .has('content', new gremlinApi.GremlinInvoke(true).call('textFuzzy', documentText))
+
+            return await gremlinApi.submit(gremlinInvoke).then( (resultData) => {
+                const queryResult = resultData[gremlinApi.valueKey]
+                console.log(queryResult)
+                console.log(queryResult.length)
+                if (queryResult.length > 1) {
+                    const error = '查詢結果有多筆，資料不正確'
+                    console.error(error)
+                    throw error
+                }
+                if (queryResult.length <= 0) {
+                    return undefined
+                }
+                // 以下就是查詢結果剛好有 1 筆的正常流程
+                console.log(queryResult[0][gremlinApi.valueKey][gremlinApi.keys.properties][contentProperty][0][gremlinApi.keys.value]['value'])
+                console.log(queryResult[0][gremlinApi.valueKey][gremlinApi.keys.properties][rawParseProperty][0][gremlinApi.keys.value]['value'])
+                return queryResult[0][gremlinApi.valueKey]
+            }).catch( (error) => {
+                console.error(error)
+                throw error
+            })
+        }
+        , processParseResult(spacyFormatParsedResult) {
             this.spacyFormatHelper.documentParse = spacyFormatParsedResult
             const sentences = this.spacyFormatHelper.generateSentences()
             this.spacyFormatSentences.push(...sentences)
