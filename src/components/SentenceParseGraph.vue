@@ -24,7 +24,6 @@ import targetPatternPieceManager from '@/composables/targetPatternPieceManager'
 import sourcePatternLogic from '@/composables/sourcePatternManager'
 import sentenceManager from '@/composables/sentenceManager'
 import patternLogic from '@/composables/patternLogic'
-import * as gremlinApi from "@/composables/gremlinManager"
 import * as documentPersistence from '@/composables/document/document-persistence'
 
 export default {
@@ -79,7 +78,7 @@ export default {
         async retrieveStoredDocument(documentText) {
             if (this.spacyFormatParseProvider.name != undefined) { // 有名字，就可以視同解析解果會被儲存
                 let parse = undefined
-                await this.queryExistingParse(documentText).then( (queryResult) => {
+                await documentPersistence.queryExistingParse(documentText).then( (queryResult) => {
                     parse = queryResult
                 })
                 if (parse != undefined) {
@@ -91,32 +90,6 @@ export default {
                 }
             }
             return this.spacyFormatParseProvider.parse(documentText)
-        }
-        , async queryExistingParse(documentText) {
-
-            let gremlinInvoke = new gremlinApi.GremlinInvoke()
-
-            gremlinInvoke
-            .V()
-            .has('content', new gremlinApi.GremlinInvoke(true).call('textFuzzy', documentText))
-
-            return await gremlinApi.submit(gremlinInvoke).then( (resultData) => {
-                const queryResult = resultData[gremlinApi.valueKey]
-                if (queryResult.length > 1) {
-                    const error = '查詢結果有多筆，資料不正確'
-                    console.error(error)
-                    throw error
-                }
-                if (queryResult.length <= 0) {
-                    return undefined
-                }
-                // 以下就是查詢結果剛好有 1 筆的正常流程
-                const parseJsonString = queryResult[0][gremlinApi.valueKey][gremlinApi.keys.properties][gremlinApi.propertyNames.parse][0][gremlinApi.keys.value]['value']
-                return JSON.parse(parseJsonString)
-            }).catch( (error) => {
-                console.error(error)
-                throw error
-            })
         }
         , processParseResult(document) {
             this.spacyFormatHelper.documentParse = document.parse
