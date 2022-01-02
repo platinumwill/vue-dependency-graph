@@ -24,6 +24,10 @@ import targetPatternPieceManager from '@/composables/targetPatternPieceManager'
 import sourcePatternLogic from '@/composables/sourcePatternManager'
 import sentenceManager from '@/composables/sentenceManager'
 import patternLogic from '@/composables/patternLogic'
+import * as gremlinApi from "@/composables/gremlinManager"
+
+const contentProperty = 'content'
+const rawParseProperty = 'rawParse'
 
 export default {
     data() {
@@ -68,17 +72,78 @@ export default {
     }
     , watch: {
         // 這裡是大部分流程的起頭
-        originalText (newText) {
-            this.delegateToSpaceFormatParserProvider(newText)
+        async originalText (newText) {
+            this.documentText = newText
+            this.retrieveParse(this.documentText).then(this.processParseResult)
         }
     }
     , methods: {
-        async delegateToSpaceFormatParserProvider(documentText) {
-            await this.spacyFormatParseProvider.parse(documentText).then((spacyFormatParsedResult) => {
-                this.spacyFormatHelper.documentParse = spacyFormatParsedResult
-                const sentences = this.spacyFormatHelper.generateSentences()
-                this.spacyFormatSentences.push(...sentences)
+        async retrieveParse(documentText) {
+            if (this.spacyFormatParseProvider.name != undefined) { // 有名字，就可以視同解析解果會被儲存
+                let parse = undefined
+                await this.queryExistingParse(documentText).then( (queryResult) => {
+                    parse = queryResult
+                })
+                if (parse != undefined) {
+                    console.log('existing parse retrieved')
+                    return parse
+                } else {
+                    return this.spacyFormatParseProvider.parse(documentText)
+                        .then(this.saveDocumentParse)
+                }
+            }
+            return this.spacyFormatParseProvider.parse(documentText)
+        }
+        , async queryExistingParse(documentText) {
+
+            let gremlinInvoke = new gremlinApi.GremlinInvoke()
+
+            gremlinInvoke
+            .V()
+            .has('content', new gremlinApi.GremlinInvoke(true).call('textFuzzy', documentText))
+
+            return await gremlinApi.submit(gremlinInvoke).then( (resultData) => {
+                const queryResult = resultData[gremlinApi.valueKey]
+                if (queryResult.length > 1) {
+                    const error = '查詢結果有多筆，資料不正確'
+                    console.error(error)
+                    throw error
+                }
+                if (queryResult.length <= 0) {
+                    return undefined
+                }
+                // 以下就是查詢結果剛好有 1 筆的正常流程
+                const parseJsonString = queryResult[0][gremlinApi.valueKey][gremlinApi.keys.properties][rawParseProperty][0][gremlinApi.keys.value]['value']
+                return JSON.parse(parseJsonString)
+            }).catch( (error) => {
+                console.error(error)
+                throw error
             })
+        }
+        , processParseResult(spacyFormatParsedResult) {
+            this.spacyFormatHelper.documentParse = spacyFormatParsedResult
+            const sentences = this.spacyFormatHelper.generateSentences()
+            this.spacyFormatSentences.push(...sentences)
+        }
+        , async saveDocumentParse(parse) {
+            console.log('parse provider name: ', this.spacyFormatParseProvider.name)
+            console.log(parse)
+            console.log(this.documentText)
+
+            // if (this.spacyFormatParseProvider.name == undefined) { // 有名字，就可以視同解析解果會被儲存
+            //     return parse
+            // }
+
+            let gremlinInvoke = new gremlinApi.GremlinInvoke()
+
+            gremlinInvoke
+            .addV(gremlinApi.vertexLabels.document)
+            .property(contentProperty, this.documentText)
+            .property(rawParseProperty, JSON.stringify(parse))
+
+            await gremlinApi.submit(gremlinInvoke)
+
+            return parse
         }
     }
     , props: {
@@ -131,9 +196,11 @@ export default {
         provide('currentSentence', currentSentence)
         provide('patternManager', patternManager)
 
+        let documentText = undefined
         return {
             spacyFormatHelper
             , spacyFormatSentences
+            , documentText
         }
     }
     , provide() {
