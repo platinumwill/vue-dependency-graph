@@ -26,7 +26,7 @@ import sentenceManager from '@/composables/sentenceManager'
 import patternLogic from '@/composables/patternLogic'
 import * as gremlinApi from "@/composables/gremlinManager"
 
-const contentProperty = 'content'
+// const contentProperty = 'content'
 const rawParseProperty = 'rawParse'
 
 export default {
@@ -79,7 +79,17 @@ export default {
     }
     , methods: {
         async retrieveParse(documentText) {
-            return this.spacyFormatParseProvider.parse(documentText)
+            if (this.spacyFormatParseProvider.name != undefined) { // 有名字，就可以視同解析解果會被儲存
+                return await this.queryExistingParse(documentText).then( (queryResult) => {
+                    if (queryResult != undefined) {
+                        return queryResult
+                    } else {
+                        return this.spacyFormatParseProvider.parse(documentText)
+                    }
+                })
+            } else {
+                return this.spacyFormatParseProvider.parse(documentText)
+            }
         }
         , async queryExistingParse(documentText) {
 
@@ -102,15 +112,15 @@ export default {
                     return undefined
                 }
                 // 以下就是查詢結果剛好有 1 筆的正常流程
-                console.log(queryResult[0][gremlinApi.valueKey][gremlinApi.keys.properties][contentProperty][0][gremlinApi.keys.value]['value'])
-                console.log(queryResult[0][gremlinApi.valueKey][gremlinApi.keys.properties][rawParseProperty][0][gremlinApi.keys.value]['value'])
-                return queryResult[0][gremlinApi.valueKey]
+                const parseJsonString = queryResult[0][gremlinApi.valueKey][gremlinApi.keys.properties][rawParseProperty][0][gremlinApi.keys.value]['value']
+                return JSON.parse(parseJsonString)
             }).catch( (error) => {
                 console.error(error)
                 throw error
             })
         }
         , processParseResult(spacyFormatParsedResult) {
+            console.log('preocess result: ', spacyFormatParsedResult)
             this.spacyFormatHelper.documentParse = spacyFormatParsedResult
             const sentences = this.spacyFormatHelper.generateSentences()
             this.spacyFormatSentences.push(...sentences)
