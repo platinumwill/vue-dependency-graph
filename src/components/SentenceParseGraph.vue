@@ -71,27 +71,11 @@ export default {
         // 這裡是大部分流程的起頭
         async originalText (newText) {
             this.documentText = newText
-            this.retrieveStoredDocument(this.documentText).then(this.processParseResult)
+            documentPersistence.retrieveDocument(this.documentText, this.spacyFormatParseProvider.name, this.spacyFormatParseProvider).then(this.processParseResult)
         }
     }
     , methods: {
-        async retrieveStoredDocument(documentText) {
-            if (this.spacyFormatParseProvider.name != undefined) { // 有名字，就可以視同解析解果會被儲存
-                let parse = undefined
-                await documentPersistence.queryExistingParse(documentText).then( (queryResult) => {
-                    parse = queryResult
-                })
-                if (parse != undefined) {
-                    console.log('existing parse retrieved')
-                    return {content: documentText, parse: parse}
-                } else {
-                    return this.spacyFormatParseProvider.parse(documentText)
-                        .then(documentPersistence.saveDocumentParse)
-                }
-            }
-            return this.spacyFormatParseProvider.parse(documentText)
-        }
-        , processParseResult(document) {
+        processParseResult(document) {
             this.spacyFormatHelper.documentParse = document.parse
             const sentences = this.spacyFormatHelper.generateSentences()
             this.spacyFormatSentences.push(...sentences)

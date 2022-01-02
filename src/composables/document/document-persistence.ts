@@ -1,5 +1,22 @@
 import * as gremlinApi from '@/composables/gremlinManager'
 
+export async function retrieveDocument(documentText: string, spacyFormatParseProviderName: string, spacyFormatParseProvider: any) {
+    if (spacyFormatParseProviderName != undefined) { // 有名字，就可以視同解析解果會被儲存
+        let parse = undefined
+        await queryExistingParse(documentText).then( (queryResult) => {
+            parse = queryResult
+        })
+        if (parse != undefined) {
+            console.log('existing parse retrieved')
+            return {content: documentText, parse: parse}
+        } else {
+            return spacyFormatParseProvider.parse(documentText)
+                .then(saveDocumentParse)
+        }
+    }
+    return spacyFormatParseProvider.parse(documentText)
+}
+
 export async function saveDocumentParse (document: Document) {
     const gremlinInvoke = new gremlinApi.GremlinInvoke()
 
