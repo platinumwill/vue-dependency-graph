@@ -12,6 +12,10 @@ export async function retrieveDocument(documentText: string, spacyFormatParsePro
         } else {
             return spacyFormatParseProvider.parse(documentText)
                 .then(saveDocumentParse)
+                .then( (document: Document) => {
+                    console.log('document id: ', document.id)
+                    return document
+                })
         }
     }
     return spacyFormatParseProvider.parse(documentText)
@@ -20,15 +24,16 @@ export async function retrieveDocument(documentText: string, spacyFormatParsePro
 export async function saveDocumentParse (document: Document) {
     const gremlinInvoke = new gremlinApi.GremlinInvoke()
 
-    let result = undefined
     gremlinInvoke
     .addV(gremlinApi.vertexLabels.document)
     .property(gremlinApi.propertyNames.content, document.content)
     .property(gremlinApi.propertyNames.parse, JSON.stringify(document.parse))
 
-    await gremlinApi.submit(gremlinInvoke).then( (gremlinResult) => {
+    await gremlinApi.submit(gremlinInvoke).then( (gremlinResult: any) => {
         console.log('document persist result: ', gremlinResult)
-        result = gremlinResult
+        console.log('id: ', gremlinResult[gremlinApi.keys.value][0][gremlinApi.keys.value][gremlinApi.keys.id][gremlinApi.keys.value])
+        const id = gremlinResult[gremlinApi.keys.value][0][gremlinApi.keys.value][gremlinApi.keys.id][gremlinApi.keys.value]
+        document.id = id
     })
 
     return document
@@ -63,9 +68,19 @@ export async function queryExistingParse(documentText: string) {
 export class Document {
     content: string
     parse: any
+    private _id: any
 
     constructor(content:string, parse: any) {
         this.content = content
         this.parse = parse
     }
+
+    public get id() {
+        return this._id
+    }
+
+    public set id(id: any) {
+        this._id = id
+    }
+
 }

@@ -161,6 +161,7 @@ export const valueKey = '@value'
 export const keys = {
     value: '@value'
     , properties: 'properties'
+    , id: 'id'
 }
 
 export const isConnector = async (id: number) => {
