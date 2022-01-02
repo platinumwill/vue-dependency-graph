@@ -11,7 +11,3 @@ export default function() {
         ]
     }
 }
-
-export type SpacyParseProvider = {
-    parse: Function
-}
