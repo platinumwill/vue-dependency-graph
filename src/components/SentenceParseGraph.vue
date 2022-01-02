@@ -80,16 +80,15 @@ export default {
     , methods: {
         async retrieveParse(documentText) {
             if (this.spacyFormatParseProvider.name != undefined) { // 有名字，就可以視同解析解果會被儲存
-                return await this.queryExistingParse(documentText).then( (queryResult) => {
-                    if (queryResult != undefined) {
-                        return queryResult
-                    } else {
-                        return this.spacyFormatParseProvider.parse(documentText)
-                    }
+                let parse = undefined
+                await this.queryExistingParse(documentText).then( (queryResult) => {
+                    parse = queryResult
                 })
-            } else {
-                return this.spacyFormatParseProvider.parse(documentText)
+                if (parse != undefined) {
+                    return parse
+                }
             }
+            return this.spacyFormatParseProvider.parse(documentText)
         }
         , async queryExistingParse(documentText) {
 
