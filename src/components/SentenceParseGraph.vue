@@ -25,9 +25,7 @@ import sourcePatternLogic from '@/composables/sourcePatternManager'
 import sentenceManager from '@/composables/sentenceManager'
 import patternLogic from '@/composables/patternLogic'
 import * as gremlinApi from "@/composables/gremlinManager"
-
-const contentProperty = 'content'
-const rawParseProperty = 'rawParse'
+import * as documentPersistence from '@/composables/document/document-persistence'
 
 export default {
     data() {
@@ -74,11 +72,11 @@ export default {
         // 這裡是大部分流程的起頭
         async originalText (newText) {
             this.documentText = newText
-            this.retrieveParse(this.documentText).then(this.processParseResult)
+            this.retrieveStoredDocument(this.documentText).then(this.processParseResult)
         }
     }
     , methods: {
-        async retrieveParse(documentText) {
+        async retrieveStoredDocument(documentText) {
             if (this.spacyFormatParseProvider.name != undefined) { // 有名字，就可以視同解析解果會被儲存
                 let parse = undefined
                 await this.queryExistingParse(documentText).then( (queryResult) => {
@@ -86,10 +84,10 @@ export default {
                 })
                 if (parse != undefined) {
                     console.log('existing parse retrieved')
-                    return parse
+                    return {content: documentText, parse: parse}
                 } else {
                     return this.spacyFormatParseProvider.parse(documentText)
-                        .then(this.saveDocumentParse)
+                        .then(documentPersistence.saveDocumentParse)
                 }
             }
             return this.spacyFormatParseProvider.parse(documentText)
@@ -113,37 +111,17 @@ export default {
                     return undefined
                 }
                 // 以下就是查詢結果剛好有 1 筆的正常流程
-                const parseJsonString = queryResult[0][gremlinApi.valueKey][gremlinApi.keys.properties][rawParseProperty][0][gremlinApi.keys.value]['value']
+                const parseJsonString = queryResult[0][gremlinApi.valueKey][gremlinApi.keys.properties][gremlinApi.propertyNames.parse][0][gremlinApi.keys.value]['value']
                 return JSON.parse(parseJsonString)
             }).catch( (error) => {
                 console.error(error)
                 throw error
             })
         }
-        , processParseResult(spacyFormatParsedResult) {
-            this.spacyFormatHelper.documentParse = spacyFormatParsedResult
+        , processParseResult(document) {
+            this.spacyFormatHelper.documentParse = document.parse
             const sentences = this.spacyFormatHelper.generateSentences()
             this.spacyFormatSentences.push(...sentences)
-        }
-        , async saveDocumentParse(parse) {
-            console.log('parse provider name: ', this.spacyFormatParseProvider.name)
-            console.log(parse)
-            console.log(this.documentText)
-
-            // if (this.spacyFormatParseProvider.name == undefined) { // 有名字，就可以視同解析解果會被儲存
-            //     return parse
-            // }
-
-            let gremlinInvoke = new gremlinApi.GremlinInvoke()
-
-            gremlinInvoke
-            .addV(gremlinApi.vertexLabels.document)
-            .property(contentProperty, this.documentText)
-            .property(rawParseProperty, JSON.stringify(parse))
-
-            await gremlinApi.submit(gremlinInvoke)
-
-            return parse
         }
     }
     , props: {

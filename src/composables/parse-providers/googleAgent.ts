@@ -17,7 +17,7 @@ export default {
                         })
                 console.log("GOOGLE parse in Spacy format:")
                 console.log(googleParseConvertedSpacy)
-                resolve(googleParseConvertedSpacy)
+                resolve({content: documentText, parse: googleParseConvertedSpacy})
             }).catch((error) => {
                 console.error(error)
                 reject(error)
