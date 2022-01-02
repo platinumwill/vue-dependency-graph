@@ -2,19 +2,18 @@ import * as gremlinApi from '@/composables/gremlinManager'
 
 export async function retrieveDocument(documentText: string, spacyFormatParseProviderName: string, spacyFormatParseProvider: any) {
     if (spacyFormatParseProviderName != undefined) { // 有名字，就可以視同解析解果會被儲存
-        let parse = undefined
-        await queryExistingParse(documentText).then( (queryResult) => {
-            parse = queryResult
+        let document: Document|undefined = undefined
+        await queryExistingDocument(documentText).then( (queryResult) => {
+            document = queryResult
         })
-        if (parse != undefined) {
-            console.log('existing parse retrieved')
-            return {content: documentText, parse: parse}
+        if (document != undefined) {
+            console.log('existing document retrieved: ', document)
+            return document
         } else {
             return spacyFormatParseProvider.parse(documentText)
                 .then(saveDocumentParse)
-                .then( (document: Document) => {
-                    console.log('document id: ', document.id)
-                    return document
+                .then( (newlySavedDocument: Document) => {
+                    return newlySavedDocument
                 })
         }
     }
@@ -31,14 +30,13 @@ export async function saveDocumentParse (document: Document) {
 
     await gremlinApi.submit(gremlinInvoke).then( (gremlinResult: any) => {
         console.log('document persist result: ', gremlinResult)
-        console.log('id: ', gremlinResult[gremlinApi.keys.value][0][gremlinApi.keys.value][gremlinApi.keys.id][gremlinApi.keys.value])
         const id = gremlinResult[gremlinApi.keys.value][0][gremlinApi.keys.value][gremlinApi.keys.id][gremlinApi.keys.value]
         document.id = id
     })
 
     return document
 }
-export async function queryExistingParse(documentText: string) {
+export async function queryExistingDocument(documentText: string) {
 
     const gremlinInvoke = new gremlinApi.GremlinInvoke()
 
@@ -58,7 +56,13 @@ export async function queryExistingParse(documentText: string) {
         }
         // 以下就是查詢結果剛好有 1 筆的正常流程
         const parseJsonString = queryResult[0][gremlinApi.valueKey][gremlinApi.keys.properties][gremlinApi.propertyNames.parse][0][gremlinApi.keys.value]['value']
-        return JSON.parse(parseJsonString)
+        const parse = JSON.parse(parseJsonString)
+        const content = queryResult[0][gremlinApi.valueKey][gremlinApi.keys.properties][gremlinApi.propertyNames.content][0][gremlinApi.keys.value]['value']
+        const id = queryResult[0][gremlinApi.valueKey][gremlinApi.keys.id][gremlinApi.keys.value]
+        const document = new Document(content, parse)
+        document.id = id
+        console.log('document query result: ', document)
+        return document
     }).catch( (error) => {
         console.error(error)
         throw error

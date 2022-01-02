@@ -33,6 +33,7 @@ export const propertyNames = Object.freeze({
     , seqNo: "seqNo"
     , content: 'content'
     , parse: 'parse'
+    , id: 'id'
 })
 export enum edgePropertyNames {
     traceToInDep = "traceToInDep"
