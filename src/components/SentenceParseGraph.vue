@@ -74,11 +74,14 @@ export default {
         // 這裡是大部分流程的起頭
         async originalText (newText) {
             this.documentText = newText
-            this.spacyFormatParseProvider.parse(this.documentText).then(this.processParseResult)
+            this.retrieveParse(this.documentText).then(this.processParseResult)
         }
     }
     , methods: {
-        async queryExistingParse(documentText) {
+        async retrieveParse(documentText) {
+            return this.spacyFormatParseProvider.parse(documentText)
+        }
+        , async queryExistingParse(documentText) {
 
             let gremlinInvoke = new gremlinApi.GremlinInvoke()
 
@@ -111,17 +114,18 @@ export default {
             this.spacyFormatHelper.documentParse = spacyFormatParsedResult
             const sentences = this.spacyFormatHelper.generateSentences()
             this.spacyFormatSentences.push(...sentences)
-            if (this.spacyFormatParseProvider.name != undefined) {
-                console.log('parse provider name: ', this.spacyFormatParseProvider.name)
-                let gremlinInvoke = new gremlinApi.GremlinInvoke()
+            // if (this.spacyFormatParseProvider.name != undefined) {
+            //     console.log('parse provider name: ', this.spacyFormatParseProvider.name)
 
-                gremlinInvoke
-                .addV(gremlinApi.vertexLabels.document)
-                .property('content', this.documentText)
-                .property('rawParse', JSON.stringify(spacyFormatParsedResult))
+            //     let gremlinInvoke = new gremlinApi.GremlinInvoke()
 
-                gremlinApi.submit(gremlinInvoke)
-            }
+            //     gremlinInvoke
+            //     .addV(gremlinApi.vertexLabels.document)
+            //     .property(contentProperty, this.documentText)
+            //     .property(rawParseProperty, JSON.stringify(spacyFormatParsedResult))
+
+            //     gremlinApi.submit(gremlinInvoke)
+            // }
         }
     }
     , props: {
