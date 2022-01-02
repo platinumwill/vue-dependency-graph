@@ -26,7 +26,7 @@ import sentenceManager from '@/composables/sentenceManager'
 import patternLogic from '@/composables/patternLogic'
 import * as gremlinApi from "@/composables/gremlinManager"
 
-// const contentProperty = 'content'
+const contentProperty = 'content'
 const rawParseProperty = 'rawParse'
 
 export default {
@@ -85,7 +85,11 @@ export default {
                     parse = queryResult
                 })
                 if (parse != undefined) {
+                    console.log('existing parse retrieved')
                     return parse
+                } else {
+                    return this.spacyFormatParseProvider.parse(documentText)
+                        .then(this.saveDocumentParse)
                 }
             }
             return this.spacyFormatParseProvider.parse(documentText)
@@ -100,8 +104,6 @@ export default {
 
             return await gremlinApi.submit(gremlinInvoke).then( (resultData) => {
                 const queryResult = resultData[gremlinApi.valueKey]
-                console.log(queryResult)
-                console.log(queryResult.length)
                 if (queryResult.length > 1) {
                     const error = '查詢結果有多筆，資料不正確'
                     console.error(error)
@@ -119,22 +121,29 @@ export default {
             })
         }
         , processParseResult(spacyFormatParsedResult) {
-            console.log('preocess result: ', spacyFormatParsedResult)
             this.spacyFormatHelper.documentParse = spacyFormatParsedResult
             const sentences = this.spacyFormatHelper.generateSentences()
             this.spacyFormatSentences.push(...sentences)
-            // if (this.spacyFormatParseProvider.name != undefined) {
-            //     console.log('parse provider name: ', this.spacyFormatParseProvider.name)
+        }
+        , async saveDocumentParse(parse) {
+            console.log('parse provider name: ', this.spacyFormatParseProvider.name)
+            console.log(parse)
+            console.log(this.documentText)
 
-            //     let gremlinInvoke = new gremlinApi.GremlinInvoke()
-
-            //     gremlinInvoke
-            //     .addV(gremlinApi.vertexLabels.document)
-            //     .property(contentProperty, this.documentText)
-            //     .property(rawParseProperty, JSON.stringify(spacyFormatParsedResult))
-
-            //     gremlinApi.submit(gremlinInvoke)
+            // if (this.spacyFormatParseProvider.name == undefined) { // 有名字，就可以視同解析解果會被儲存
+            //     return parse
             // }
+
+            let gremlinInvoke = new gremlinApi.GremlinInvoke()
+
+            gremlinInvoke
+            .addV(gremlinApi.vertexLabels.document)
+            .property(contentProperty, this.documentText)
+            .property(rawParseProperty, JSON.stringify(parse))
+
+            await gremlinApi.submit(gremlinInvoke)
+
+            return parse
         }
     }
     , props: {
