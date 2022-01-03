@@ -70,8 +70,7 @@ export default {
     , watch: {
         // 這裡是大部分流程的起頭
         async originalText (newText) {
-            this.documentText = newText
-            documentPersistence.retrieveDocument(this.documentText, this.spacyFormatParseProvider.name, this.spacyFormatParseProvider).then(this.processParseResult)
+            documentPersistence.retrieveDocument(newText, this.spacyFormatParseProvider.name, this.spacyFormatParseProvider).then(this.processParseResult)
         }
     }
     , methods: {
@@ -131,11 +130,9 @@ export default {
         provide('currentSentence', currentSentence)
         provide('patternManager', patternManager)
 
-        let documentText = undefined
         return {
             spacyFormatHelper
             , spacyFormatSentences
-            , documentText
         }
     }
     , provide() {
