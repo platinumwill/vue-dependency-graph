@@ -75,7 +75,7 @@ export default {
     }
     , methods: {
         processParseResult(document) {
-            this.spacyFormatHelper.documentParse = document.parse
+            this.spacyFormatHelper.documentParse = document.parse // 文件的 id 可以從這裡開始取
             const sentences = this.spacyFormatHelper.generateSentences()
             this.spacyFormatSentences.push(...sentences)
         }
