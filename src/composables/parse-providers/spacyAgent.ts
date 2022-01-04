@@ -7,7 +7,7 @@ export default {
             axios.post('http://spacy-server:5000/spacy/parse', params).then(function(response) {
                 console.log('SPACY parse:')
                 console.log(response.data)
-                resolve(response.data)
+                resolve({content: documentText, parse: response.data})
             }).catch(function (error) {
                 console.log(error)
                 reject(error)

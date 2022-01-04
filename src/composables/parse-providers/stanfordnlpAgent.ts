@@ -27,7 +27,7 @@ export default {
                     arcs: dependencies.map( (dependency: any) => newInfoDependency(dependency)).filter( (arc: any) => arc.start >= 0)
                     , words: tokens.map(({originalText: text, pos: tag, lemma: lemma}: any) => ({text, tag, lemma}))
                 }
-                resolve(stanfordSpacyFormatParse)
+                resolve({content: documentText, parse: stanfordSpacyFormatParse})
                 console.log("STANFORD parse in Spacy format:")
                 console.log(stanfordSpacyFormatParse)
             }).catch((error) => {
