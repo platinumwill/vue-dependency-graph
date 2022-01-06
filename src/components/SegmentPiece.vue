@@ -52,6 +52,7 @@ import Card from 'primevue/card'
 import Button from 'primevue/button'
 import Dropdown from 'primevue/dropdown'
 import Checkbox from 'primevue/checkbox'
+import { LinearTargetPatternPiece } from '@/composables/targetPatternPieceManager'
 
 export default {
     components: {
@@ -62,7 +63,7 @@ export default {
     }
     , data() {
         return {
-            appliedText: undefined
+            appliedText: this.item.appliedText
             , mockDictionaries: [
                 {
                     label: '自訂字典'
@@ -80,7 +81,7 @@ export default {
     }
     , props: {
         item: {
-            type: Object
+            type: LinearTargetPatternPiece
         }
     }
     , methods: {
