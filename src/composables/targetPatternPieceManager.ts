@@ -12,7 +12,9 @@ export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpa
     watch(selectedTargetPattern, (newValue: any, oldValue) => {
         if (dialogPiecesModified) {
             dialogPiecesModified = false
-            return
+            if (oldValue != undefined) {
+                return
+            }
         }
         renewDialogPieces(currentSentence.value)
     })
@@ -22,12 +24,10 @@ export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpa
     watch(dialogPieces, (newValue, oldValue) => {
         dialogPiecesModified = true
         setSelectedTargetPatternByDialog()
-        dialogPiecesModified = false
     })
     watch(dialogPieces.value, (newValue, oldValue) => {
         dialogPiecesModified = true
         setSelectedTargetPatternByDialog()
-        dialogPiecesModified = false
     })
 
     function clearTargetPatternSelection() {
