@@ -34,6 +34,7 @@ export const propertyNames = Object.freeze({
     , content: 'content'
     , parse: 'parse'
     , id: 'id'
+    , appliedText: 'appliedText'
 })
 export enum edgePropertyNames {
     traceToInDep = "traceToInDep"
@@ -44,6 +45,7 @@ export const projectKeys = Object.freeze({
     , traceToInV: "traceToInV"
     , connectorInEdge: "connectorInEdge"
     , tracer: "tracer"
+    , appliedText: "appliedText"
 })
 
 export class GremlinInvoke {
@@ -93,6 +95,12 @@ export class GremlinInvoke {
     }
     property(...values: any[]) {
         return this.call("property", ...values)
+    }
+    values(...values: any[]) {
+        return this.call("values", ...values)
+    }
+    constant(...values: any[]) {
+        return this.call("constant", ...values)
     }
     has(...values: any[]) {
         return this.call("has", ...values)

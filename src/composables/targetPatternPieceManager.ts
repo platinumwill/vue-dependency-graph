@@ -22,10 +22,12 @@ export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpa
     watch(dialogPieces, (newValue, oldValue) => {
         dialogPiecesModified = true
         setSelectedTargetPatternByDialog()
+        dialogPiecesModified = false
     })
     watch(dialogPieces.value, (newValue, oldValue) => {
         dialogPiecesModified = true
         setSelectedTargetPatternByDialog()
+        dialogPiecesModified = false
     })
 
     function clearTargetPatternSelection() {
@@ -270,17 +272,25 @@ function _generateDefaultPieces (
 function _duplicateTargetPattern(targetPattern: LinearTargetPattern) {
     const pieces: LinearTargetPatternPiece[] = []
     targetPattern.pieces.forEach( piece => {
-        pieces.push(_createTargetPatternPiece(piece.source, targetPattern.pieces))
+        pieces.push(_createTargetPatternPiece(piece, targetPattern.pieces))
     })
+    console.log('pieces: ', pieces)
     return pieces
 }
 
-function _createTargetPatternPiece(source?: sentenceManager.ModifiedSpacyElement, targetPatternPieces?: LinearTargetPatternPiece[]) {
-    if (source == undefined && targetPatternPieces == undefined) {
+function _createTargetPatternPiece(piece?: LinearTargetPatternPiece, targetPatternPieces?: LinearTargetPatternPiece[]) {
+    if (piece == undefined && targetPatternPieces == undefined) {
         const error = '傳入參數都是 undefined，這樣是錯的'
         throw error
     }
+    let source = undefined
+    let appliedText = undefined
+    if (piece != undefined) {
+        appliedText = piece.appliedText
+        source = piece.source
+    }
     const tempPiece = new LinearTargetPatternPiece(source)
+    tempPiece.appliedText = appliedText
     if (source == undefined && targetPatternPieces != undefined) {
         tempPiece.specifiedVuekey = 'fixed-' + targetPatternPieces.filter(item => item.type === LinearTargetPatternPiece.types.text).length
     }
@@ -296,7 +306,10 @@ export const processTargetPatternStoring = (segmentPieces: LinearTargetPatternPi
         gremlinInvoke = gremlinInvoke
         .call("addV", gremlinManager.vertexLabels.linearTargetPattern)
         .call("property", gremlinManager.propertyNames.isPlaceholder, piece.isPlaceholder)
-        .call("as", currentPieceAlias)
+        if (piece.appliedText != undefined) {
+            gremlinInvoke.property(gremlinManager.propertyNames.appliedText, piece.appliedText)
+        }
+        gremlinInvoke.as(currentPieceAlias)
         if (lastAddedPieceAlias) {
             gremlinInvoke = gremlinInvoke
             .call("addE", gremlinManager.edgeLabels.follows)
@@ -418,6 +431,7 @@ export function reloadMatchingTargetPatternOptions (
                 , gremlinManager.projectKeys.traceToInV
                 , gremlinManager.projectKeys.connectorInEdge
                 , gremlinManager.projectKeys.tracer
+                , gremlinManager.projectKeys.appliedText
             ).call(
                 "by"
                 , new gremlinManager.GremlinInvoke(true)
@@ -450,6 +464,15 @@ export function reloadMatchingTargetPatternOptions (
                     .call("outV")
                     .call("elementMap")
                     .call("fold")
+            ).call(
+                "by"
+                , new gremlinManager.GremlinInvoke(true)
+                    .call(
+                        'choose'
+                        , new gremlinManager.GremlinInvoke(true).has(gremlinManager.propertyNames.appliedText)
+                        , new gremlinManager.GremlinInvoke(true).values(gremlinManager.propertyNames.appliedText)
+                        , new gremlinManager.GremlinInvoke(true).constant('')
+                    )
             )
         )
     return new Promise<LinearTargetPattern[]>( (resolve, reject) => {
@@ -467,6 +490,7 @@ export function reloadMatchingTargetPatternOptions (
                     if (projectedTraceToEdge.length <= 0) {
                         // text piece
                         targetPatternPiece = new LinearTargetPatternPiece()
+                        targetPatternPiece.appliedText = projectedMapArray[9]
                         // TODO 這裡還要再抓 text 選項 (？)
                         targetPattern.addPieces(targetPatternPiece)
                         return
