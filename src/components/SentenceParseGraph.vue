@@ -8,7 +8,18 @@
             <DependencyNode v-for="(word, index) in currentSpacyFormatSentence.words" :word="word" :index="index" :key="index"></DependencyNode>
             <DependencyEdge v-for="arc in currentSpacyFormatSentence.arcs" :arc="arc" :key="arc.key"></DependencyEdge>
         </svg>
-        <PatternDialog></PatternDialog>
+
+        <div v-if="isSegmentOperationEnabled">
+            <SegmentDialog 
+                v-for="(word, index) in currentSpacyFormatSentence.words"
+                :token="word"
+                :index="index"
+                :config="config"
+                :key="index">
+            </SegmentDialog>
+            <PatternDialog></PatternDialog>
+        </div>
+
     </div>
 </template>
 
@@ -16,8 +27,9 @@
 import DependencyEdge from "./DependencyEdge.vue";
 import DependencyNode from "./DependencyNode.vue";
 import { mapGetters, mapState } from 'vuex'
-import { provide } from 'vue'
+import { computed, provide } from 'vue'
 import PatternDialog from "./PatternDialog.vue"
+import SegmentDialog from "@/components/SegmentDialog.vue"
 
 import spacyFormatManager from "@/composables/spacyFormatManager"
 import targetPatternPieceManager from '@/composables/targetPatternPieceManager'
@@ -107,8 +119,9 @@ export default {
         DependencyEdge
         , DependencyNode
         , PatternDialog
+        , SegmentDialog
     } 
-    , setup() {
+    , setup(props) {
 
         const {
             spacyFormatHelper
@@ -130,9 +143,14 @@ export default {
         provide('currentSentence', currentSentence)
         provide('patternManager', patternManager)
 
+        const isSegmentOperationEnabled = computed( () => {
+            return props.spacyFormatParseProvider.name
+        })
+
         return {
             spacyFormatHelper
             , spacyFormatSentences
+            , isSegmentOperationEnabled
         }
     }
     , provide() {
