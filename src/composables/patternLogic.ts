@@ -5,7 +5,7 @@ import * as gremlinApi from "@/composables/gremlinManager"
 import { SourcePatternManager } from "@/composables/sourcePatternManager"
 import { ModifiedSpacyDependency, ModifiedSpacySentence, ModifiedSpacyToken, morphologyInfoUnknownValuePostfix } from "./sentenceManager"
 import { LinearTargetPattern } from "./targetPatternPieceManager"
-import { MorphologyInfoType, morphologyInfoTypeEnum } from "./morphologyInfo"
+import { MorphologyInfo, MorphologyInfoType, morphologyInfoTypeEnum } from "./morphologyInfo"
 
 // TODO 變數名稱待調整
 export default function patternManager (
@@ -145,31 +145,31 @@ export default function patternManager (
             })
     }
 
-    const toggleMorphologyInfoSelection = (morphInfoType: MorphologyInfoType, token: ModifiedSpacyToken) => {
+    const toggleMorphologyInfoSelection = (morphologyInfo: MorphologyInfo) => {
         const sentence = currentSentence.value
-        const word = token
+        const word = morphologyInfo.token
         // 如果 morphology info 是 UNKNOWN，就不繼續動作
-        if (word[morphInfoType.propertyInWord].endsWith(morphologyInfoUnknownValuePostfix)) return
+        if (word[morphologyInfo.type.propertyInWord].endsWith(morphologyInfoUnknownValuePostfix)) return
 
         store.dispatch('setToggling', true)
 
         const selectedArcs = sentence.arcs.filter( arc => arc.selected)
         if (selectedArcs.length > 0) { // 如果有選 dependency
             if (selectedArcs.filter( (selectedArc) => { // 選起來的 dependency 又都沒有連著現在要選的 token
-                return (selectedArc.trueStart === token.indexInSentence || selectedArc.trueEnd === token.indexInSentence)
+                return (selectedArc.trueStart === morphologyInfo.token.indexInSentence || selectedArc.trueEnd === morphologyInfo.token.indexInSentence)
             }).length <= 0) return // 就不要選取
         }
         // TODO 選取還是都要連起來比較保險
         // 執行 toggle
-        if (word.selectedMorphologyInfoTypes.includes(morphInfoType)) { // toggle off
-            if (morphInfoType == morphologyInfoTypeEnum.pos) {
+        if (word.selectedMorphologyInfoTypes.includes(morphologyInfo.type)) { // toggle off
+            if (morphologyInfo.type == morphologyInfoTypeEnum.pos) {
                 word.selectedMorphologyInfoTypes.splice(0, word.selectedMorphologyInfoTypes.length)
             } else {
-                word.selectedMorphologyInfoTypes.splice(word.selectedMorphologyInfoTypes.indexOf(morphInfoType))
+                word.selectedMorphologyInfoTypes.splice(word.selectedMorphologyInfoTypes.indexOf(morphologyInfo.type))
             }
             word.sourcePatternVertexId = undefined
             const beginWord = currentSentence.value.findBeginWord()
-            if (beginWord != undefined && beginWord.indexInSentence === token.indexInSentence) {
+            if (beginWord != undefined && beginWord.indexInSentence === morphologyInfo.token.indexInSentence) {
                 sourcePatternManager.selection.setAsSelected(undefined)
                 sourcePatternManager.selection.clearOptions()
                 targetPattern.selection.clearSelection()
@@ -177,7 +177,7 @@ export default function patternManager (
                 word.isBeginning = false
             }
         } else { // toggle on
-            word.markMorphologyInfoAsSelected(morphInfoType)
+            word.markMorphologyInfoAsSelected(morphologyInfo.type)
             if (currentSentence.value.findBeginWord() === undefined) {
                 word.isBeginning = true
             }

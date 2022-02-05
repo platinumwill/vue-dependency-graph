@@ -29,7 +29,7 @@ export default {
     }
     , methods: {
         posClicked: function() {
-            this.patternManager.toggleMorphologyInfoSelection(this.morphologyInfo.type, this.morphologyInfo.token)
+            this.patternManager.toggleMorphologyInfoSelection(this.morphologyInfo)
         }
     }
     , computed: {
