@@ -5,6 +5,24 @@ const GoogleMorphologyInfoTypeKeys = ["pos", "lemma", "tense"]
 type GoogleMorphologyInfoType = typeof GoogleMorphologyInfoTypeKeys[number]
 type GoogleMorphologyInfoTypeProperty = "tag" | "lemma" | "tense"
 
+export class MorphologyInfo {
+    private _type: MorphologyInfoType
+    private _token: ModifiedSpacyToken
+    
+    constructor(token: ModifiedSpacyToken, type: MorphologyInfoType) {
+        this._type = type
+        this._token = token
+    }
+
+    get token() {
+        return this._token
+    }
+
+    get type() {
+        return this._type
+    }
+}
+
 export class MorphologyInfoType {
     name: GoogleMorphologyInfoType
     propertyInWord: GoogleMorphologyInfoTypeProperty

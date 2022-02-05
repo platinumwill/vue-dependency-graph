@@ -4,7 +4,7 @@
 
 <script>
 import { mapGetters } from 'vuex'
-import { morphologyInfoTypeEnum } from "@/composables/morphologyInfo"
+import { MorphologyInfo, morphologyInfoTypeEnum } from "@/composables/morphologyInfo"
 
 export default {
     name: 'TokenInfo'
@@ -19,11 +19,8 @@ export default {
             type: String
             , default: ''
         }
-        , token: {
-            type: Object
-        }
-        , morphologyInfoType: {
-            type: Object
+        , morphologyInfo: {
+            type: MorphologyInfo
         }
     }
     , data() {
@@ -32,7 +29,7 @@ export default {
     }
     , methods: {
         posClicked: function() {
-            this.patternManager.toggleMorphologyInfoSelection(this.morphologyInfoType, this.token)
+            this.patternManager.toggleMorphologyInfoSelection(this.morphologyInfo.type, this.morphologyInfo.token)
         }
     }
     , computed: {
@@ -48,16 +45,16 @@ export default {
             currentSentenceIndex: 'currentSentenceIndex'
         })
         , selected: function() {
-            return this.currentSpacyWord.selectedMorphologyInfoTypes.includes(this.morphologyInfoType)
+            return this.currentSpacyWord.selectedMorphologyInfoTypes.includes(this.morphologyInfo.type)
         }
         , matchExisting: function() {
-            return this.token.sourcePatternVertexId !== undefined && this.selected
+            return this.morphologyInfo.token.sourcePatternVertexId !== undefined && this.selected
         }
         , isBeginning: function() {
-            return this.currentSpacyWord.isBeginning && this.morphologyInfoType == this.morphologyInfoTypeEnum.pos
+            return this.currentSpacyWord.isBeginning && this.morphologyInfo.type == this.morphologyInfoTypeEnum.pos
         }
         , currentSpacyWord: function() {
-            return this.spacyFormatSentences[this.currentSentenceIndex].words[this.token.indexInSentence]
+            return this.spacyFormatSentences[this.currentSentenceIndex].words[this.morphologyInfo.token.indexInSentence]
         }
     }
     , setup() {
