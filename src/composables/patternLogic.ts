@@ -5,7 +5,7 @@ import * as gremlinApi from "@/composables/gremlinManager"
 import { SourcePatternManager } from "@/composables/sourcePatternManager"
 import { ModifiedSpacyDependency, ModifiedSpacySentence, ModifiedSpacyToken, morphologyInfoUnknownValuePostfix } from "./sentenceManager"
 import { LinearTargetPattern } from "./targetPatternPieceManager"
-import { MorphologyInfo, morphologyInfoTypeEnum } from "./morphologyInfo"
+import { MorphologyInfoType, morphologyInfoTypeEnum } from "./morphologyInfo"
 
 // TODO 變數名稱待調整
 export default function patternManager (
@@ -145,7 +145,7 @@ export default function patternManager (
             })
     }
 
-    const toggleMorphologyInfoSelection = (morphInfoType: MorphologyInfo, token: ModifiedSpacyToken) => {
+    const toggleMorphologyInfoSelection = (morphInfoType: MorphologyInfoType, token: ModifiedSpacyToken) => {
         const sentence = currentSentence.value
         const word = token
         // 如果 morphology info 是 UNKNOWN，就不繼續動作

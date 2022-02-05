@@ -1,6 +1,6 @@
 import { computed, ref } from 'vue'
 import { useStore } from "vuex"
-import { MorphologyInfo, morphologyInfoTypeEnum } from "@/composables/morphologyInfo"
+import { MorphologyInfoType, morphologyInfoTypeEnum } from "@/composables/morphologyInfo"
 
 export default function () {
 
@@ -47,7 +47,7 @@ export class ModifiedSpacyToken extends ModifiedSpacyElement {
     text: string
     tag: string
     lemma: string
-    selectedMorphologyInfoTypes: MorphologyInfo[] = []
+    selectedMorphologyInfoTypes: MorphologyInfoType[] = []
     sourcePatternVertexId?: number
     isBeginning?: boolean
     $tense: string
@@ -62,8 +62,8 @@ export class ModifiedSpacyToken extends ModifiedSpacyElement {
         : spacyWord.tense
     }
 
-    markMorphologyInfoAsSelected(morphologyInfo: MorphologyInfo) {
-        this.selectedMorphologyInfoTypes.push(morphologyInfo)
+    markMorphologyInfoAsSelected(morphologyInfoType: MorphologyInfoType) {
+        this.selectedMorphologyInfoTypes.push(morphologyInfoType)
         if (! this.selectedMorphologyInfoTypes.includes(morphologyInfoTypeEnum.pos)) this.selectedMorphologyInfoTypes.push(morphologyInfoTypeEnum.pos)
     }
 

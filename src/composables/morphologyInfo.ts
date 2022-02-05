@@ -5,7 +5,7 @@ const GoogleMorphologyInfoTypeKeys = ["pos", "lemma", "tense"]
 type GoogleMorphologyInfoType = typeof GoogleMorphologyInfoTypeKeys[number]
 type GoogleMorphologyInfoTypeProperty = "tag" | "lemma" | "tense"
 
-export class MorphologyInfo {
+export class MorphologyInfoType {
     name: GoogleMorphologyInfoType
     propertyInWord: GoogleMorphologyInfoTypeProperty
     
@@ -17,7 +17,7 @@ export class MorphologyInfo {
 }
 
 export const morphologyInfoTypeEnum = Object.freeze({
-    pos: new MorphologyInfo('pos', 'tag')
-    , lemma: new MorphologyInfo('lemma', 'lemma')
-    , tense: new MorphologyInfo('tense', 'tense')
+    lemma: new MorphologyInfoType('lemma', 'lemma')
+    , tense: new MorphologyInfoType('tense', 'tense')
+    , pos: new MorphologyInfoType('pos', 'tag')
 })
