@@ -133,7 +133,6 @@ export type SourcePatternManager = {
     selection: {
         selectedPattern: any
         , options: any
-        , save: any
         , reloadOptions: any
         , setAsSelected: any
         , clearOptions: Function
