@@ -148,6 +148,7 @@ export default function patternManager (
     const toggleMorphologyInfoSelection = (morphInfoType: MorphologyInfo, token: ModifiedSpacyToken) => {
         const sentence = currentSentence.value
         const word = token
+        // 如果 morphology info 是 UNKNOWN，就不繼續動作
         if (word[morphInfoType.propertyInWord].endsWith(morphologyInfoUnknownValuePostfix)) return
 
         store.dispatch('setToggling', true)
