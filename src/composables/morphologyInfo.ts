@@ -39,3 +39,5 @@ export const morphologyInfoTypeEnum = Object.freeze({
     , tense: new MorphologyInfoType('tense', 'tense')
     , pos: new MorphologyInfoType('pos', 'tag')
 })
+
+export const minimalMorphologyInfo = morphologyInfoTypeEnum.pos

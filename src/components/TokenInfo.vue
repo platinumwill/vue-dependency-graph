@@ -4,7 +4,7 @@
 
 <script>
 import { mapGetters } from 'vuex'
-import { MorphologyInfo, morphologyInfoTypeEnum } from "@/composables/morphologyInfo"
+import { MorphologyInfo, minimalMorphologyInfo } from "@/composables/morphologyInfo"
 
 export default {
     name: 'TokenInfo'
@@ -51,7 +51,7 @@ export default {
             return this.morphologyInfo.token.sourcePatternVertexId !== undefined && this.selected
         }
         , isBeginning: function() {
-            return this.currentSpacyWord.isBeginning && this.morphologyInfo.type == this.morphologyInfoTypeEnum.pos
+            return this.currentSpacyWord.isBeginning && this.morphologyInfo.type == this.minimalMorphologyInfo
         }
         , currentSpacyWord: function() {
             return this.spacyFormatSentences[this.currentSentenceIndex].words[this.morphologyInfo.token.indexInSentence]
@@ -59,7 +59,7 @@ export default {
     }
     , setup() {
         return {
-            morphologyInfoTypeEnum
+            minimalMorphologyInfo
         }
     }
 }

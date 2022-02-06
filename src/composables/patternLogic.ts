@@ -5,7 +5,7 @@ import * as gremlinApi from "@/composables/gremlinManager"
 import { SourcePatternManager } from "@/composables/sourcePatternManager"
 import { ModifiedSpacyDependency, ModifiedSpacySentence, ModifiedSpacyToken, morphologyInfoUnknownValuePostfix } from "./sentenceManager"
 import { LinearTargetPattern } from "./targetPatternPieceManager"
-import { MorphologyInfo, MorphologyInfoType, morphologyInfoTypeEnum } from "./morphologyInfo"
+import { MorphologyInfo, minimalMorphologyInfo, morphologyInfoTypeEnum } from "./morphologyInfo"
 
 // TODO 變數名稱待調整
 export default function patternManager (
@@ -90,7 +90,7 @@ export default function patternManager (
 
                 // TODO 這 2 個動作可能會造成以後的錯誤
                 beginWord.selectedMorphologyInfoTypes.splice(0, beginWord.selectedMorphologyInfoTypes.length)
-                beginWord.selectedMorphologyInfoTypes.push(morphologyInfoTypeEnum.pos)
+                beginWord.selectedMorphologyInfoTypes.push(minimalMorphologyInfo)
 
                 await resultData['@value'].forEach( async (path: any) => {
                     // 因為這裡是以 v -e-> v 的模式在處理，所以 source pattern 註定不能是單一個 token
@@ -162,7 +162,7 @@ export default function patternManager (
         // TODO 選取還是都要連起來比較保險
         // 執行 toggle
         if (word.selectedMorphologyInfoTypes.includes(morphologyInfo.type)) { // toggle off
-            if (morphologyInfo.type == morphologyInfoTypeEnum.pos) {
+            if (morphologyInfo.type == minimalMorphologyInfo) {
                 word.selectedMorphologyInfoTypes.splice(0, word.selectedMorphologyInfoTypes.length)
             } else {
                 word.selectedMorphologyInfoTypes.splice(word.selectedMorphologyInfoTypes.indexOf(morphologyInfo.type))
