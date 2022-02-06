@@ -162,14 +162,14 @@ export default function patternManager (
         // TODO 選取還是都要連起來比較保險
         // 執行 toggle
         if (word.selectedMorphologyInfoTypes.includes(morphologyInfo.type)) { // toggle off
-            if (morphologyInfo.type == minimalMorphologyInfo) {
-                word.selectedMorphologyInfoTypes.splice(0, word.selectedMorphologyInfoTypes.length)
+            if (morphologyInfo.type == minimalMorphologyInfo) {// 如果是取消選取 pos
+                word.selectedMorphologyInfoTypes.splice(0, word.selectedMorphologyInfoTypes.length) // 把整個選取的 morph info 陣列清掉
             } else {
-                word.selectedMorphologyInfoTypes.splice(word.selectedMorphologyInfoTypes.indexOf(morphologyInfo.type))
+                word.selectedMorphologyInfoTypes.splice(word.selectedMorphologyInfoTypes.indexOf(morphologyInfo.type)) // 否則只清除取消選取的 pos
             }
             word.sourcePatternVertexId = undefined
             const beginWord = currentSentence.value.findBeginWord()
-            if (beginWord != undefined && beginWord.indexInSentence === morphologyInfo.token.indexInSentence) {
+            if (beginWord != undefined && beginWord.indexInSentence === morphologyInfo.token.indexInSentence) { // 如果取消選取的是 begin word
                 sourcePatternManager.selection.setAsSelected(undefined)
                 sourcePatternManager.selection.clearOptions()
                 targetPattern.selection.clearSelection()
