@@ -3,7 +3,7 @@ import { useStore } from "vuex"
 
 import * as gremlinApi from "@/composables/gremlinManager"
 import { SourcePatternManager } from "@/composables/sourcePatternManager"
-import { ModifiedSpacyDependency, ModifiedSpacySentence, ModifiedSpacyToken, morphologyInfoUnknownValuePostfix } from "./sentenceManager"
+import { ModifiedSpacyDependency, ModifiedSpacySentence, morphologyInfoUnknownValuePostfix } from "./sentenceManager"
 import { LinearTargetPattern } from "./targetPatternPieceManager"
 import { MorphologyInfo, minimalMorphologyInfo, morphologyInfoTypeEnum } from "./morphologyInfo"
 
@@ -168,6 +168,9 @@ export default function patternManager (
                 word.selectedMorphologyInfoTypes.splice(word.selectedMorphologyInfoTypes.indexOf(morphologyInfo.type)) // 否則只清除取消選取的 pos
             }
             word.sourcePatternVertexId = undefined
+            // 重新檢查然後標記每個 token 的 begin
+            // 然後再針對每個 begin token 處理 source pattern
+            // 這些要在新的 segment manager 做
             const beginWord = currentSentence.value.findBeginWord()
             if (beginWord != undefined && beginWord.indexInSentence === morphologyInfo.token.indexInSentence) { // 如果取消選取的是 begin word
                 sourcePatternManager.selection.setAsSelected(undefined)
