@@ -66,6 +66,13 @@ export class ModifiedSpacyToken extends ModifiedSpacyElement {
         this.selectedMorphologyInfoTypes.push(morphologyInfoType)
         if (! this.selectedMorphologyInfoTypes.includes(minimalMorphologyInfo)) this.selectedMorphologyInfoTypes.push(minimalMorphologyInfo)
     }
+    unmarkMorphologyInfoAsSelected(morphologyInfoType: MorphologyInfoType) {
+        if (morphologyInfoType == minimalMorphologyInfo) {// 如果是取消選取 pos
+            this.selectedMorphologyInfoTypes.splice(0, this.selectedMorphologyInfoTypes.length) // 把整個選取的 morph info 陣列清掉
+        } else {
+            this.selectedMorphologyInfoTypes.splice(this.selectedMorphologyInfoTypes.indexOf(morphologyInfoType)) // 否則只清除取消選取的 pos
+        }
+    }
 
     get tense() {
         return this.$tense
