@@ -5,7 +5,7 @@ import * as gremlinApi from "@/composables/gremlinManager"
 import { SourcePatternManager } from "@/composables/sourcePatternManager"
 import { ModifiedSpacyDependency, ModifiedSpacySentence, morphologyInfoUnknownValuePostfix } from "./sentenceManager"
 import { LinearTargetPattern } from "./targetPatternPieceManager"
-import { MorphologyInfo, minimalMorphologyInfo, morphologyInfoTypeEnum } from "./morphologyInfo"
+import { MorphologyInfo, minimalMorphologyInfo, morphologyInfoTypeEnum, MorphologyInfoType } from "./morphologyInfo"
 
 // TODO 變數名稱待調整
 export default function patternManager (
@@ -162,11 +162,7 @@ export default function patternManager (
         // TODO 選取還是都要連起來比較保險
         // 執行 toggle
         if (word.selectedMorphologyInfoTypes.includes(morphologyInfo.type)) { // toggle off
-            if (morphologyInfo.type == minimalMorphologyInfo) {// 如果是取消選取 pos
-                word.selectedMorphologyInfoTypes.splice(0, word.selectedMorphologyInfoTypes.length) // 把整個選取的 morph info 陣列清掉
-            } else {
-                word.selectedMorphologyInfoTypes.splice(word.selectedMorphologyInfoTypes.indexOf(morphologyInfo.type)) // 否則只清除取消選取的 pos
-            }
+            word.unmarkMorphologyInfoAsSelected(morphologyInfo.type)
             word.sourcePatternVertexId = undefined
             // 重新檢查然後標記每個 token 的 begin
             // 然後再針對每個 begin token 處理 source pattern
