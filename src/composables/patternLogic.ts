@@ -5,7 +5,7 @@ import * as gremlinApi from "@/composables/gremlinManager"
 import { SourcePatternManager } from "@/composables/sourcePatternManager"
 import { ModifiedSpacyDependency, ModifiedSpacySentence, morphologyInfoUnknownValuePostfix } from "./sentenceManager"
 import { LinearTargetPattern } from "./targetPatternPieceManager"
-import { MorphologyInfo, minimalMorphologyInfo, morphologyInfoTypeEnum, MorphologyInfoType } from "./morphologyInfo"
+import { MorphologyInfo, minimalMorphologyInfo, morphologyInfoTypeEnum } from "./morphologyInfo"
 
 // TODO 變數名稱待調整
 export default function patternManager (
@@ -167,23 +167,9 @@ export default function patternManager (
             // 重新檢查然後標記每個 token 的 begin
             // 然後再針對每個 begin token 處理 source pattern
             // 這些要在新的 segment manager 做
-            const beginWord = currentSentence.value.findBeginWord()
-            if (beginWord != undefined && beginWord.indexInSentence === morphologyInfo.token.indexInSentence) { // 如果取消選取的是 begin word
-                sourcePatternManager.selection.setAsSelected(undefined)
-                sourcePatternManager.selection.clearOptions()
-                targetPattern.selection.clearSelection()
-                targetPattern.selection.clearOptions()
-                word.isBeginning = false
-            }
         } else { // toggle on
             word.markMorphologyInfoAsSelected(morphologyInfo.type)
-            if (currentSentence.value.findBeginWord() === undefined) {
-                word.isBeginning = true
-            }
         }
-        sourcePatternManager.selection.reloadOptions().then( () => {
-            findExistingMatchSourcePatternAndSetDropdown(currentSentence.value, sourcePatternManager)
-        })
     }
 
     const toggleDependencySelection = (dependency: ModifiedSpacyDependency) => {

@@ -182,7 +182,8 @@ export const findTokenByPatternVertexId = (sourceVertexId: number, sentence: Mod
 }
 
 export function markBeginTokens(sentence: ModifiedSpacySentence):void {
-    sentence.words.filter( word => {return word.selectedMorphologyInfoTypes.length} ).forEach( word => {
-        console.log('word', word)
+    sentence.words.forEach( word => {
+        // https://stackoverflow.com/questions/20093613/typescript-conversion-to-boolean
+        word.isBeginning = !!word.selectedMorphologyInfoTypes.length
     })
 }
