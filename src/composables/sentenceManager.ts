@@ -180,3 +180,9 @@ export const findTokenByPatternVertexId = (sourceVertexId: number, sentence: Mod
     console.error(error, 'source vertex id: ', sourceVertexId, ' not found in tokens')
     throw error
 }
+
+export function markBeginTokens(sentence: ModifiedSpacySentence):void {
+    sentence.words.filter( word => {return word.selectedMorphologyInfoTypes.length} ).forEach( word => {
+        console.log('word', word)
+    })
+}
