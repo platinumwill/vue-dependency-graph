@@ -49,7 +49,7 @@ export class ModifiedSpacyToken extends ModifiedSpacyElement {
     lemma: string
     selectedMorphologyInfoTypes: MorphologyInfoType[] = []
     sourcePatternVertexId?: number
-    isBeginning?: boolean
+    isBeginning: boolean = false
     $tense: string
 
     constructor(spacyWord: any, index: number) {
@@ -78,6 +78,11 @@ export class ModifiedSpacyToken extends ModifiedSpacyElement {
         return this.$tense
     }
 
+    get isSegmentRoot() {
+        const frontDep = this.sentence?.arcs.filter( dep => {return dep.selected && dep.trueEnd === this.indexInSentence} ).length
+        // https://stackoverflow.com/questions/20093613/typescript-conversion-to-boolean
+        return !! this.selectedMorphologyInfoTypes.length && !frontDep
+    }
 }
 
 export class ModifiedSpacyDependency extends ModifiedSpacyElement {
@@ -179,11 +184,4 @@ export const findTokenByPatternVertexId = (sourceVertexId: number, sentence: Mod
     const error = "source pattern vertex 記錄有問題"
     console.error(error, 'source vertex id: ', sourceVertexId, ' not found in tokens')
     throw error
-}
-
-export function markBeginTokens(sentence: ModifiedSpacySentence):void {
-    sentence.words.forEach( word => {
-        // https://stackoverflow.com/questions/20093613/typescript-conversion-to-boolean
-        word.isBeginning = !!word.selectedMorphologyInfoTypes.length
-    })
 }

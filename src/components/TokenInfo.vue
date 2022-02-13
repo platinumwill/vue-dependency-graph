@@ -5,7 +5,6 @@
 <script>
 import { mapGetters } from 'vuex'
 import { MorphologyInfo, minimalMorphologyInfo } from "@/composables/morphologyInfo"
-import * as sentenceManager from '@/composables/sentenceManager'
 
 export default {
     name: 'TokenInfo'
@@ -31,7 +30,6 @@ export default {
     , methods: {
         posClicked: function() {
             this.patternManager.toggleMorphologyInfoSelection(this.morphologyInfo)
-            sentenceManager.markBeginTokens(this.spacyFormatSentences[this.currentSentenceIndex])
         }
     }
     , computed: {
