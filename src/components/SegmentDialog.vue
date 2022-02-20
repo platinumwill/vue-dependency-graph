@@ -1,21 +1,25 @@
 <template v-if="display">
-    <Dialog 
-        ref="dialog"
-        v-model:visible="display"
-        @show="adjustPosition"
-        :closable="false"
+    <Button
+        v-show="display"
+        ref="button"
+        @click="togglePanel"
     >
-        <template #header>
-            {{ index }}-{{ token.text }}
-        </template>
-        Content
-    </Dialog>
+        {{ index }}-{{ token.text }}
+    </Button>
+
+    <OverlayPanel ref="panel">
+        panel {{ index }}-{{ token.text }}
+    </OverlayPanel>
+    
 </template>
 
 <script lang="ts">
 
 import { defineComponent, ref, computed, inject, ComputedRef, toRef } from 'vue'
-import Dialog from 'primevue/dialog'
+
+import Button from 'primevue/button'
+import OverlayPanel from 'primevue/overlaypanel'
+
 import { ModifiedSpacySentence, ModifiedSpacyToken } from '@/composables/sentenceManager'
 import sourcePatternLogic from '@/composables/sourcePatternManager'
 import targetPatternPieceManager from '@/composables/targetPatternPieceManager'
@@ -31,7 +35,6 @@ export default defineComponent({
     }
     , setup(props: any) {
 
-
         const x = computed( () => {
             return props.config.offsetX  + props.index * props.config.distance
         })
@@ -46,12 +49,10 @@ export default defineComponent({
             return isSegmentRoot.value
         })
 
-        const dialog = ref<any>(null)
-
-        function adjustPosition() {
-            dialog.value.container.style.position = 'fixed'
-            dialog.value.container.style.left = '' + x.value + 'px'
-            dialog.value.container.style.top = '650px'
+        const panel = ref<any>(null)
+        function togglePanel(event:any) {
+            panel.value.toggle(event)
+            console.log('x', x.value)
         }
 
         const { sourcePatternManager } = sourcePatternLogic(currentSentence)
@@ -61,14 +62,14 @@ export default defineComponent({
         console.log(patternManager, segmentManager)
 
         return {
-            x
-            , dialog
-            , display
-            , adjustPosition
+            display
+            , panel
+            , togglePanel
         }
     }
     , components: {
-        Dialog
+        Button
+        , OverlayPanel
     }
 })
 </script>
