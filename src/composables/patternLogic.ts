@@ -168,8 +168,14 @@ export default function patternManager (
             // 然後再針對每個 begin token 處理 source pattern
             // 這些要在新的 segment manager 做
         } else { // toggle on
+            if (currentSentence.value.findBeginWord() === undefined) {
+                word.isBeginning = true
+            }            
             word.markMorphologyInfoAsSelected(morphologyInfo.type)
         }
+        sourcePatternManager.selection.reloadOptions().then( () => {
+            findExistingMatchSourcePatternAndSetDropdown(currentSentence.value, sourcePatternManager)
+        })        
     }
 
     const toggleDependencySelection = (dependency: ModifiedSpacyDependency) => {
