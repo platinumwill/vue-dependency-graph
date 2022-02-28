@@ -35,9 +35,9 @@ export default defineComponent({
     }
     , setup(props: any) {
 
-        const x = computed( () => {
-            return props.config.offsetX  + props.index * props.config.distance
-        })
+        // const x = computed( () => {
+        //     return props.config.offsetX  + props.index * props.config.distance
+        // })
 
         const currentSentence: ComputedRef<ModifiedSpacySentence>|undefined = inject('currentSentence')
         if (currentSentence == undefined) {
@@ -52,7 +52,6 @@ export default defineComponent({
         const panel = ref<any>(null)
         function togglePanel(event:any) {
             panel.value.toggle(event)
-            console.log('x', x.value)
         }
 
         const { sourcePatternManager } = sourcePatternLogic(currentSentence)
