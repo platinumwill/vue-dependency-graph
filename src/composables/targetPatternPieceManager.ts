@@ -278,20 +278,21 @@ function _duplicateTargetPattern(targetPattern: LinearTargetPattern) {
     return pieces
 }
 
-function _createTargetPatternPiece(piece?: LinearTargetPatternPiece, targetPatternPieces?: LinearTargetPatternPiece[]) {
+function _createTargetPatternPiece(piece?: LinearTargetPatternPiece, targetPatternPieces?: LinearTargetPatternPiece[], appliedText?: string) {
     if (piece == undefined && targetPatternPieces == undefined) {
         const error = '傳入參數都是 undefined，這樣是錯的'
         throw error
     }
     let source = undefined
-    let appliedText = undefined
     if (piece != undefined) {
         appliedText = piece.appliedText
         source = piece.source
     }
     const tempPiece = new LinearTargetPatternPiece(source)
     tempPiece.appliedText = appliedText
-    if (source == undefined && targetPatternPieces != undefined) {
+    if (piece && piece?.specifiedVuekey) {
+        tempPiece.specifiedVuekey = piece.specifiedVuekey
+    } else if (source == undefined && targetPatternPieces != undefined) {
         tempPiece.specifiedVuekey = 'fixed-' + targetPatternPieces.filter(item => item.type === LinearTargetPatternPiece.types.text).length
     }
     return tempPiece
@@ -489,8 +490,7 @@ export function reloadMatchingTargetPatternOptions (
                     const projectedTraceToEdge = projectedMapArray[1]['@value']
                     if (projectedTraceToEdge.length <= 0) {
                         // text piece
-                        targetPatternPiece = new LinearTargetPatternPiece()
-                        targetPatternPiece.appliedText = projectedMapArray[9]
+                        targetPatternPiece = _createTargetPatternPiece(undefined, targetPattern.$pieces, projectedMapArray[9])
                         // TODO 這裡還要再抓 text 選項 (？)
                         targetPattern.addPieces(targetPatternPiece)
                         return
