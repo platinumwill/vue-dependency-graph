@@ -235,6 +235,7 @@ const findExistingMatchSourcePatternAndSetDropdown = (
         }
         // 目前暫時支援查詢到第 1 層的 edge 和隨後的 vertex。如果要再支搜查詢到更後面的線和端，就要用遞迴了
         if (selectedArc.endToken && selectedArc.endToken?.selectedMorphologyInfoTypes.length > 0) {
+            // 非 connector 的狀況
             const endToken = selectedArc.endToken
             const endTokenCriteria = new gremlinApi.GremlinInvoke(true).out(selectedArc.label)
             Object.values(morphologyInfoTypeEnum).forEach( (morphInfoType, index) => {
