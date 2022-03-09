@@ -213,19 +213,19 @@ const findExistingMatchSourcePatternAndSetDropdown = (
     const selectedArcsFromBegin = currentSentence.arcs.filter( (arc) => {
         return (arc.selected && arc.trueStart === beginWord.indexInSentence)
     })
-    if (selectedArcsFromBegin.length === 0) return
     let gremlinInvoke = new gremlinApi.GremlinInvoke()
     .call("V")
     beginWord.selectedMorphologyInfoTypes.forEach( (morphInfoType) => {
         gremlinInvoke = gremlinInvoke.call("has", morphInfoType.name, beginWord[morphInfoType.propertyInWord])
     })
-    gremlinInvoke.call(
-        "where"
-        , new gremlinApi.GremlinInvoke(true)
-        .call("outE")
-        .call("count")
-        .call("is", new gremlinApi.GremlinInvoke(true).gte(selectedArcsFromBegin.length))
-    )
+    if (selectedArcsFromBegin.length) {
+        gremlinInvoke.where(
+            new gremlinApi.GremlinInvoke(true)
+            .outE()
+            .count()
+            .is(new gremlinApi.GremlinInvoke(true).eq(selectedArcsFromBegin.length))
+        )
+    }
     const arcSum = new Map();
     selectedArcsFromBegin.forEach( (selectedArc) => {
         if ( arcSum.has(selectedArc.label) ) {
@@ -248,10 +248,10 @@ const findExistingMatchSourcePatternAndSetDropdown = (
                 const whereOrAnd = index === 0 ? 'where' : 'and'
                 endTokenCriteria.call(whereOrAnd, endTokenPropertyCriteria)
             })
-            gremlinInvoke.and(endTokenCriteria)
+            gremlinInvoke.where(endTokenCriteria)
         } else {
             // connector 的狀況
-            gremlinInvoke.and(
+            gremlinInvoke.where(
                 new gremlinApi.GremlinInvoke(true)
                 .out(selectedArc.label)
                 .where(new gremlinApi.GremlinInvoke(true).has(gremlinApi.propertyNames.isConnector, true))
@@ -273,11 +273,6 @@ const findExistingMatchSourcePatternAndSetDropdown = (
         if (resultData['@value'].length === 0) {
             sourcePatternManager.selection.setAsSelected(undefined)
             return
-        }
-        if (resultData['@value'].length > 1) {
-            const error = "資料庫存的 pattern 重覆"
-            console.error(error, resultData)
-            throw error
         }
         const sourcePatternBeginningId = resultData['@value'][0]['@value'].id['@value']
         sourcePatternManager.selection.setAsSelected(sourcePatternBeginningId)
