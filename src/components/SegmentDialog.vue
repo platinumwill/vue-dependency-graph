@@ -8,7 +8,10 @@
     </Button>
 
     <OverlayPanel ref="panel">
-        panel {{ index }}-{{ token.text }}
+        <Button 
+        >
+            Target Pattern...
+        </Button>
     </OverlayPanel>
     
 </template>
@@ -21,10 +24,7 @@ import Button from 'primevue/button'
 import OverlayPanel from 'primevue/overlaypanel'
 
 import { ModifiedSpacySentence, ModifiedSpacyToken } from '@/composables/sentenceManager'
-import sourcePatternLogic from '@/composables/sourcePatternManager'
-import targetPatternPieceManager from '@/composables/targetPatternPieceManager'
-import patternLogic from '@/composables/patternLogic'
-import { createSegmentManager } from '@/composables/segmentManager'
+import { prepareSegment } from '@/composables/sourcePatternSegment'
 
 export default defineComponent({
 
@@ -54,11 +54,8 @@ export default defineComponent({
             panel.value.toggle(event)
         }
 
-        const { sourcePatternManager } = sourcePatternLogic(currentSentence)
-        const { targetPattern } = targetPatternPieceManager(currentSentence)
-        const { patternManager } = patternLogic(sourcePatternManager, targetPattern, currentSentence)
-        const segmentManager = createSegmentManager(props.token);
-        console.log(patternManager, segmentManager)
+        const sourceSegment = prepareSegment(props.token)
+        console.log(sourceSegment)
 
         return {
             display
