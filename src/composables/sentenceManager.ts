@@ -49,7 +49,7 @@ export class ModifiedSpacyToken extends ModifiedSpacyElement {
     lemma: string
     selectedMorphologyInfoTypes: MorphologyInfoType[] = []
     sourcePatternVertexId?: number
-    isBeginning: boolean = false
+    $isBeginning: boolean = false
     $tense: string
 
     constructor(spacyWord: any, index: number) {
@@ -83,6 +83,21 @@ export class ModifiedSpacyToken extends ModifiedSpacyElement {
         // https://stackoverflow.com/questions/20093613/typescript-conversion-to-boolean
         return !! this.selectedMorphologyInfoTypes.length && !frontDep
     }
+
+    get isBeginning() {
+        return this.$isBeginning
+    }
+    set isBeginning(isBeginning) {
+        this.$isBeginning = isBeginning
+        if (! isBeginning)
+        this.sentence?.arcs
+            .filter( dep => {return dep.trueStart === this.indexInSentence} )
+            .forEach( outDep => {
+                outDep.sourcePatternEdgeId = undefined
+                outDep.selected = false
+            } )
+    }
+
 }
 
 export class ModifiedSpacyDependency extends ModifiedSpacyElement {

@@ -164,6 +164,7 @@ export default function patternManager (
         if (word.selectedMorphologyInfoTypes.includes(morphologyInfo.type)) { // toggle off
             word.unmarkMorphologyInfoAsSelected(morphologyInfo.type)
             word.sourcePatternVertexId = undefined
+            word.isBeginning = false
             // 重新檢查然後標記每個 token 的 begin
             // 然後再針對每個 begin token 處理 source pattern
             // 這些要在新的 segment manager 做
@@ -212,19 +213,19 @@ const findExistingMatchSourcePatternAndSetDropdown = (
     const selectedArcsFromBegin = currentSentence.arcs.filter( (arc) => {
         return (arc.selected && arc.trueStart === beginWord.indexInSentence)
     })
-    if (selectedArcsFromBegin.length === 0) return
     let gremlinInvoke = new gremlinApi.GremlinInvoke()
     .call("V")
     beginWord.selectedMorphologyInfoTypes.forEach( (morphInfoType) => {
         gremlinInvoke = gremlinInvoke.call("has", morphInfoType.name, beginWord[morphInfoType.propertyInWord])
     })
-    gremlinInvoke.call(
-        "where"
-        , new gremlinApi.GremlinInvoke(true)
-        .call("outE")
-        .call("count")
-        .call("is", new gremlinApi.GremlinInvoke(true).gte(selectedArcsFromBegin.length))
-    )
+    if (selectedArcsFromBegin.length) {
+        gremlinInvoke.where(
+            new gremlinApi.GremlinInvoke(true)
+            .outE()
+            .count()
+            .is(new gremlinApi.GremlinInvoke(true).eq(selectedArcsFromBegin.length))
+        )
+    }
     const arcSum = new Map();
     selectedArcsFromBegin.forEach( (selectedArc) => {
         if ( arcSum.has(selectedArc.label) ) {
@@ -234,6 +235,7 @@ const findExistingMatchSourcePatternAndSetDropdown = (
         }
         // 目前暫時支援查詢到第 1 層的 edge 和隨後的 vertex。如果要再支搜查詢到更後面的線和端，就要用遞迴了
         if (selectedArc.endToken && selectedArc.endToken?.selectedMorphologyInfoTypes.length > 0) {
+            // 非 connector 的狀況
             const endToken = selectedArc.endToken
             const endTokenCriteria = new gremlinApi.GremlinInvoke(true).out(selectedArc.label)
             Object.values(morphologyInfoTypeEnum).forEach( (morphInfoType, index) => {
@@ -246,10 +248,10 @@ const findExistingMatchSourcePatternAndSetDropdown = (
                 const whereOrAnd = index === 0 ? 'where' : 'and'
                 endTokenCriteria.call(whereOrAnd, endTokenPropertyCriteria)
             })
-            gremlinInvoke.and(endTokenCriteria)
+            gremlinInvoke.where(endTokenCriteria)
         } else {
             // connector 的狀況
-            gremlinInvoke.and(
+            gremlinInvoke.where(
                 new gremlinApi.GremlinInvoke(true)
                 .out(selectedArc.label)
                 .where(new gremlinApi.GremlinInvoke(true).has(gremlinApi.propertyNames.isConnector, true))
@@ -271,11 +273,6 @@ const findExistingMatchSourcePatternAndSetDropdown = (
         if (resultData['@value'].length === 0) {
             sourcePatternManager.selection.setAsSelected(undefined)
             return
-        }
-        if (resultData['@value'].length > 1) {
-            const error = "資料庫存的 pattern 重覆"
-            console.error(error, resultData)
-            throw error
         }
         const sourcePatternBeginningId = resultData['@value'][0]['@value'].id['@value']
         sourcePatternManager.selection.setAsSelected(sourcePatternBeginningId)
