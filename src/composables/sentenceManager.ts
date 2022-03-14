@@ -84,14 +84,32 @@ export class ModifiedSpacyToken extends ModifiedSpacyElement {
         return !! this.selectedMorphologyInfoTypes.length && !frontDep
     }
 
+    get outDeps() {
+        const outDeps = this.sentence?.arcs
+            .filter( dep => {return dep.trueStart === this.indexInSentence} )
+        return outDeps || []
+    }
+
+    get segmentDeps() {
+        return this.outDeps.filter( outDep => {return outDep.selected})
+    }
+
+    get segmentTokens() {
+        if (! this.$isBeginning) return []
+
+        const result = []
+        result.push(this)
+        this.outDeps.forEach(dep => {if (dep.endToken?.selectedMorphologyInfoTypes.length) result.push(dep.endToken)})
+        return result
+    }
+
     get isBeginning() {
         return this.$isBeginning
     }
     set isBeginning(isBeginning) {
         this.$isBeginning = isBeginning
         if (! isBeginning)
-        this.sentence?.arcs
-            .filter( dep => {return dep.trueStart === this.indexInSentence} )
+        this.outDeps
             .forEach( outDep => {
                 outDep.sourcePatternEdgeId = undefined
                 outDep.selected = false
@@ -134,6 +152,14 @@ export class ModifiedSpacyDependency extends ModifiedSpacyElement {
     
     get endToken() {
         return this.sentence?.words[this.trueEnd]
+    }
+
+    get selectedEndToken() {
+        const endToken = this.sentence?.words[this.trueEnd]
+        if (endToken?.selectedMorphologyInfoTypes.length) {
+            return endToken
+        }
+        throw 'selectedEndToken() 邏輯有錯'
     }
 }
 
