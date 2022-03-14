@@ -1,48 +1,57 @@
-import { ModifiedSpacyToken } from "./sentenceManager";
-import { ComputedRef } from 'vue'
+import { ModifiedSpacyDependency, ModifiedSpacyElement, ModifiedSpacyToken } from "@/composables/sentenceManager";
+import { ComputedRef, ref } from 'vue'
+import { GremlinInvoke, aliases, vertexAlias, vertexLabels, propertyNames, connectorAlias } from "@/composables/gremlinManager";
 
-export function prepareSegment(token: ComputedRef<ModifiedSpacyToken>) {
+class SourcePatternOption {
+    id: number
+    dropdownOptionLabel: string
+
+    constructor(id: number, dropdownOptionLabel: string) {
+        this.id = id
+        this.dropdownOptionLabel = dropdownOptionLabel
+    }
+}
+
+export function prepareSegment(tokenRef: ComputedRef<ModifiedSpacyToken>) {
     const selectedSourcePattern = ref<SourcePatternOption | undefined>(undefined)
     const sourcePatternOptions = ref<SourcePatternOption[]>([])
     
-    const processSelectedSourcePatternStoring = (gremlinInvoke: gremlinUtils.GremlinInvoke) => {
-        const selectedWords = currentSentence.value.selectedTokens
-        const selectedArcs = currentSentence.value.selectedDependencies
+    const processSelectedSourcePatternStoring = (gremlinInvoke: GremlinInvoke) => {
         // 如果 source pattern 下拉選單已經有值（表示資料庫裡已經有目前選取的 source pattern），就不必儲存 source pattern
         if (selectedSourcePattern.value != undefined && selectedSourcePattern.value.id != undefined) {
             gremlinInvoke = gremlinInvoke
             .call("V", selectedSourcePattern.value.id)
-            .call("as", gremlinUtils.aliases.sourcePatternBeginning)
+            .call("as", aliases.sourcePatternBeginning)
             return gremlinInvoke
         }
-        const elements: sentenceManager.ModifiedSpacyElement[] = []
-        elements.push(...selectedWords)
-        elements.push(...selectedArcs)
+        const elements: ModifiedSpacyElement[] = []
+        elements.push(...tokenRef.value.segmentTokens)
+        elements.push(...tokenRef.value.segmentDeps)
         // token 和 dependency 拼在一起是為了要順序的資料
         elements.sort( (e1, e2) => { return e1.indexInSentence - e2.indexInSentence})
         elements.forEach( (ele, index) => {
-            if (! (ele instanceof sentenceManager.ModifiedSpacyToken)) return
+            if (! (ele instanceof ModifiedSpacyToken)) return
 
             const word = ele
-            gremlinInvoke.call("addV", gremlinUtils.vertexLabels.sourcePattern)
-            gremlinInvoke.property(gremlinUtils.propertyNames.seqNo, index + 1)
+            gremlinInvoke.call("addV", vertexLabels.sourcePattern)
+            gremlinInvoke.property(propertyNames.seqNo, index + 1)
             word.selectedMorphologyInfoTypes.forEach( (morphInfoType) => {
                 gremlinInvoke = gremlinInvoke.call("property", morphInfoType.name, word[morphInfoType.propertyInWord])
             })
-            gremlinInvoke.call("as", gremlinUtils.vertexAlias(word))
+            gremlinInvoke.call("as", vertexAlias(word))
             if (word.isBeginning) {
                 gremlinInvoke = gremlinInvoke
-                .call("as", gremlinUtils.aliases.sourcePatternBeginning)
+                .call("as", aliases.sourcePatternBeginning)
                 // TODO 這一行不確定還需不需要
                 .call("property", "isBeginning", true)
                 .call("property", "owner", "Chin")
             }
         })
         elements.forEach( (ele, index) => {
-            if (! (ele instanceof sentenceManager.ModifiedSpacyDependency)) return
+            if (! (ele instanceof ModifiedSpacyDependency)) return
 
             const arc = ele
-            const startWord = selectedWords.find( word => word.indexInSentence == arc.trueStart )
+            const startWord = tokenRef.value
             if (startWord === undefined
                 || startWord.selectedMorphologyInfoTypes.length === 0
                 ) {
@@ -50,24 +59,23 @@ export function prepareSegment(token: ComputedRef<ModifiedSpacyToken>) {
                     console.error(error)
                     throw error
                 }
-            const startVName = gremlinUtils.vertexAlias(startWord)
+            const startVName = vertexAlias(startWord)
             let endVName = undefined
-            if (arc.isPlaceholder) { // 這個 dependency 後面連著連接處
-                const connectorVName = gremlinUtils.connectorAlias(arc)
+            if (arc.isPlaceholder) { // 這個 dependency 後面連著連接處 (=假想的連接對象），也就是沒有連著 token
+                const connectorVName = connectorAlias(arc)
                 endVName = connectorVName
                 gremlinInvoke = gremlinInvoke
-                .call("addV", gremlinUtils.vertexLabels.sourcePattern)
-                .call("property", gremlinUtils.propertyNames.isConnector, true)
-                .call("as", connectorVName)
-            } else {
-                const endWord: sentenceManager.ModifiedSpacyToken | undefined = selectedWords.find( word => word.indexInSentence == arc.trueEnd ) 
-                endVName = gremlinUtils.vertexAlias(endWord)
+                .addV(vertexLabels.sourcePattern)
+                .property(propertyNames.isConnector, true)
+                .as(connectorVName)
+            } else { // 不是 placeholder ，也就是連接著 token
+                endVName = vertexAlias(arc.selectedEndToken)
             }
             gremlinInvoke = gremlinInvoke
             .call("addE", arc.label)
             .call("from", startVName)
             .call("to", endVName)
-            .property(gremlinUtils.propertyNames.seqNo, index + 1)
+            .property(propertyNames.seqNo, index + 1)
         })
         return gremlinInvoke
     }
