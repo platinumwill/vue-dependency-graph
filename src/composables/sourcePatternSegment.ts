@@ -116,3 +116,37 @@ export function prepareSegment(tokenRef: ComputedRef<ModifiedSpacyToken>) {
         }
     }
 }
+
+const reloadMatchingSourcePatternOptions = (
+    sourcePatternOptions: Ref<SourcePatternOption[]>
+    , currentSentence: sentenceManager.ModifiedSpacySentence) => {
+
+    sourcePatternOptions.value.splice(0, sourcePatternOptions.value.length)
+    const beginWord = currentSentence.findBeginWord()
+    if (! beginWord) {
+        return new Promise( (resolve) => {
+            resolve(undefined)
+        })
+    }
+    let gremlinCommand = new gremlinUtils.GremlinInvoke().call("V")
+    beginWord.selectedMorphologyInfoTypes.forEach( (morphInfoType) => {
+        gremlinCommand = gremlinCommand.call("has", morphInfoType.name, beginWord[morphInfoType.propertyInWord])
+    })
+    gremlinCommand = gremlinCommand.call("inE", gremlinUtils.edgeLabels.applicable)
+    .call("inV")
+    .call("dedup")
+    return new Promise((resolve, reject) => {
+        gremlinUtils.submit(gremlinCommand).then( (resultData: any) => {
+            resultData['@value'].forEach( (sourcePatternBeginning: any) => {
+                sourcePatternOptions.value.push({
+                    id: sourcePatternBeginning['@value'].id['@value']
+                    , dropdownOptionLabel: sourcePatternBeginning['@value'].label + '-' + sourcePatternBeginning['@value'].id['@value']
+                })
+            })
+            resolve(resultData)
+        }).catch ( function(error) {
+            console.error(error)
+            reject(error)
+        })
+    })
+}
