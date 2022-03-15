@@ -1,6 +1,6 @@
 import { ModifiedSpacyDependency, ModifiedSpacyElement, ModifiedSpacyToken } from "@/composables/sentenceManager";
-import { ComputedRef, ref } from 'vue'
-import { GremlinInvoke, aliases, vertexAlias, vertexLabels, propertyNames, connectorAlias } from "@/composables/gremlinManager";
+import { ComputedRef, Ref, ref } from 'vue'
+import { GremlinInvoke, aliases, vertexAlias, vertexLabels, propertyNames, connectorAlias, edgeLabels, submit } from "@/composables/gremlinManager";
 
 class SourcePatternOption {
     id: number
@@ -81,7 +81,7 @@ export function prepareSegment(tokenRef: ComputedRef<ModifiedSpacyToken>) {
     }
 
     const reloadOptions = () => {
-        return reloadMatchingSourcePatternOptions(sourcePatternOptions, currentSentence.value)
+        return reloadMatchingSourcePatternOptions(sourcePatternOptions, tokenRef.value)
     }
 
     const clearOptions = () => {
@@ -119,24 +119,23 @@ export function prepareSegment(tokenRef: ComputedRef<ModifiedSpacyToken>) {
 
 const reloadMatchingSourcePatternOptions = (
     sourcePatternOptions: Ref<SourcePatternOption[]>
-    , currentSentence: sentenceManager.ModifiedSpacySentence) => {
+    , beginWord: ModifiedSpacyToken) => {
 
     sourcePatternOptions.value.splice(0, sourcePatternOptions.value.length)
-    const beginWord = currentSentence.findBeginWord()
     if (! beginWord) {
         return new Promise( (resolve) => {
             resolve(undefined)
         })
     }
-    let gremlinCommand = new gremlinUtils.GremlinInvoke().call("V")
+    let gremlinCommand = new GremlinInvoke().call("V")
     beginWord.selectedMorphologyInfoTypes.forEach( (morphInfoType) => {
         gremlinCommand = gremlinCommand.call("has", morphInfoType.name, beginWord[morphInfoType.propertyInWord])
     })
-    gremlinCommand = gremlinCommand.call("inE", gremlinUtils.edgeLabels.applicable)
+    gremlinCommand = gremlinCommand.call("inE", edgeLabels.applicable)
     .call("inV")
     .call("dedup")
     return new Promise((resolve, reject) => {
-        gremlinUtils.submit(gremlinCommand).then( (resultData: any) => {
+        submit(gremlinCommand).then( (resultData: any) => {
             resultData['@value'].forEach( (sourcePatternBeginning: any) => {
                 sourcePatternOptions.value.push({
                     id: sourcePatternBeginning['@value'].id['@value']
