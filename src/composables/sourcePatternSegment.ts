@@ -38,13 +38,13 @@ export function prepareSegment(tokenRef: ComputedRef<ModifiedSpacyToken>) {
             word.selectedMorphologyInfoTypes.forEach( (morphInfoType) => {
                 gremlinInvoke = gremlinInvoke.call("property", morphInfoType.name, word[morphInfoType.propertyInWord])
             })
-            gremlinInvoke.call("as", vertexAlias(word))
+            gremlinInvoke.as(vertexAlias(word))
             if (word.isBeginning) {
                 gremlinInvoke = gremlinInvoke
-                .call("as", aliases.sourcePatternBeginning)
+                .as(aliases.sourcePatternBeginning)
                 // TODO 這一行不確定還需不需要
-                .call("property", "isBeginning", true)
-                .call("property", "owner", "Chin")
+                .property("isBeginning", true)
+                .property("owner", "Chin")
             }
         })
         elements.forEach( (ele, index) => {
