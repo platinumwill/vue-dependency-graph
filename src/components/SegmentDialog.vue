@@ -8,10 +8,14 @@
     </Button>
 
     <OverlayPanel ref="panel">
-        <Button 
-        >
-            Target Pattern...
-        </Button>
+        <Dropdown v-model="sourceSegment.selection.selectedPattern.value"
+            :options="sourceSegment.selection.options.value"
+            optionLabel="dropdownOptionLabel"
+            placeholder="Existing source pattern"
+            :showClear="true"
+            >
+        </Dropdown>
+        <br/>
     </OverlayPanel>
     
 </template>
@@ -22,9 +26,10 @@ import { defineComponent, ref, computed, inject, ComputedRef, toRef } from 'vue'
 
 import Button from 'primevue/button'
 import OverlayPanel from 'primevue/overlaypanel'
+import Dropdown from 'primevue/dropdown'
 
 import { ModifiedSpacySentence, ModifiedSpacyToken } from '@/composables/sentenceManager'
-import { prepareSegment } from '@/composables/sourcePatternSegment'
+import * as sourcePattern from '@/composables/sourcePatternSegment'
 
 export default defineComponent({
 
@@ -54,17 +59,18 @@ export default defineComponent({
             panel.value.toggle(event)
         }
 
-        const sourceSegment = prepareSegment(props.token)
-        console.log(sourceSegment)
+        const sourceSegment = sourcePattern.prepareSegment(props.token)
 
         return {
             display
             , panel
             , togglePanel
+            , sourceSegment
         }
     }
     , components: {
         Button
+        , Dropdown
         , OverlayPanel
     }
 })

@@ -99,20 +99,18 @@ export function prepareSegment(tokenRef: ComputedRef<ModifiedSpacyToken>) {
     }
 
     return {
-        sourcePatternManager: {
-            selection: {
-                selectedPattern: selectedSourcePattern
-                , options: sourcePatternOptions
-                , reloadOptions: reloadOptions
-                , setAsSelected: setSelectedSourcePatternDropdownValue
-                , clearOptions: clearOptions
-            }
-            , process: {
-                save: processSelectedSourcePatternStoring
-            }
-            , status: {
-                isSourcePatternNew: isSourcePatternNew
-            }
+        selection: {
+            selectedPattern: selectedSourcePattern
+            , options: sourcePatternOptions
+            , reloadOptions: reloadOptions
+            , setAsSelected: setSelectedSourcePatternDropdownValue
+            , clearOptions: clearOptions
+        }
+        , process: {
+            save: processSelectedSourcePatternStoring
+        }
+        , status: {
+            isSourcePatternNew: isSourcePatternNew
         }
     }
 }
