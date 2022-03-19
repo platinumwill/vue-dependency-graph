@@ -177,20 +177,17 @@ const _toggleMorphologyInfoSelection = (morphologyInfo: MorphologyInfo, selectio
         word.markMorphologyInfoAsSelected(morphologyInfo.type)
     }
     selection.reloadOptions().then( () => {
-        _findExistingMatchSourcePatternAndSetDropdown(currentSentence.value, sourcePatternManager)
+        _findExistingMatchSourcePatternAndSetDropdown(word, selection)
     })        
 }
 
 const _findExistingMatchSourcePatternAndSetDropdown = (
-    currentSentence: ModifiedSpacySentence
-    , sourcePatternManager: SourcePatternManager
+    beginWord: ModifiedSpacyToken
+    , selection: SourcePatternSegmentSelection
     ) => {
 
-    const beginWord = currentSentence.findBeginWord()
     if (! beginWord) return
-    const selectedArcsFromBegin = currentSentence.arcs.filter( (arc) => {
-        return (arc.selected && arc.trueStart === beginWord.indexInSentence)
-    })
+    const selectedArcsFromBegin = beginWord.segmentDeps
     let gremlinInvoke = new GremlinInvoke()
     .call("V")
     beginWord.selectedMorphologyInfoTypes.forEach( (morphInfoType) => {
@@ -249,10 +246,10 @@ const _findExistingMatchSourcePatternAndSetDropdown = (
     })
     submit(gremlinInvoke).then( (resultData: any) => {
         if (resultData['@value'].length === 0) {
-            sourcePatternManager.selection.setAsSelected(undefined)
+            selection.setAsSelected(undefined)
             return
         }
         const sourcePatternBeginningId = resultData['@value'][0]['@value'].id['@value']
-        sourcePatternManager.selection.setAsSelected(sourcePatternBeginningId)
+        selection.setAsSelected(sourcePatternBeginningId)
     })
 }
