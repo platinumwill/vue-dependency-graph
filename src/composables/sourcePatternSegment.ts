@@ -1,8 +1,8 @@
-import { ModifiedSpacyDependency, ModifiedSpacyElement, ModifiedSpacyToken } from "@/composables/sentenceManager";
+import { ModifiedSpacyDependency, ModifiedSpacyElement, ModifiedSpacySentence, ModifiedSpacyToken } from "@/composables/sentenceManager";
 import { ComputedRef, Ref, ref } from 'vue'
 import { GremlinInvoke, aliases, vertexAlias, vertexLabels, propertyNames, connectorAlias, edgeLabels, submit } from "@/composables/gremlinManager";
-import { MorphologyInfo, morphologyInfoUnknownValuePostfix } from "@/composables/morphologyInfo"
-import { SourcePatternSegmentSelection } from "./sourcePatternManager";
+import { MorphologyInfo, morphologyInfoTypeEnum, morphologyInfoUnknownValuePostfix } from "@/composables/morphologyInfo"
+import { SourcePatternManager, SourcePatternSegmentSelection } from "./sourcePatternManager";
 
 class SourcePatternOption {
     id: number
@@ -177,11 +177,11 @@ const _toggleMorphologyInfoSelection = (morphologyInfo: MorphologyInfo, selectio
         word.markMorphologyInfoAsSelected(morphologyInfo.type)
     }
     selection.reloadOptions().then( () => {
-        findExistingMatchSourcePatternAndSetDropdown(currentSentence.value, sourcePatternManager)
+        _findExistingMatchSourcePatternAndSetDropdown(currentSentence.value, sourcePatternManager)
     })        
 }
 
-const findExistingMatchSourcePatternAndSetDropdown = (
+const _findExistingMatchSourcePatternAndSetDropdown = (
     currentSentence: ModifiedSpacySentence
     , sourcePatternManager: SourcePatternManager
     ) => {
@@ -191,17 +191,17 @@ const findExistingMatchSourcePatternAndSetDropdown = (
     const selectedArcsFromBegin = currentSentence.arcs.filter( (arc) => {
         return (arc.selected && arc.trueStart === beginWord.indexInSentence)
     })
-    let gremlinInvoke = new gremlinApi.GremlinInvoke()
+    let gremlinInvoke = new GremlinInvoke()
     .call("V")
     beginWord.selectedMorphologyInfoTypes.forEach( (morphInfoType) => {
         gremlinInvoke = gremlinInvoke.call("has", morphInfoType.name, beginWord[morphInfoType.propertyInWord])
     })
     if (selectedArcsFromBegin.length) {
         gremlinInvoke.where(
-            new gremlinApi.GremlinInvoke(true)
+            new GremlinInvoke(true)
             .outE()
             .count()
-            .is(new gremlinApi.GremlinInvoke(true).eq(selectedArcsFromBegin.length))
+            .is(new GremlinInvoke(true).eq(selectedArcsFromBegin.length))
         )
     }
     const arcSum = new Map();
@@ -215,9 +215,9 @@ const findExistingMatchSourcePatternAndSetDropdown = (
         if (selectedArc.endToken && selectedArc.endToken?.selectedMorphologyInfoTypes.length > 0) {
             // 非 connector 的狀況
             const endToken = selectedArc.endToken
-            const endTokenCriteria = new gremlinApi.GremlinInvoke(true).out(selectedArc.label)
+            const endTokenCriteria = new GremlinInvoke(true).out(selectedArc.label)
             Object.values(morphologyInfoTypeEnum).forEach( (morphInfoType, index) => {
-                const endTokenPropertyCriteria = new gremlinApi.GremlinInvoke(true)
+                const endTokenPropertyCriteria = new GremlinInvoke(true)
                 if (endToken.selectedMorphologyInfoTypes.includes(morphInfoType)) {
                     endTokenPropertyCriteria.has(morphInfoType.name, endToken[morphInfoType.propertyInWord])
                 } else {
@@ -230,24 +230,24 @@ const findExistingMatchSourcePatternAndSetDropdown = (
         } else {
             // connector 的狀況
             gremlinInvoke.where(
-                new gremlinApi.GremlinInvoke(true)
+                new GremlinInvoke(true)
                 .out(selectedArc.label)
-                .where(new gremlinApi.GremlinInvoke(true).has(gremlinApi.propertyNames.isConnector, true))
+                .where(new GremlinInvoke(true).has(propertyNames.isConnector, true))
                 .count()
-                .is(new gremlinApi.GremlinInvoke(true).eq(1))
+                .is(new GremlinInvoke(true).eq(1))
             )
         }
     })
     arcSum.forEach( (value, key) => {
         gremlinInvoke.call(
             "and"
-            , new gremlinApi.GremlinInvoke(true)
+            , new GremlinInvoke(true)
             .call("outE", key)
             .call("count")
-            .call("is", new gremlinApi.GremlinInvoke(true).gte(value))
+            .call("is", new GremlinInvoke(true).gte(value))
         )
     })
-    gremlinApi.submit(gremlinInvoke).then( (resultData: any) => {
+    submit(gremlinInvoke).then( (resultData: any) => {
         if (resultData['@value'].length === 0) {
             sourcePatternManager.selection.setAsSelected(undefined)
             return
