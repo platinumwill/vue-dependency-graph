@@ -147,3 +147,37 @@ const reloadMatchingSourcePatternOptions = (
         })
     })
 }
+
+const toggleMorphologyInfoSelection = (morphologyInfo: MorphologyInfo) => {
+    const sentence = currentSentence.value
+    const word = morphologyInfo.token
+    // 如果 morphology info 是 UNKNOWN，就不繼續動作
+    if (word[morphologyInfo.type.propertyInWord].endsWith(morphologyInfoUnknownValuePostfix)) return
+
+    store.dispatch('setToggling', true)
+
+    const selectedArcs = sentence.arcs.filter( arc => arc.selected)
+    if (selectedArcs.length > 0) { // 如果有選 dependency
+        if (selectedArcs.filter( (selectedArc) => { // 選起來的 dependency 又都沒有連著現在要選的 token
+            return (selectedArc.trueStart === morphologyInfo.token.indexInSentence || selectedArc.trueEnd === morphologyInfo.token.indexInSentence)
+        }).length <= 0) return // 就不要選取
+    }
+    // TODO 選取還是都要連起來比較保險
+    // 執行 toggle
+    if (word.selectedMorphologyInfoTypes.includes(morphologyInfo.type)) { // toggle off
+        word.unmarkMorphologyInfoAsSelected(morphologyInfo.type)
+        word.sourcePatternVertexId = undefined
+        word.isBeginning = false
+        // 重新檢查然後標記每個 token 的 begin
+        // 然後再針對每個 begin token 處理 source pattern
+        // 這些要在新的 segment manager 做
+    } else { // toggle on
+        if (currentSentence.value.findBeginWord() === undefined) {
+            word.isBeginning = true
+        }            
+        word.markMorphologyInfoAsSelected(morphologyInfo.type)
+    }
+    sourcePatternManager.selection.reloadOptions().then( () => {
+        findExistingMatchSourcePatternAndSetDropdown(currentSentence.value, sourcePatternManager)
+    })        
+}
