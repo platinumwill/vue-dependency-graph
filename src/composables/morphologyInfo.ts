@@ -41,3 +41,5 @@ export const morphologyInfoTypeEnum = Object.freeze({
 })
 
 export const minimalMorphologyInfo = morphologyInfoTypeEnum.pos
+
+export const morphologyInfoUnknownValuePostfix = "_UNKNOWN"

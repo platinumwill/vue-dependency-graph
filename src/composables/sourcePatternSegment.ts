@@ -1,6 +1,8 @@
 import { ModifiedSpacyDependency, ModifiedSpacyElement, ModifiedSpacyToken } from "@/composables/sentenceManager";
 import { ComputedRef, Ref, ref } from 'vue'
 import { GremlinInvoke, aliases, vertexAlias, vertexLabels, propertyNames, connectorAlias, edgeLabels, submit } from "@/composables/gremlinManager";
+import { MorphologyInfo, morphologyInfoUnknownValuePostfix } from "@/composables/morphologyInfo"
+import { SourcePatternSegmentSelection } from "./sourcePatternManager";
 
 class SourcePatternOption {
     id: number
@@ -148,21 +150,21 @@ const reloadMatchingSourcePatternOptions = (
     })
 }
 
-const toggleMorphologyInfoSelection = (morphologyInfo: MorphologyInfo) => {
-    const sentence = currentSentence.value
+let $toggling = false
+
+const _toggleMorphologyInfoSelection = (morphologyInfo: MorphologyInfo, selection: SourcePatternSegmentSelection) => {
     const word = morphologyInfo.token
     // 如果 morphology info 是 UNKNOWN，就不繼續動作
     if (word[morphologyInfo.type.propertyInWord].endsWith(morphologyInfoUnknownValuePostfix)) return
 
-    store.dispatch('setToggling', true)
+    $toggling = true
 
-    const selectedArcs = sentence.arcs.filter( arc => arc.selected)
+    const selectedArcs = word.segmentDeps
     if (selectedArcs.length > 0) { // 如果有選 dependency
         if (selectedArcs.filter( (selectedArc) => { // 選起來的 dependency 又都沒有連著現在要選的 token
             return (selectedArc.trueStart === morphologyInfo.token.indexInSentence || selectedArc.trueEnd === morphologyInfo.token.indexInSentence)
         }).length <= 0) return // 就不要選取
     }
-    // TODO 選取還是都要連起來比較保險
     // 執行 toggle
     if (word.selectedMorphologyInfoTypes.includes(morphologyInfo.type)) { // toggle off
         word.unmarkMorphologyInfoAsSelected(morphologyInfo.type)
@@ -172,12 +174,85 @@ const toggleMorphologyInfoSelection = (morphologyInfo: MorphologyInfo) => {
         // 然後再針對每個 begin token 處理 source pattern
         // 這些要在新的 segment manager 做
     } else { // toggle on
-        if (currentSentence.value.findBeginWord() === undefined) {
-            word.isBeginning = true
-        }            
         word.markMorphologyInfoAsSelected(morphologyInfo.type)
     }
-    sourcePatternManager.selection.reloadOptions().then( () => {
+    selection.reloadOptions().then( () => {
         findExistingMatchSourcePatternAndSetDropdown(currentSentence.value, sourcePatternManager)
     })        
+}
+
+const findExistingMatchSourcePatternAndSetDropdown = (
+    currentSentence: ModifiedSpacySentence
+    , sourcePatternManager: SourcePatternManager
+    ) => {
+
+    const beginWord = currentSentence.findBeginWord()
+    if (! beginWord) return
+    const selectedArcsFromBegin = currentSentence.arcs.filter( (arc) => {
+        return (arc.selected && arc.trueStart === beginWord.indexInSentence)
+    })
+    let gremlinInvoke = new gremlinApi.GremlinInvoke()
+    .call("V")
+    beginWord.selectedMorphologyInfoTypes.forEach( (morphInfoType) => {
+        gremlinInvoke = gremlinInvoke.call("has", morphInfoType.name, beginWord[morphInfoType.propertyInWord])
+    })
+    if (selectedArcsFromBegin.length) {
+        gremlinInvoke.where(
+            new gremlinApi.GremlinInvoke(true)
+            .outE()
+            .count()
+            .is(new gremlinApi.GremlinInvoke(true).eq(selectedArcsFromBegin.length))
+        )
+    }
+    const arcSum = new Map();
+    selectedArcsFromBegin.forEach( (selectedArc) => {
+        if ( arcSum.has(selectedArc.label) ) {
+            arcSum.set(selectedArc.label, arcSum.get(selectedArc.label) + 1)
+        } else {
+            arcSum.set(selectedArc.label, 1)
+        }
+        // 目前暫時支援查詢到第 1 層的 edge 和隨後的 vertex。如果要再支搜查詢到更後面的線和端，就要用遞迴了
+        if (selectedArc.endToken && selectedArc.endToken?.selectedMorphologyInfoTypes.length > 0) {
+            // 非 connector 的狀況
+            const endToken = selectedArc.endToken
+            const endTokenCriteria = new gremlinApi.GremlinInvoke(true).out(selectedArc.label)
+            Object.values(morphologyInfoTypeEnum).forEach( (morphInfoType, index) => {
+                const endTokenPropertyCriteria = new gremlinApi.GremlinInvoke(true)
+                if (endToken.selectedMorphologyInfoTypes.includes(morphInfoType)) {
+                    endTokenPropertyCriteria.has(morphInfoType.name, endToken[morphInfoType.propertyInWord])
+                } else {
+                    endTokenPropertyCriteria.hasNot(morphInfoType.name)
+                }
+                const whereOrAnd = index === 0 ? 'where' : 'and'
+                endTokenCriteria.call(whereOrAnd, endTokenPropertyCriteria)
+            })
+            gremlinInvoke.where(endTokenCriteria)
+        } else {
+            // connector 的狀況
+            gremlinInvoke.where(
+                new gremlinApi.GremlinInvoke(true)
+                .out(selectedArc.label)
+                .where(new gremlinApi.GremlinInvoke(true).has(gremlinApi.propertyNames.isConnector, true))
+                .count()
+                .is(new gremlinApi.GremlinInvoke(true).eq(1))
+            )
+        }
+    })
+    arcSum.forEach( (value, key) => {
+        gremlinInvoke.call(
+            "and"
+            , new gremlinApi.GremlinInvoke(true)
+            .call("outE", key)
+            .call("count")
+            .call("is", new gremlinApi.GremlinInvoke(true).gte(value))
+        )
+    })
+    gremlinApi.submit(gremlinInvoke).then( (resultData: any) => {
+        if (resultData['@value'].length === 0) {
+            sourcePatternManager.selection.setAsSelected(undefined)
+            return
+        }
+        const sourcePatternBeginningId = resultData['@value'][0]['@value'].id['@value']
+        sourcePatternManager.selection.setAsSelected(sourcePatternBeginningId)
+    })
 }
