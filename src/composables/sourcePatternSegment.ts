@@ -169,7 +169,9 @@ const _toggleMorphologyInfoSelection = (morphologyInfo: MorphologyInfo, selectio
     if (word.selectedMorphologyInfoTypes.includes(morphologyInfo.type)) { // toggle off
         word.unmarkMorphologyInfoAsSelected(morphologyInfo.type)
         word.sourcePatternVertexId = undefined
-        word.isBeginning = false
+        if (! word.selectedMorphologyInfoTypes.length) {
+            word.isBeginning = false
+        }
         // 重新檢查然後標記每個 token 的 begin
         // 然後再針對每個 begin token 處理 source pattern
         // 這些要在新的 segment manager 做
