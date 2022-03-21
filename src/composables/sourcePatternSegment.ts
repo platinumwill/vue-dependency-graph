@@ -83,7 +83,7 @@ export function prepareSegment(tokenRef: ComputedRef<ModifiedSpacyToken>) {
     }
 
     const reloadOptions = () => {
-        return reloadMatchingSourcePatternOptions(sourcePatternOptions, tokenRef.value)
+        return _reloadMatchingSourcePatternOptions(sourcePatternOptions, tokenRef.value)
     }
 
     const clearOptions = () => {
@@ -117,7 +117,7 @@ export function prepareSegment(tokenRef: ComputedRef<ModifiedSpacyToken>) {
     }
 }
 
-const reloadMatchingSourcePatternOptions = (
+const _reloadMatchingSourcePatternOptions = (
     sourcePatternOptions: Ref<SourcePatternOption[]>
     , beginWord: ModifiedSpacyToken) => {
 
