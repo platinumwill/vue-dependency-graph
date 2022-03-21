@@ -26,8 +26,8 @@
 <script>
 import DependencyEdge from "./DependencyEdge.vue";
 import DependencyNode from "./DependencyNode.vue";
-import { mapGetters, mapState } from 'vuex'
-import { computed, provide } from 'vue'
+import { mapGetters, useStore } from 'vuex'
+import { computed, provide, watch } from 'vue'
 import PatternDialog from "./PatternDialog.vue"
 import SegmentDialog from "@/components/SegmentDialog.vue"
 
@@ -72,25 +72,9 @@ export default {
         , currentSpacyFormatSentence() {
             return this.spacyFormatSentences[this.currentSentenceIndex]
         }
-        , ...mapState({
-            originalText: 'originalText'
-        })
         , ...mapGetters({ 
             currentSentenceIndex: 'currentSentenceIndex'
         })
-    }
-    , watch: {
-        // 這裡是大部分流程的起頭
-        async originalText (newText) {
-            documentPersistence.retrieveDocument(newText, this.spacyFormatParseProvider.name, this.spacyFormatParseProvider).then(this.processParseResult)
-        }
-    }
-    , methods: {
-        processParseResult(document) {
-            this.spacyFormatHelper.documentParse = document.parse // 文件的 id 可以從這裡開始取
-            const sentences = this.spacyFormatHelper.generateSentences()
-            this.spacyFormatSentences.push(...sentences)
-        }
     }
     , props: {
         config: {
@@ -147,6 +131,25 @@ export default {
             return props.spacyFormatParseProvider.name
         })
 
+        const processParseResult = (document) => {
+            spacyFormatHelper.value.documentParse = document.parse // 文件的 id 可以從這裡開始取
+            const sentences = spacyFormatHelper.value.generateSentences()
+            spacyFormatSentences.push(...sentences)
+        }
+        const store = useStore()
+        const originalText = computed(() => store.state.originalText)
+        // 這裡是大部分流程的起頭
+        watch(originalText, 
+            async (newText) => {
+                documentPersistence.retrieveDocument(
+                    newText
+                    , props.spacyFormatParseProvider.name
+                    , props.spacyFormatParseProvider
+                    )
+                .then(processParseResult)
+            }
+        )
+    
         return {
             spacyFormatHelper
             , spacyFormatSentences
