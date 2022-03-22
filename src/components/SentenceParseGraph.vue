@@ -133,7 +133,7 @@ export default {
 
         const processParseResult = (document) => {
             spacyFormatHelper.value.documentParse = document.parse // 文件的 id 可以從這裡開始取
-            const sentences = spacyFormatHelper.value.generateSentences()
+            const sentences = spacyFormatHelper.value.generateSentences(document.parse)
             spacyFormatSentences.push(...sentences)
         }
         const store = useStore()
