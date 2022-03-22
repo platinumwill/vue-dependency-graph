@@ -1,25 +1,73 @@
-import { ref } from "vue"
+import { Ref, ref } from "vue"
 import { useStore } from "vuex"
 import * as sentenceManager from "@/composables/sentenceManager"
 
+export type SpacyArc = {
+    label: string
+    , start: number
+    , end: number
+    , dir: string
+}
+export type SpacyWord = {
+    text: string
+    , tag: string
+    , tense: string
+    , lemma: string
+}
+export type SpacySentence = {
+    words: SpacyWord[]
+    , arcs: SpacyArc[]
+    , start: number
+    , end: number
+}
+
+export class SpacyFormatHelper {
+    $documentParse: Ref<SpacySentence>
+    $generateSentences: Function
+
+    constructor(documentParse: Ref<SpacySentence>, generateSentences: Function) {
+        this.$documentParse = documentParse
+        this.$generateSentences = generateSentences
+    }
+
+    get documentParse() {
+        return this.$documentParse
+    }
+    set documentParse(documentParse) {
+        this.$documentParse = documentParse
+    }
+
+    get generateSentences() {
+        return this.$generateSentences
+    }
+
+}
+
 export default function () {
-    const spacyFormatDocumentParse = ref({})
+    const spacyFormatDocumentParse = ref<SpacySentence>(
+        {
+            words: []
+            , arcs: []
+            , start: -1
+            , end: -1
+        }
+    )
     const store = useStore()
 
     const generateSentences = () => {
-        const result = []
+        const result: sentenceManager.ModifiedSpacySentence[] = []
         if (spacyFormatDocumentParse.value == undefined 
             || !spacyFormatDocumentParse.value.words 
             || !store.getters.isDocumentReady) {
             return result
         }
-        store.getters.baselineSentences.forEach((baselineSentence) => {
+        store.getters.baselineSentences.forEach((baselineSentence: SpacySentence) => {
             result.push(generateSentence(baselineSentence))
         })
         return result
     }
 
-    const generateSentence = (baselineSentence) => {
+    const generateSentence = (baselineSentence: SpacySentence) => {
         const filteredArcs = spacyFormatDocumentParse.value.arcs.filter(
             arc =>
             arc.start >= baselineSentence.start
@@ -27,14 +75,13 @@ export default function () {
             && arc.start <= baselineSentence.end 
             && arc.end <= baselineSentence.end
             )
-        let arcsClone = JSON.parse(JSON.stringify(filteredArcs.slice(0)))
-        const dependencies = []
+        const arcsClone: SpacyArc[] = JSON.parse(JSON.stringify(filteredArcs.slice(0)))
+        const dependencies: sentenceManager.ModifiedSpacyDependency[] = []
         arcsClone.forEach(function (arc, index) {
-            const dependency = new sentenceManager.ModifiedSpacyDependency(arc)
+            const dependency = new sentenceManager.ModifiedSpacyDependency(arc, index)
             dependency.start -= (baselineSentence.start)
             dependency.end -= (baselineSentence.start)
             // Chin format property
-            dependency.indexInSentence = index
             dependencies.push(dependency)
         })
         // Chin format property
@@ -44,10 +91,9 @@ export default function () {
                 index >= baselineSentence.start
                 && index <= baselineSentence.end
             )
-        const tokens = []
+        const tokens: sentenceManager.ModifiedSpacyToken[] = []
         words.forEach((word, index) => {
-            const token = new sentenceManager.ModifiedSpacyToken(word)
-            token.indexInSentence = index
+            const token = new sentenceManager.ModifiedSpacyToken(word, index)
             token.selectedMorphologyInfoTypes = []
             tokens.push(token)
         })
@@ -55,9 +101,7 @@ export default function () {
         return sentence
     }
 
-    const spacyFormatHelper = ref({})
-    spacyFormatHelper.value.documentParse = spacyFormatDocumentParse
-    spacyFormatHelper.value.generateSentences = generateSentences
+    const spacyFormatHelper = ref<SpacyFormatHelper>(new SpacyFormatHelper(spacyFormatDocumentParse, generateSentences))
 
     return {
         spacyFormatHelper
