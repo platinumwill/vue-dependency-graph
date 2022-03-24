@@ -29,7 +29,6 @@ import OverlayPanel from 'primevue/overlaypanel'
 import Dropdown from 'primevue/dropdown'
 
 import { ModifiedSpacySentence, ModifiedSpacyToken } from '@/composables/sentenceManager'
-import * as sourcePattern from '@/composables/sourcePatternSegment'
 
 export default defineComponent({
 
@@ -59,13 +58,11 @@ export default defineComponent({
             panel.value.toggle(event)
         }
 
-        const sourceSegment = sourcePattern.prepareSegment(props.token)
-
         return {
             display
             , panel
             , togglePanel
-            , sourceSegment
+            , sourceSegment: props.token.segmentHelper
         }
     }
     , components: {

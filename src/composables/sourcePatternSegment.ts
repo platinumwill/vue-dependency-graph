@@ -14,8 +14,8 @@ class SourcePatternOption {
     }
 }
 
-export function prepareSegment(tokenRef: ComputedRef<ModifiedSpacyToken>) {
-    const selectedSourcePattern = ref<SourcePatternOption | undefined>(undefined)
+export function prepareSegment(token: ModifiedSpacyToken) {
+    const selectedSourcePattern = ref<SourcePatternOption | undefined>(new SourcePatternOption(-1, ''))
     const sourcePatternOptions = ref<SourcePatternOption[]>([])
     
     const processSelectedSourcePatternStoring = (gremlinInvoke: GremlinInvoke) => {
@@ -27,8 +27,8 @@ export function prepareSegment(tokenRef: ComputedRef<ModifiedSpacyToken>) {
             return gremlinInvoke
         }
         const elements: ModifiedSpacyElement[] = []
-        elements.push(...tokenRef.value.segmentTokens)
-        elements.push(...tokenRef.value.segmentDeps)
+        elements.push(...token.segmentTokens)
+        elements.push(...token.segmentDeps)
         // token 和 dependency 拼在一起是為了要順序的資料
         elements.sort( (e1, e2) => { return e1.indexInSentence - e2.indexInSentence})
         elements.forEach( (ele, index) => {
@@ -53,7 +53,7 @@ export function prepareSegment(tokenRef: ComputedRef<ModifiedSpacyToken>) {
             if (! (ele instanceof ModifiedSpacyDependency)) return
 
             const arc = ele
-            const startWord = tokenRef.value
+            const startWord = token
             if (startWord === undefined
                 || startWord.selectedMorphologyInfoTypes.length === 0
                 ) {
@@ -83,7 +83,7 @@ export function prepareSegment(tokenRef: ComputedRef<ModifiedSpacyToken>) {
     }
 
     const reloadOptions = () => {
-        return _reloadMatchingSourcePatternOptions(sourcePatternOptions, tokenRef.value)
+        return _reloadMatchingSourcePatternOptions(sourcePatternOptions, token)
     }
 
     const clearOptions = () => {
