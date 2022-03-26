@@ -8,7 +8,8 @@
     </Button>
 
     <OverlayPanel ref="panel">
-        <Dropdown v-model="sourceSegment.selection.selectedPattern.value"
+        <!-- source segment 下拉選單 -->
+        <Dropdown v-model="sourceSegment.selection.selectedPattern"
             :options="sourceSegment.selection.options.value"
             optionLabel="dropdownOptionLabel"
             placeholder="Existing source pattern"

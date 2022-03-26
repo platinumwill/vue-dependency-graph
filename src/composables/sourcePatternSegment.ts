@@ -15,7 +15,7 @@ class SourcePatternOption {
 }
 
 export function prepareSegment(token: ModifiedSpacyToken) {
-    const selectedSourcePattern = ref<SourcePatternOption | undefined>(new SourcePatternOption(-1, ''))
+    const selectedSourcePattern = ref<SourcePatternOption | undefined>(undefined)
     const sourcePatternOptions = ref<SourcePatternOption[]>([])
     
     const processSelectedSourcePatternStoring = (gremlinInvoke: GremlinInvoke) => {
