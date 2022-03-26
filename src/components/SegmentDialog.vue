@@ -37,6 +37,7 @@
         <template #header>
             <h2>Target Pattern</h2>
 
+            <h3 v-if="sourceSegment.status.isSourcePatternNew()">New Source Pattern</h3>
         </template>
     </Dialog>
     
