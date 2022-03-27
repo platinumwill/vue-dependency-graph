@@ -38,6 +38,13 @@
             <h2>Target Pattern</h2>
 
             <h3 v-if="sourceSegment.status.isSourcePatternNew()">New Source Pattern</h3>
+
+            <Dropdown v-model="targetPattern.selection.selected"
+                :options="targetPattern.selection.options"
+                optionLabel="dropdownOptionLabel"
+                placeholder="Existing target pattern"
+                >
+            </Dropdown>
         </template>
     </Dialog>
     
@@ -93,6 +100,7 @@ export default defineComponent({
             , panel
             , togglePanel
             , sourceSegment: props.token.segmentHelper
+            , targetPattern: props.token.targetPatternHelper
             , showTargetPatternDialog
             , toggleTargetPatternDialog
         }

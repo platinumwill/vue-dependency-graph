@@ -1,10 +1,31 @@
-import { ComputedRef, ref, watch } from 'vue'
+import { ComputedRef, Ref, ref, watch } from 'vue'
 import { ModifiedSpacyDependency, ModifiedSpacyElement, ModifiedSpacySentence, ModifiedSpacyToken } from "@/composables/sentenceManager"
 import { GremlinInvoke } from '@/composables/gremlinManager'
 import * as gremlinManager from "@/composables/gremlinManager"
 import * as sentenceManager from "@/composables/sentenceManager"
 
-export default function(currentSentence: ComputedRef<ModifiedSpacySentence>) {
+export type TargetPattern = {
+    dialogPieces: {
+        pieces: any
+        , removePiece: Function
+        , addFixedTextPiece: Function
+        , revertPieces: Function
+        , isPatternNew: Function
+        , queryOrGenerateDefaultPieces: Function
+    }
+    , selection: {
+        selected: any
+        , clearSelection: Function
+        , options: LinearTargetPattern[]
+        , clearOptions: Function
+        , reloadOptions: Function
+    }
+    , process: {
+        save: Function
+    }
+}
+
+export function prepareTargetPattern (token: ModifiedSpacyToken) {
 
     const selectedTargetPattern = ref<LinearTargetPattern | undefined>(undefined)
     let dialogPiecesModified = false
@@ -16,7 +37,7 @@ export default function(currentSentence: ComputedRef<ModifiedSpacySentence>) {
                 return
             }
         }
-        renewDialogPieces(currentSentence.value)
+        renewDialogPieces(token)
     })
 
     const dialogPieces = ref<LinearTargetPatternPiece[]>([])
@@ -56,11 +77,11 @@ export default function(currentSentence: ComputedRef<ModifiedSpacySentence>) {
     }
 
     function queryOrGenerateDefaultPieces (
-        currentSpacySentence: ModifiedSpacySentence
+        token: ModifiedSpacyToken
         ) {
-        const defaultTargetPatternSamplePieces = _generateDefaultTargetPattern(currentSpacySentence)
+        const defaultTargetPatternSamplePieces = _generateDefaultTargetPattern(token)
         setSelectedTargetPatternByPieces(defaultTargetPatternSamplePieces)
-        renewDialogPieces(currentSpacySentence, defaultTargetPatternSamplePieces)
+        renewDialogPieces(token, defaultTargetPatternSamplePieces)
     }
 
     function setSelectedTargetPatternByDialog() {
@@ -73,7 +94,7 @@ export default function(currentSentence: ComputedRef<ModifiedSpacySentence>) {
     }
 
     function renewDialogPieces(
-        currentSpacySentence: ModifiedSpacySentence
+        token: ModifiedSpacyToken
         , defaultTargetPatternPieces?: LinearTargetPatternPiece[]
         ) {
 
@@ -84,7 +105,7 @@ export default function(currentSentence: ComputedRef<ModifiedSpacySentence>) {
         } else if (defaultTargetPatternPieces != undefined) {
             tempDialogPieces = defaultTargetPatternPieces
         } else {
-            tempDialogPieces = _generateDefaultPieces(currentSpacySentence)
+            tempDialogPieces = _generateDefaultPieces(token)
         }
 
         dialogPieces.value.splice(0, dialogPieces.value.length, ...tempDialogPieces)
@@ -96,7 +117,11 @@ export default function(currentSentence: ComputedRef<ModifiedSpacySentence>) {
     }
 
     async function reloadTargetPatternOptions(sourcePatternBeginningId: number) {
-        const result: LinearTargetPattern[] = await _reloadMatchingTargetPatternOptions(sourcePatternBeginningId, currentSentence.value, targetPatternOptions.value)
+        const result: LinearTargetPattern[] = await _reloadMatchingTargetPatternOptions(
+            sourcePatternBeginningId
+            , token
+            , targetPatternOptions.value
+            )
         setSelectedTargetPatternByDialog()
         return result
     }
@@ -116,25 +141,23 @@ export default function(currentSentence: ComputedRef<ModifiedSpacySentence>) {
     }
 
     return {
-        targetPattern: {
-            dialogPieces: {
-                pieces: dialogPieces
-                , removePiece: removePiece
-                , addFixedTextPiece: addFixedTextPiece
-                , revertPieces: revertPieces
-                , isPatternNew: isDialogPatternNew
-                , queryOrGenerateDefaultPieces: queryOrGenerateDefaultPieces
-            }
-            , selection: {
-                selected: selectedTargetPattern
-                , clearSelection: clearTargetPatternSelection
-                , options: targetPatternOptions.value
-                , clearOptions: clearTargetPatternOptions
-                , reloadOptions: reloadTargetPatternOptions
-            }
-            , process: {
-                save: save
-            }
+        dialogPieces: {
+            pieces: dialogPieces
+            , removePiece: removePiece
+            , addFixedTextPiece: addFixedTextPiece
+            , revertPieces: revertPieces
+            , isPatternNew: isDialogPatternNew
+            , queryOrGenerateDefaultPieces: queryOrGenerateDefaultPieces
+        }
+        , selection: {
+            selected: selectedTargetPattern
+            , clearSelection: clearTargetPatternSelection
+            , options: targetPatternOptions.value
+            , clearOptions: clearTargetPatternOptions
+            , reloadOptions: reloadTargetPatternOptions
+        }
+        , process: {
+            save: save
         }
     }
 
@@ -320,22 +343,22 @@ function _duplicateTargetPattern(targetPattern: LinearTargetPattern) {
     return pieces
 }
 
-function _generateDefaultTargetPattern (currentSpacySentence: ModifiedSpacySentence) {
-    const defaultPieces = _generateDefaultPieces(currentSpacySentence)
+function _generateDefaultTargetPattern (token: ModifiedSpacyToken) {
+    const defaultPieces = _generateDefaultPieces(token)
     return defaultPieces
 }
 
 function _generateDefaultPieces (
-    currentSpacySentence: ModifiedSpacySentence
+    token: ModifiedSpacyToken
     ) {
 
     const segmentPieces: LinearTargetPatternPiece[] = []
 
-    currentSpacySentence.selectedTokens.forEach((selectedWord) => {
+    token.segmentTokens.forEach((selectedWord) => {
         const piece = new LinearTargetPatternPiece(selectedWord)
         segmentPieces.push(piece)
     })
-    currentSpacySentence.selectedDependencies.forEach((selectedArc) => {
+    token.segmentDeps.forEach((selectedArc) => {
         const piece = new LinearTargetPatternPiece(selectedArc)
         segmentPieces.push(piece)
     })
@@ -412,7 +435,7 @@ function _processTargetPatternStoring(segmentPieces: LinearTargetPatternPiece[],
 
 export function _reloadMatchingTargetPatternOptions (
     sourcePatternBeginningId: number
-    , currentSpacySentence: ModifiedSpacySentence
+    , token: ModifiedSpacyToken
     , targetPatternOptions: LinearTargetPattern[]) {
 
     targetPatternOptions.splice(0, targetPatternOptions.length)
@@ -555,11 +578,11 @@ export function _reloadMatchingTargetPatternOptions (
                                 }
                             }
                         })
-                        const tracedDependency = sentenceManager.findDependencyByPatternEdgeId(depEdgeId, currentSpacySentence)
+                        const tracedDependency = findDependencyByPatternEdgeId(depEdgeId, token)
                         targetPatternPiece = new LinearTargetPatternPiece(tracedDependency)
                     } else {
                         if (tracedVertexId != undefined) {
-                            const tracedToken = sentenceManager.findTokenByPatternVertexId(tracedVertexId, currentSpacySentence)
+                            const tracedToken = findTokenByPatternVertexId(tracedVertexId, token)
                             targetPatternPiece = new LinearTargetPatternPiece(tracedToken)
                         }
                     }
@@ -575,4 +598,24 @@ export function _reloadMatchingTargetPatternOptions (
             reject(error)
         })
     })
+}
+
+export const findDependencyByPatternEdgeId = (sourceEdgeId: string, token: ModifiedSpacyToken): ModifiedSpacyDependency => {
+    const result = token.segmentDeps.find( dependency => {
+        return dependency.sourcePatternEdgeId == sourceEdgeId
+    })
+    if (result != undefined) return result
+    const error = "source pattern edge 記錄有問題"
+    console.error(error)
+    throw error
+}
+
+export const findTokenByPatternVertexId = (sourceVertexId: number, token: ModifiedSpacyToken): ModifiedSpacyToken => {
+    const result = token.segmentTokens.find( token => {
+        return token.sourcePatternVertexId == sourceVertexId
+    })
+    if (result != undefined) return result
+    const error = "source pattern vertex 記錄有問題"
+    console.error(error, 'source vertex id: ', sourceVertexId, ' not found in tokens')
+    throw error
 }

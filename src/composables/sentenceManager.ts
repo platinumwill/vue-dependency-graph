@@ -1,8 +1,9 @@
 import { computed, ref } from 'vue'
 import { useStore } from "vuex"
 import { MorphologyInfoType, minimalMorphologyInfo } from "@/composables/morphologyInfo"
-import { SegmentManager } from './segmentManager'
-import { SourcePatternManager } from './sourcePatternManager'
+import { SourcePatternManager } from '@/composables/sourcePatternManager'
+import { TargetPattern } from '@/composables//targetPatter'
+
 
 export default function () {
 
@@ -54,6 +55,7 @@ export class ModifiedSpacyToken extends ModifiedSpacyElement {
     $isBeginning: boolean = false
     $tense: string
     $segmentHelper?: SourcePatternManager
+    $targetPatternHelper?: TargetPattern
 
     constructor(spacyWord: any, index: number) {
         super(index, "token")
@@ -119,11 +121,20 @@ export class ModifiedSpacyToken extends ModifiedSpacyElement {
             } )
     }
 
+    // source pattern segment helper
     get segmentHelper() {
         return this.$segmentHelper
     }
     set segmentHelper(segmentHelper) {
         this.$segmentHelper = segmentHelper
+    }
+
+    // target pattern
+    get targetPatternHelper() {
+        return this.$targetPatternHelper
+    }
+    set targetPatternHelper(targetPatternHelper) {
+        this.$targetPatternHelper = targetPatternHelper
     }
 
 }
