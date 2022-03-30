@@ -2,7 +2,7 @@ import { ModifiedSpacyDependency, ModifiedSpacyElement, ModifiedSpacySentence, M
 import { ComputedRef, Ref, ref } from 'vue'
 import { GremlinInvoke, aliases, vertexAlias, vertexLabels, propertyNames, connectorAlias, edgeLabels, submit } from "@/composables/gremlinManager";
 import { MorphologyInfo, morphologyInfoTypeEnum, morphologyInfoUnknownValuePostfix } from "@/composables/morphologyInfo"
-import { SourcePatternManager, SourcePatternSegmentSelection } from "./sourcePatternManager";
+import { SourcePatternManager, SourcePatternSegmentSelection } from "@/composables/sourcePatternManager";
 
 class SourcePatternOption {
     id: number
