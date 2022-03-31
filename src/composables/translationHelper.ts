@@ -2,11 +2,11 @@ import { SourcePatternManager } from "@/composables/sourcePatternManager";
 import { TargetPattern } from "@/composables/targetPatter";
 import { aliases, GremlinInvoke, submit } from "@/composables/gremlinManager";
 
-export type TranslationManager = {
+export type TranslationHelper = {
     saveSelectedPattern: Function
 }
 
-export function translationManager(
+export function prepareTranslationHelper (
     sourcePattern: SourcePatternManager
     , targetPattern: TargetPattern
 ) {
