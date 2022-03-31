@@ -46,6 +46,32 @@
                 >
             </Dropdown>
         </template>
+
+        <div>
+            <Button icon="pi pi-replay" label="Revert" @click="targetPattern.dialogPieces.revertPieces" />
+            <Button icon="pi pi-plus" label="Add Fixed Text" @click="targetPattern.dialogPieces.addFixedTextPiece" style="margin-left: .5em" />
+        </div>
+
+        <vue-horizontal responsive>
+            <draggable v-model="targetPattern.dialogPieces.pieces.value" tag="transition-group" item-key="vueKey">
+                <template #item="{element}">
+                    <SegmentPiece :item="element"
+                        @appliedTextChanged="changeAppliedText"
+                        @removePiece="removePiece"
+                        @isOptionalChanged="changeIsOptional"
+                        >
+                    </SegmentPiece>
+                </template>
+            </draggable>
+        </vue-horizontal>
+
+        <span 
+            v-for="piece in targetPattern.dialogPieces.pieces.value"
+            :class="piece.isOptional ? 'optional' : ''"
+            :key="piece.vueKey">
+                {{ piece.displayText }}
+        </span>
+
     </Dialog>
     
 </template>
@@ -58,6 +84,11 @@ import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import OverlayPanel from 'primevue/overlaypanel'
 import Dropdown from 'primevue/dropdown'
+
+import draggable from 'vuedraggable'
+import VueHorizontal from 'vue-horizontal'
+
+import SegmentPiece from './SegmentPiece.vue'
 
 import { ModifiedSpacySentence, ModifiedSpacyToken } from '@/composables/sentenceManager'
 
@@ -110,6 +141,9 @@ export default defineComponent({
         , Dialog
         , Dropdown
         , OverlayPanel
+        , draggable
+        , VueHorizontal
+        , SegmentPiece
     }
 })
 </script>

@@ -16,7 +16,7 @@
     "primeicons": "^5.0.0",
     "primevue": "^3.8.1",
     "vue": "^3.2.26",
-    "vue-horizontal": "^1.0.0",
+    "vue-horizontal": "^1.0.2",
     "vuedraggable": "^4.0.1",
     "vuex": "^4.0.1",
     "ws-wrapper": "^2.0.2"

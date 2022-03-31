@@ -36,7 +36,7 @@
     "tests/**/*.ts",
     "tests/**/*.tsx",
     "src/main.js"
-, "src/composables/spacyFormatManager.ts"  ],
+, "src/composables/spacyFormatManager.ts", "src/vue-horizontal.d.ts"  ],
   "exclude": [
     "node_modules"
   ]
