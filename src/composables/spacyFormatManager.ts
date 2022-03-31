@@ -3,6 +3,7 @@ import { useStore } from "vuex"
 import * as sentenceManager from "@/composables/sentenceManager"
 import * as sourcePattern from '@/composables/sourcePatternSegment'
 import * as targetPattern from '@/composables/targetPatter'
+import * as translationHelper from '@/composables/translationHelper'
 
 export type SpacyArc = {
     label: string
@@ -96,12 +97,16 @@ export default function () {
         const tokens: sentenceManager.ModifiedSpacyToken[] = []
         words.forEach((word, index) => {
             const token = new sentenceManager.ModifiedSpacyToken(word, index)
+
             // source pattern segment helper
             const segmentHelper = sourcePattern.prepareSegment(token)
             token.segmentHelper = segmentHelper
             // target pattern helper
             const targetPatternHelper = targetPattern.prepareTargetPattern(token)
             token.targetPatternHelper = targetPatternHelper
+            // translation helper
+            const translation = translationHelper.prepareTranslationHelper(segmentHelper, targetPatternHelper)
+            token.translationHelper = translation
 
             token.selectedMorphologyInfoTypes = []
             tokens.push(token)

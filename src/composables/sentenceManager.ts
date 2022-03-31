@@ -3,6 +3,7 @@ import { useStore } from "vuex"
 import { MorphologyInfoType, minimalMorphologyInfo } from "@/composables/morphologyInfo"
 import { SourcePatternManager } from '@/composables/sourcePatternManager'
 import { TargetPattern } from '@/composables//targetPatter'
+import { TranslationHelper } from '@/composables/translationHelper'
 
 
 export default function () {
@@ -56,6 +57,7 @@ export class ModifiedSpacyToken extends ModifiedSpacyElement {
     $tense: string
     $segmentHelper?: SourcePatternManager
     $targetPatternHelper?: TargetPattern
+    $translationHelper?: TranslationHelper
 
     constructor(spacyWord: any, index: number) {
         super(index, "token")
@@ -135,6 +137,14 @@ export class ModifiedSpacyToken extends ModifiedSpacyElement {
     }
     set targetPatternHelper(targetPatternHelper) {
         this.$targetPatternHelper = targetPatternHelper
+    }
+
+    // translation helper
+    get translationHelper() {
+        return this.$translationHelper
+    }
+    set translationHelper(translationHelper) {
+        this.$translationHelper = translationHelper
     }
 
 }

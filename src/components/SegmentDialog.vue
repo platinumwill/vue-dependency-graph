@@ -72,6 +72,15 @@
                 {{ piece.displayText }}
         </span>
 
+        <div>
+            <Button 
+                :disabled="! isTargetPatternStorable"
+                @click="token.translationHelper.savePattern"
+                icon="pi pi-check" label="Save"
+                >
+            </Button>
+        </div>
+
     </Dialog>
     
 </template>
@@ -126,6 +135,11 @@ export default defineComponent({
             showTargetPatternDialog.value = !showTargetPatternDialog.value
         }
 
+        const isTargetPatternStorable = computed( () => {
+            return props.token.segmentHelper.status.isSourcePatternNew()
+                    || props.token.targetPatternHelper.dialogPieces.isPatternNew()
+        })
+
         return {
             display
             , panel
@@ -134,6 +148,7 @@ export default defineComponent({
             , targetPattern: props.token.targetPatternHelper
             , showTargetPatternDialog
             , toggleTargetPatternDialog
+            , isTargetPatternStorable
         }
     }
     , components: {
