@@ -37,6 +37,7 @@ export default function patternManager (
     const store = useStore()
 
     // 因為 watch source pattern 的邏輯牽涉到 target pattern，所以實做放在這裡
+    // 這裡的邏輯準備複製到 translationHelper
     watch(sourcePatternManager.selection.selectedPattern, async (newValue, oldValue) => {
         console.log('watching selected source pattern change: ', newValue, oldValue)
         // reset target patter 下拉選單
@@ -66,6 +67,7 @@ export default function patternManager (
         store.dispatch('setToggling', false)
     })
 
+    // 這裡的邏輯準備複製到 translationHelper
     const autoMarkMatchingSourcePattern = async (sourcePatternBeginningId: number) => {
 
         currentSentence.value.arcs.forEach( dependency => dependency.sourcePatternEdgeId = undefined)

@@ -81,6 +81,11 @@ export class ModifiedSpacyToken extends ModifiedSpacyElement {
         }
     }
 
+    clearSourcePatternInfo() {
+        this.segmentDeps.forEach( arc => arc.sourcePatternEdgeId = undefined)
+        this.segmentTokens.forEach( word => word.sourcePatternVertexId = undefined)
+    }
+
     get tense() {
         return this.$tense
     }

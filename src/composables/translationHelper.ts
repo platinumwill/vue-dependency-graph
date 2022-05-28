@@ -1,25 +1,77 @@
 import { SourcePatternManager, SourcePatternSegmentSelection } from "@/composables/sourcePatternManager";
-import { TargetPattern } from "@/composables/targetPatter";
-import { aliases, GremlinInvoke, propertyNames, submit } from "@/composables/gremlinManager";
+import { LinearTargetPattern, TargetPattern } from "@/composables/targetPatter";
+import { aliases, GremlinInvoke, isConnector, loadValueMap, propertyNames, submit, valueKey } from "@/composables/gremlinManager";
 import {
+    minimalMorphologyInfo,
     MorphologyInfo
     , morphologyInfoTypeEnum
     , morphologyInfoUnknownValuePostfix
 } from "@/composables/morphologyInfo"
 import { ModifiedSpacyToken } from "@/composables/sentenceManager";
+import { SourcePatternOption } from "@/composables/sourcePatternSegment";
+
+import { watch } from "vue";
 
 export type TranslationHelper = {
     saveSelectedPattern: Function
 }
+
+let $sourcePattern: SourcePatternManager|undefined = undefined
+let $targetPattern: TargetPattern|undefined = undefined
 
 export function prepareTranslationHelper (
     sourcePattern: SourcePatternManager
     , targetPattern: TargetPattern
 ) {
 
+    $sourcePattern = sourcePattern
+    $targetPattern = targetPattern
+
+    watch(sourcePattern.selection.selectedPattern, watchSourcePattern)
+
     return {
         saveSelectedPattern: saveSelectedPattern
     }
+}
+
+let $toggling = false
+
+const watchSourcePattern = async (newValue:SourcePatternOption, oldValue:SourcePatternOption) => {
+    console.log('watching selected source pattern change: ', newValue, oldValue)
+
+    if (! $targetPattern) throw '不應該執行到這裡，$targetPattern 必須有值'
+
+    // reset target patter 下拉選單
+    $targetPattern.selection.clearSelection()
+    $targetPattern.selection.clearOptions()
+
+    if (! $toggling) {
+        clearSegmentSelection($targetPattern.token)
+    }
+    
+    const currentBeginWord = $targetPattern.token
+    currentBeginWord.clearSourcePatternInfo()
+    if (currentBeginWord == undefined || newValue == undefined) {
+        $toggling = false
+        return
+    }
+    
+    const sourcePatternBeginningId = newValue.id
+    currentBeginWord.sourcePatternVertexId = sourcePatternBeginningId
+    await autoMarkMatchingSourcePattern(sourcePatternBeginningId, currentBeginWord).then( () => {
+        if (! $targetPattern) throw '不應該執行到這裡'
+        $targetPattern.selection.reloadOptions(sourcePatternBeginningId).then( (targetPatternOptions: LinearTargetPattern[]) => {
+            console.log('target pattern options reloaded: ', targetPatternOptions)
+        })
+    })
+    $toggling = false
+}
+
+const clearSegmentSelection = (token: ModifiedSpacyToken) => {
+    token.segmentDeps.forEach( dep => dep.selected = false )
+    token.segmentTokens.forEach( token => {
+        token.selectedMorphologyInfoTypes.splice(0, token.selectedMorphologyInfoTypes.length)
+    })
 }
 
 const saveSelectedPattern = (
@@ -45,8 +97,6 @@ const saveSelectedPattern = (
         console.error(error)
     })
 }
-
-let $toggling = false
 
 const _toggleMorphologyInfoSelection = (morphologyInfo: MorphologyInfo, selection: SourcePatternSegmentSelection) => {
     const word = morphologyInfo.token
@@ -150,4 +200,81 @@ const _findExistingMatchSourcePatternAndSetDropdown = (
         const sourcePatternBeginningId = resultData['@value'][0]['@value'].id['@value']
         selection.setAsSelected(sourcePatternBeginningId)
     })
+}
+
+const autoMarkMatchingSourcePattern = async (sourcePatternBeginningId: number, token: ModifiedSpacyToken) => {
+
+    token.clearSourcePatternInfo()
+
+    // 下面的邏輯也許應該切到 setence manager
+
+    const gremlinCommand = new GremlinInvoke()
+    .call("V", sourcePatternBeginningId)
+    .call("repeat", new GremlinInvoke(true).call("outE").call("inV"))
+    .call("until", new GremlinInvoke(true).call("outE").call("count").call("is", 0))
+    .call("limit", 20)
+    .call("path")
+    // .call("by", new GremlinInvoke(true).call("elementMap"))
+    .command()
+
+        // 下面這行不加開頭的 await 會有問題
+        await submit(gremlinCommand).then( async (resultData: any) => {
+            if (token == undefined) return
+            token.sourcePatternVertexId = sourcePatternBeginningId
+
+            // TODO 這 2 個動作可能會造成以後的錯誤
+            token.selectedMorphologyInfoTypes.splice(0, token.selectedMorphologyInfoTypes.length)
+            token.selectedMorphologyInfoTypes.push(minimalMorphologyInfo)
+
+            await resultData['@value'].forEach( async (path: any) => {
+                // 因為這裡是以 v -e-> v 的模式在處理，所以 source pattern 註定不能是單一個 token
+                const outVId = path['@value'].objects['@value'][0]['@value'].id['@value']
+                const outELabel = path['@value'].objects['@value'][1]['@value'].label
+                const outEId = path['@value'].objects['@value'][1]['@value'].id['@value'].relationId
+                const inVId = path['@value'].objects['@value'][2]['@value'].id['@value']
+                const matchingArc = token.segmentDeps.find( (arc) => {
+                    return (
+                        token.segmentTokens[arc.trueStart].sourcePatternVertexId === outVId
+                        && arc.label === outELabel
+                    )
+                })
+                if (! matchingArc) return
+                matchingArc.sourcePatternEdgeId = outEId
+                // 有了 sourcePatternEdgeId，視同被選取。應該要考慮用 getter 邏輯來處理
+                matchingArc.selected = true
+                
+                let pathEndIsConnector = false
+                isConnector(inVId).then( (isConnector) => {
+                    if (isConnector == undefined) return
+                    pathEndIsConnector = isConnector
+                })
+                if (! pathEndIsConnector) {
+                    const tokenAtEndOfDependency = token.segmentTokens.find( (word) => {
+                        return word.indexInSentence === matchingArc.trueEnd
+                    })
+                    if (tokenAtEndOfDependency == undefined) {
+                        const error = '搜尋、自動標示 source pattern 的邏輯有問題'
+                        console.error(error)
+                        throw error
+                    }
+                    // token 的 source pattern vertex id 在這裡設定，這一行很重要
+                    tokenAtEndOfDependency.sourcePatternVertexId = inVId
+                }
+
+                const tokenMatchingInV = token.segmentTokens.find( (token) => {
+                    return token.sourcePatternVertexId === inVId
+                })
+                if (tokenMatchingInV != undefined) {
+                    await loadValueMap(inVId).then( (outVValueMap: any) => {
+                        const morphTypeInfoTokenPropertyNames = Object.values(morphologyInfoTypeEnum).map(infoType => infoType.name)
+                        outVValueMap[valueKey][0][valueKey].forEach( (valueMapArrayElement: any, index: number) => {
+                            const matchingMorphologyInfo = Object.values(morphologyInfoTypeEnum).find(infoType => infoType.name === valueMapArrayElement)
+                            if (matchingMorphologyInfo == undefined) return
+                            tokenMatchingInV.markMorphologyInfoAsSelected(matchingMorphologyInfo)
+                        })
+                    })
+                }
+
+            })
+        })
 }

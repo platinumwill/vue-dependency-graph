@@ -1,8 +1,7 @@
-import { ComputedRef, Ref, ref, watch } from 'vue'
-import { ModifiedSpacyDependency, ModifiedSpacyElement, ModifiedSpacySentence, ModifiedSpacyToken } from "@/composables/sentenceManager"
+import { ref, watch } from 'vue'
+import { ModifiedSpacyDependency, ModifiedSpacyElement, ModifiedSpacyToken } from "@/composables/sentenceManager"
 import { GremlinInvoke } from '@/composables/gremlinManager'
 import * as gremlinManager from "@/composables/gremlinManager"
-import * as sentenceManager from "@/composables/sentenceManager"
 
 export type TargetPattern = {
     dialogPieces: {
@@ -23,6 +22,7 @@ export type TargetPattern = {
     , process: {
         save: Function
     }
+    , token: ModifiedSpacyToken
 }
 
 export function prepareTargetPattern (token: ModifiedSpacyToken) {
@@ -159,6 +159,7 @@ export function prepareTargetPattern (token: ModifiedSpacyToken) {
         , process: {
             save: save
         }
+        , token: token
     }
 
 }

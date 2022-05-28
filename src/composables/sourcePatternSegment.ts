@@ -2,7 +2,7 @@ import { ModifiedSpacyDependency, ModifiedSpacyElement, ModifiedSpacyToken } fro
 import { Ref, ref } from 'vue'
 import { GremlinInvoke, aliases, vertexAlias, vertexLabels, propertyNames, connectorAlias, edgeLabels, submit } from "@/composables/gremlinManager";
 
-class SourcePatternOption {
+export class SourcePatternOption {
     id: number
     dropdownOptionLabel: string
 
