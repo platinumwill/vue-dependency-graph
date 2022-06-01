@@ -52,7 +52,6 @@ import Card from 'primevue/card'
 import Button from 'primevue/button'
 import Dropdown from 'primevue/dropdown'
 import Checkbox from 'primevue/checkbox'
-import { LinearTargetPatternPiece } from '@/composables/targetPatternPieceManager'
 
 export default {
     components: {
@@ -81,7 +80,8 @@ export default {
     }
     , props: {
         item: {
-            type: LinearTargetPatternPiece
+            // type: LinearTargetPatternPiece
+            type: Object
         }
     }
     , methods: {
