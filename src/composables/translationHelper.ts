@@ -14,6 +14,7 @@ import { watch } from "vue";
 
 export type TranslationHelper = {
     saveSelectedPattern: Function
+    , toggleMorphologyInfoSelection: Function
 }
 
 let $sourcePattern: SourcePatternManager|undefined = undefined
@@ -31,6 +32,7 @@ export function prepareTranslationHelper (
 
     return {
         saveSelectedPattern: saveSelectedPattern
+        , toggleMorphologyInfoSelection: _toggleMorphologyInfoSelection
     }
 }
 
@@ -98,7 +100,7 @@ const saveSelectedPattern = (
     })
 }
 
-const _toggleMorphologyInfoSelection = (morphologyInfo: MorphologyInfo, selection: SourcePatternSegmentSelection) => {
+const _toggleMorphologyInfoSelection = (morphologyInfo: MorphologyInfo) => {
     const word = morphologyInfo.token
     // 如果 morphology info 是 UNKNOWN，就不繼續動作
     if (word[morphologyInfo.type.propertyInWord].endsWith(morphologyInfoUnknownValuePostfix)) return
@@ -116,17 +118,21 @@ const _toggleMorphologyInfoSelection = (morphologyInfo: MorphologyInfo, selectio
         word.unmarkMorphologyInfoAsSelected(morphologyInfo.type)
         word.sourcePatternVertexId = undefined
         if (! word.selectedMorphologyInfoTypes.length) {
-            word.isBeginning = false
+            word.isBeginning = false // isBeginning 要在這裡控制嗎？要不要做成自動判斷？
         }
         // 重新檢查然後標記每個 token 的 begin
         // 然後再針對每個 begin token 處理 source pattern
         // 這些要在新的 segment manager 做
     } else { // toggle on
+        word.isBeginning = true // isBeginning 要在這裡控制嗎？要不要做成自動判斷？
         word.markMorphologyInfoAsSelected(morphologyInfo.type)
     }
+
+    const selection = $sourcePattern?.selection
+    if (!selection) throw 'selection 為空，有誤'
     selection.reloadOptions().then( () => {
         _findExistingMatchSourcePatternAndSetDropdown(word, selection)
-    })        
+    })
 }
 
 const _findExistingMatchSourcePatternAndSetDropdown = (

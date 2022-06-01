@@ -315,6 +315,11 @@ export class LinearTargetPatternPiece {
     }
 }
 
+export type TargetPatternPieceAppliedTextPair = {
+    piece: LinearTargetPatternPiece
+    , value: string
+}
+
 function _createTargetPatternPiece(piece?: LinearTargetPatternPiece, targetPatternPieces?: LinearTargetPatternPiece[], appliedText?: string) {
     if (piece == undefined && targetPatternPieces == undefined) {
         const error = '傳入參數都是 undefined，這樣是錯的'

@@ -29,7 +29,8 @@ export default {
     }
     , methods: {
         posClicked: function() {
-            this.patternManager.toggleMorphologyInfoSelection(this.morphologyInfo)
+            // this.patternManager.toggleMorphologyInfoSelection(this.morphologyInfo)
+            this.morphologyInfo.token.translationHelper.toggleMorphologyInfoSelection(this.morphologyInfo)
         }
     }
     , computed: {

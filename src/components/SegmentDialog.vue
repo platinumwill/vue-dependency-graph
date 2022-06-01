@@ -30,6 +30,7 @@
     <!-- target pattern 對話框 -->
     <Dialog
         v-model:visible="showTargetPatternDialog" 
+        @show="targetPattern.dialogPieces.queryOrGenerateDefaultPieces(token)"
         :maximizable="true"
         :keepInViewport="false"
         :style="{width: '100vw'}" :modal="true" :closeOnEscape="true" position="topleft"
@@ -53,7 +54,7 @@
         </div>
 
         <vue-horizontal responsive>
-            <draggable v-model="targetPattern.dialogPieces.pieces.value" tag="transition-group" item-key="vueKey">
+            <draggable v-model="targetPattern.dialogPieces.pieces" tag="transition-group" item-key="vueKey">
                 <template #item="{element}">
                     <SegmentPiece :item="element"
                         @appliedTextChanged="changeAppliedText"
@@ -100,6 +101,7 @@ import VueHorizontal from 'vue-horizontal'
 import SegmentPiece from './SegmentPiece.vue'
 
 import { ModifiedSpacySentence, ModifiedSpacyToken } from '@/composables/sentenceManager'
+import { LinearTargetPatternPiece, TargetPatternPieceAppliedTextPair } from '@/composables/targetPatter'
 
 export default defineComponent({
 
@@ -140,6 +142,19 @@ export default defineComponent({
                     || props.token.targetPatternHelper.dialogPieces.isPatternNew()
         })
 
+        const changeAppliedText = (pieceAndValue:TargetPatternPieceAppliedTextPair) => {
+            // 是 child component 的事件，但物件的值不能在 child component 修改，要在這裡才能修改
+            pieceAndValue.piece.appliedText = pieceAndValue.value
+        }
+        const removePiece = (piece: LinearTargetPatternPiece) => {
+            props.token.targetPatternHelper.dialogPieces.removePiece(piece)
+        }
+        const changeIsOptional = (pieceAndValue:TargetPatternPieceAppliedTextPair) => {
+            // 是 child component 的事件，但物件的值不能在 child component 修改，要在這裡才能修改
+            // pieceAndValue.piece.isOptional = pieceAndValue.value
+            console.log('pieceAndValue', pieceAndValue)
+        }
+
         return {
             display
             , panel
@@ -149,6 +164,9 @@ export default defineComponent({
             , showTargetPatternDialog
             , toggleTargetPatternDialog
             , isTargetPatternStorable
+            , changeAppliedText: changeAppliedText
+            , removePiece: removePiece
+            , changeIsOptional: changeIsOptional
         }
     }
     , components: {
