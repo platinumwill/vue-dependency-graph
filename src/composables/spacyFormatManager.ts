@@ -2,7 +2,7 @@ import { Ref, ref } from "vue"
 import { useStore } from "vuex"
 import * as sentenceManager from "@/composables/sentenceManager"
 import * as sourcePattern from '@/composables/sourcePatternSegment'
-import * as targetPattern from '@/composables/targetPatter'
+import * as targetPattern from '@/composables/targetPattern'
 import * as translationHelper from '@/composables/translationHelper'
 
 export type SpacyArc = {

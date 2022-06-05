@@ -1,5 +1,5 @@
 import { SourcePatternManager, SourcePatternSegmentSelection } from "@/composables/sourcePatternManager";
-import { LinearTargetPattern, TargetPattern } from "@/composables/targetPatter";
+import { LinearTargetPattern, TargetPattern } from "@/composables/targetPattern";
 import { aliases, GremlinInvoke, isConnector, loadValueMap, propertyNames, submit, valueKey } from "@/composables/gremlinManager";
 import {
     minimalMorphologyInfo,

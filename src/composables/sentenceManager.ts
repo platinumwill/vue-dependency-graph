@@ -2,7 +2,7 @@ import { computed, ref } from 'vue'
 import { useStore } from "vuex"
 import { MorphologyInfoType, minimalMorphologyInfo } from "@/composables/morphologyInfo"
 import { SourcePatternManager } from '@/composables/sourcePatternManager'
-import { TargetPattern } from '@/composables//targetPatter'
+import { TargetPattern } from '@/composables/targetPattern'
 import { TranslationHelper } from '@/composables/translationHelper'
 
 

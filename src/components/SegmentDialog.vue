@@ -101,7 +101,7 @@ import VueHorizontal from 'vue-horizontal'
 import SegmentPiece from './SegmentPiece.vue'
 
 import { ModifiedSpacySentence, ModifiedSpacyToken } from '@/composables/sentenceManager'
-import { LinearTargetPatternPiece, TargetPatternPieceAppliedTextPair } from '@/composables/targetPatter'
+import { LinearTargetPatternPiece, TargetPatternPieceAppliedTextPair } from '@/composables/targetPattern'
 
 export default defineComponent({
 
