@@ -76,7 +76,7 @@
         <div>
             <Button 
                 :disabled="! isTargetPatternStorable"
-                @click="token.translationHelper.savePattern"
+                @click="token.translationHelper.saveSelectedPattern(sourceSegment, targetPattern)"
                 icon="pi pi-check" label="Save"
                 >
             </Button>
