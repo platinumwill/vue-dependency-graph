@@ -17,16 +17,80 @@ export type TranslationHelper = {
     , toggleMorphologyInfoSelection: Function
 }
 
-let $sourcePattern: SourcePatternManager|undefined = undefined
-let $targetPattern: TargetPattern|undefined = undefined
-
 export function prepareTranslationHelper (
     sourcePattern: SourcePatternManager
     , targetPattern: TargetPattern
 ) {
 
-    $sourcePattern = sourcePattern
-    $targetPattern = targetPattern
+    const $sourcePattern: SourcePatternManager = sourcePattern
+    const $targetPattern: TargetPattern|undefined = targetPattern
+    let $toggling = false
+
+    const _toggleMorphologyInfoSelection = (morphologyInfo: MorphologyInfo) => {
+        const word = morphologyInfo.token
+        // 如果 morphology info 是 UNKNOWN，就不繼續動作
+        if (word[morphologyInfo.type.propertyInWord].endsWith(morphologyInfoUnknownValuePostfix)) return
+
+        $toggling = true
+
+        const selectedArcs = word.segmentDeps
+        if (selectedArcs.length > 0) { // 如果有選 dependency
+            if (selectedArcs.filter( (selectedArc) => { // 選起來的 dependency 又都沒有連著現在要選的 token
+                return (selectedArc.trueStart === morphologyInfo.token.indexInSentence || selectedArc.trueEnd === morphologyInfo.token.indexInSentence)
+            }).length <= 0) return // 就不要選取
+        }
+        // 執行 toggle
+        if (word.selectedMorphologyInfoTypes.includes(morphologyInfo.type)) { // toggle off
+            word.unmarkMorphologyInfoAsSelected(morphologyInfo.type)
+            word.sourcePatternVertexId = undefined
+            if (! word.selectedMorphologyInfoTypes.length) {
+                word.isBeginning = false // isBeginning 要在這裡控制嗎？要不要做成自動判斷？
+            }
+            // 重新檢查然後標記每個 token 的 begin
+            // 然後再針對每個 begin token 處理 source pattern
+            // 這些要在新的 segment manager 做
+        } else { // toggle on
+            word.isBeginning = true // isBeginning 要在這裡控制嗎？要不要做成自動判斷？
+            word.markMorphologyInfoAsSelected(morphologyInfo.type)
+        }
+
+        const selection = $sourcePattern?.selection
+        if (!selection) throw 'selection 為空，有誤'
+        selection.reloadOptions().then( () => {
+            _findExistingMatchSourcePatternAndSetDropdown(word, selection)
+        })
+    }
+
+    const watchSourcePattern = async (newValue:SourcePatternOption, oldValue:SourcePatternOption) => {
+        console.log('watching selected source pattern change: ', newValue, oldValue)
+
+        if (! $targetPattern) throw '不應該執行到這裡，$targetPattern 必須有值'
+
+        // reset target patter 下拉選單
+        $targetPattern.selection.clearSelection()
+        $targetPattern.selection.clearOptions()
+
+        if (! $toggling) {
+            clearSegmentSelection($targetPattern.token)
+        }
+        
+        const currentBeginWord = $targetPattern.token
+        currentBeginWord.clearSourcePatternInfo()
+        if (currentBeginWord == undefined || newValue == undefined) {
+            $toggling = false
+            return
+        }
+        
+        const sourcePatternBeginningId = newValue.id
+        currentBeginWord.sourcePatternVertexId = sourcePatternBeginningId
+        await autoMarkMatchingSourcePattern(sourcePatternBeginningId, currentBeginWord).then( () => {
+            if (! $targetPattern) throw '不應該執行到這裡'
+            $targetPattern.selection.reloadOptions(sourcePatternBeginningId).then( (targetPatternOptions: LinearTargetPattern[]) => {
+                console.log('target pattern options reloaded: ', targetPatternOptions)
+            })
+        })
+        $toggling = false
+    }
 
     watch(sourcePattern.selection.selectedPattern, watchSourcePattern)
 
@@ -36,38 +100,6 @@ export function prepareTranslationHelper (
     }
 }
 
-let $toggling = false
-
-const watchSourcePattern = async (newValue:SourcePatternOption, oldValue:SourcePatternOption) => {
-    console.log('watching selected source pattern change: ', newValue, oldValue)
-
-    if (! $targetPattern) throw '不應該執行到這裡，$targetPattern 必須有值'
-
-    // reset target patter 下拉選單
-    $targetPattern.selection.clearSelection()
-    $targetPattern.selection.clearOptions()
-
-    if (! $toggling) {
-        clearSegmentSelection($targetPattern.token)
-    }
-    
-    const currentBeginWord = $targetPattern.token
-    currentBeginWord.clearSourcePatternInfo()
-    if (currentBeginWord == undefined || newValue == undefined) {
-        $toggling = false
-        return
-    }
-    
-    const sourcePatternBeginningId = newValue.id
-    currentBeginWord.sourcePatternVertexId = sourcePatternBeginningId
-    await autoMarkMatchingSourcePattern(sourcePatternBeginningId, currentBeginWord).then( () => {
-        if (! $targetPattern) throw '不應該執行到這裡'
-        $targetPattern.selection.reloadOptions(sourcePatternBeginningId).then( (targetPatternOptions: LinearTargetPattern[]) => {
-            console.log('target pattern options reloaded: ', targetPatternOptions)
-        })
-    })
-    $toggling = false
-}
 
 const clearSegmentSelection = (token: ModifiedSpacyToken) => {
     token.segmentDeps.forEach( dep => dep.selected = false )
@@ -97,41 +129,6 @@ const saveSelectedPattern = (
         return sourcePatternBeginningVertexId
     }).catch(function(error) {
         console.error(error)
-    })
-}
-
-const _toggleMorphologyInfoSelection = (morphologyInfo: MorphologyInfo) => {
-    const word = morphologyInfo.token
-    // 如果 morphology info 是 UNKNOWN，就不繼續動作
-    if (word[morphologyInfo.type.propertyInWord].endsWith(morphologyInfoUnknownValuePostfix)) return
-
-    $toggling = true
-
-    const selectedArcs = word.segmentDeps
-    if (selectedArcs.length > 0) { // 如果有選 dependency
-        if (selectedArcs.filter( (selectedArc) => { // 選起來的 dependency 又都沒有連著現在要選的 token
-            return (selectedArc.trueStart === morphologyInfo.token.indexInSentence || selectedArc.trueEnd === morphologyInfo.token.indexInSentence)
-        }).length <= 0) return // 就不要選取
-    }
-    // 執行 toggle
-    if (word.selectedMorphologyInfoTypes.includes(morphologyInfo.type)) { // toggle off
-        word.unmarkMorphologyInfoAsSelected(morphologyInfo.type)
-        word.sourcePatternVertexId = undefined
-        if (! word.selectedMorphologyInfoTypes.length) {
-            word.isBeginning = false // isBeginning 要在這裡控制嗎？要不要做成自動判斷？
-        }
-        // 重新檢查然後標記每個 token 的 begin
-        // 然後再針對每個 begin token 處理 source pattern
-        // 這些要在新的 segment manager 做
-    } else { // toggle on
-        word.isBeginning = true // isBeginning 要在這裡控制嗎？要不要做成自動判斷？
-        word.markMorphologyInfoAsSelected(morphologyInfo.type)
-    }
-
-    const selection = $sourcePattern?.selection
-    if (!selection) throw 'selection 為空，有誤'
-    selection.reloadOptions().then( () => {
-        _findExistingMatchSourcePatternAndSetDropdown(word, selection)
     })
 }
 
@@ -224,6 +221,7 @@ const autoMarkMatchingSourcePattern = async (sourcePatternBeginningId: number, t
     .command()
 
         // 下面這行不加開頭的 await 會有問題
+        // 問題可能出在這裡，不知道下面的 await 的邏輯是不是要搬到外面
         await submit(gremlinCommand).then( async (resultData: any) => {
             if (token == undefined) return
             token.sourcePatternVertexId = sourcePatternBeginningId
@@ -238,9 +236,9 @@ const autoMarkMatchingSourcePattern = async (sourcePatternBeginningId: number, t
                 const outELabel = path['@value'].objects['@value'][1]['@value'].label
                 const outEId = path['@value'].objects['@value'][1]['@value'].id['@value'].relationId
                 const inVId = path['@value'].objects['@value'][2]['@value'].id['@value']
-                const matchingArc = token.segmentDeps.find( (arc) => {
+                const matchingArc = token.outDeps.find( (arc) => {
                     return (
-                        token.segmentTokens[arc.trueStart].sourcePatternVertexId === outVId
+                        token.sentence?.words[arc.trueStart].sourcePatternVertexId === outVId
                         && arc.label === outELabel
                     )
                 })
