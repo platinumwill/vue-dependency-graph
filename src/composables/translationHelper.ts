@@ -253,7 +253,7 @@ const autoMarkMatchingSourcePattern = async (sourcePatternBeginningId: number, t
                     pathEndIsConnector = isConnector
                 })
                 if (! pathEndIsConnector) {
-                    const tokenAtEndOfDependency = token.segmentTokens.find( (word) => {
+                    const tokenAtEndOfDependency = token.sentence?.words.find( (word) => {
                         return word.indexInSentence === matchingArc.trueEnd
                     })
                     if (tokenAtEndOfDependency == undefined) {
