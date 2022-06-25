@@ -61,6 +61,21 @@ export function prepareTranslationHelper (
         })
     }
 
+    const toggleDependencySelection = (dependency: ModifiedSpacyDependency) => {
+        store.dispatch('setToggling', true)
+
+        if (dependency.selected || dependency.sourcePatternEdgeId) {
+            dependency.sourcePatternEdgeId = undefined
+            dependency.selected = false
+            sourcePatternManager.selection.setAsSelected(undefined)
+        } else {
+            dependency.selected = !dependency.selected
+        }
+        sourcePatternManager.selection.reloadOptions().then( () => {
+            findExistingMatchSourcePatternAndSetDropdown(currentSentence.value, sourcePatternManager)
+        })
+    }
+
     const watchSourcePattern = async (newValue:SourcePatternOption, oldValue:SourcePatternOption) => {
         console.log('watching selected source pattern change: ', newValue, oldValue)
 
