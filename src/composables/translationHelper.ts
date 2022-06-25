@@ -7,7 +7,7 @@ import {
     , morphologyInfoTypeEnum
     , morphologyInfoUnknownValuePostfix
 } from "@/composables/morphologyInfo"
-import { ModifiedSpacyToken } from "@/composables/sentenceManager";
+import { ModifiedSpacyDependency, ModifiedSpacyToken } from "@/composables/sentenceManager";
 import { SourcePatternOption } from "@/composables/sourcePatternSegment";
 
 import { watch } from "vue";
@@ -61,18 +61,21 @@ export function prepareTranslationHelper (
         })
     }
 
-    const toggleDependencySelection = (dependency: ModifiedSpacyDependency) => {
-        store.dispatch('setToggling', true)
+    const _toggleDependencySelection = (dependency: ModifiedSpacyDependency) => {
+        $toggling = true
 
         if (dependency.selected || dependency.sourcePatternEdgeId) {
             dependency.sourcePatternEdgeId = undefined
             dependency.selected = false
-            sourcePatternManager.selection.setAsSelected(undefined)
+            $sourcePattern.selection.setAsSelected(undefined)
         } else {
             dependency.selected = !dependency.selected
         }
-        sourcePatternManager.selection.reloadOptions().then( () => {
-            findExistingMatchSourcePatternAndSetDropdown(currentSentence.value, sourcePatternManager)
+        $sourcePattern?.selection.reloadOptions().then( () => {
+            if (! dependency.beginToken) {
+                throw "dependency.beginToken 為空，程式有誤"
+            }
+            _findExistingMatchSourcePatternAndSetDropdown(dependency.beginToken, $sourcePattern?.selection)
         })
     }
 
@@ -112,6 +115,7 @@ export function prepareTranslationHelper (
     return {
         saveSelectedPattern: saveSelectedPattern
         , toggleMorphologyInfoSelection: _toggleMorphologyInfoSelection
+        , toggleDependencySelection: _toggleDependencySelection
     }
 }
 

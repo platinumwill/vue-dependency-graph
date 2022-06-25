@@ -186,6 +186,9 @@ export class ModifiedSpacyDependency extends ModifiedSpacyElement {
         return result
     }
     
+    get beginToken() {
+        return this.sentence?.words[this.trueStart]
+    }
     get endToken() {
         return this.sentence?.words[this.trueEnd]
     }

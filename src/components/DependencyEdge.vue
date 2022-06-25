@@ -45,7 +45,8 @@ export default {
     ]
     , methods: {
         edgeLabelClicked: function() {
-            this.patternManager.toggleDependencySelection(this.arc)
+            // this.patternManager.toggleDependencySelection(this.arc)
+            this.arc.beginToken.translationHelper.toggleDependencySelection(this.arc)
         }
     }
     , computed: {
