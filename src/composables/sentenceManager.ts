@@ -111,7 +111,7 @@ export class ModifiedSpacyToken extends ModifiedSpacyElement {
 
         const result = []
         result.push(this)
-        this.outDeps.forEach(dep => {if (dep.endToken?.selectedMorphologyInfoTypes.length) result.push(dep.endToken)})
+        this.segmentDeps.forEach(dep => {if (dep.endToken?.selectedMorphologyInfoTypes.length) result.push(dep.endToken)})
         return result
     }
 
