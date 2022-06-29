@@ -156,7 +156,9 @@ const _findExistingMatchSourcePatternAndSetDropdown = (
     , selection: SourcePatternSegmentSelection
     ) => {
 
-    if (! beginWord) return
+    // 如果不是 segment root，就不需要往下查詢以這個 token 為 root 的 source pattern
+    if (! beginWord.isSegmentRoot) return 
+
     const selectedArcsFromBegin = beginWord.segmentDeps
     let gremlinInvoke = new GremlinInvoke()
     .call("V")
