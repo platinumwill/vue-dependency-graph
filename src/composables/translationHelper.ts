@@ -286,7 +286,7 @@ const autoMarkMatchingSourcePattern = async (sourcePatternBeginningId: number, t
                     tokenAtEndOfDependency.sourcePatternVertexId = inVId
                 }
 
-                const tokenMatchingInV = token.segmentTokens.find( (token) => {
+                const tokenMatchingInV = token.sentence?.words.find( (token) => {
                     return token.sourcePatternVertexId === inVId
                 })
                 if (tokenMatchingInV != undefined) {
