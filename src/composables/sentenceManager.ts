@@ -120,12 +120,13 @@ export class ModifiedSpacyToken extends ModifiedSpacyElement {
     }
     set isBeginning(isBeginning) {
         this.$isBeginning = isBeginning
-        if (! isBeginning)
-        this.outDeps
-            .forEach( outDep => {
-                outDep.sourcePatternEdgeId = undefined
-                outDep.selected = false
-            } )
+        if (! isBeginning) {
+            this.outDeps
+                .forEach( outDep => {
+                    outDep.sourcePatternEdgeId = undefined
+                    outDep.selected = false
+                } )
+        }
     }
 
     // source pattern segment helper
