@@ -268,23 +268,20 @@ const autoMarkMatchingSourcePattern = async (sourcePatternBeginningId: number, t
                 // 有了 sourcePatternEdgeId，視同被選取。應該要考慮用 getter 邏輯來處理
                 matchingArc.selected = true
                 
-                let pathEndIsConnector = false
                 isConnector(inVId).then( (isConnector) => {
-                    if (isConnector == undefined) return
-                    pathEndIsConnector = isConnector
-                })
-                if (! pathEndIsConnector) {
-                    const tokenAtEndOfDependency = token.sentence?.words.find( (word) => {
-                        return word.indexInSentence === matchingArc.trueEnd
-                    })
-                    if (tokenAtEndOfDependency == undefined) {
-                        const error = '搜尋、自動標示 source pattern 的邏輯有問題'
-                        console.error(error)
-                        throw error
+                    if (! isConnector) {
+                        const tokenAtEndOfDependency = token.sentence?.words.find( (word) => {
+                            return word.indexInSentence === matchingArc.trueEnd
+                        })
+                        if (tokenAtEndOfDependency == undefined) {
+                            const error = '搜尋、自動標示 source pattern 的邏輯有問題'
+                            console.error(error)
+                            throw error
+                        }
+                        // token 的 source pattern vertex id 在這裡設定，這一行很重要
+                        tokenAtEndOfDependency.sourcePatternVertexId = inVId
                     }
-                    // token 的 source pattern vertex id 在這裡設定，這一行很重要
-                    tokenAtEndOfDependency.sourcePatternVertexId = inVId
-                }
+                })
 
                 const tokenMatchingInV = token.sentence?.words.find( (token) => {
                     return token.sourcePatternVertexId === inVId
