@@ -6,6 +6,10 @@
 import { mapGetters } from 'vuex'
 import { MorphologyInfo, minimalMorphologyInfo } from "@/composables/morphologyInfo"
 
+import * as translationHelper from '@/composables/translationHelper'
+import * as sourcePattern from '@/composables/sourcePatternSegment'
+import * as targetPattern from '@/composables/targetPattern'
+
 export default {
     name: 'TokenInfo'
     , inject: [
@@ -30,7 +34,11 @@ export default {
     , methods: {
         posClicked: function() {
             // this.patternManager.toggleMorphologyInfoSelection(this.morphologyInfo)
-            this.morphologyInfo.token.translationHelper.toggleMorphologyInfoSelection(this.morphologyInfo)
+            // this.morphologyInfo.token.translationHelper.toggleMorphologyInfoSelection(this.morphologyInfo)
+            const targetPatternHelper = targetPattern.prepareTargetPattern(this.morphologyInfo.token)
+            const segmentHelper = sourcePattern.prepareSegment(this.morphologyInfo.token)
+            const testHelper = translationHelper.prepareTranslationHelper(segmentHelper, targetPatternHelper)
+            testHelper.toggleMorphologyInfoSelection(this.morphologyInfo)
         }
     }
     , computed: {
