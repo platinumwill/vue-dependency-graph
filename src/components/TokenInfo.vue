@@ -35,10 +35,13 @@ export default {
         posClicked: function() {
             // this.patternManager.toggleMorphologyInfoSelection(this.morphologyInfo)
             // this.morphologyInfo.token.translationHelper.toggleMorphologyInfoSelection(this.morphologyInfo)
-            const targetPatternHelper = targetPattern.prepareTargetPattern(this.morphologyInfo.token)
-            const segmentHelper = sourcePattern.prepareSegment(this.morphologyInfo.token)
-            const testHelper = translationHelper.prepareTranslationHelper(segmentHelper, targetPatternHelper)
-            testHelper.toggleMorphologyInfoSelection(this.morphologyInfo)
+            if (!this.morphologyInfo.token.translationHelper) {
+                const targetPatternHelper = targetPattern.prepareTargetPattern(this.morphologyInfo.token)
+                const segmentHelper = sourcePattern.prepareSegment(this.morphologyInfo.token)
+                const helper = translationHelper.prepareTranslationHelper(segmentHelper, targetPatternHelper)
+                this.morphologyInfo.token.setTranslationHelper(helper)
+            }
+            this.morphologyInfo.token.translationHelper.toggleMorphologyInfoSelection(this.morphologyInfo)
         }
     }
     , computed: {

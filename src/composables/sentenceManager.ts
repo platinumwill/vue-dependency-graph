@@ -86,6 +86,10 @@ export class ModifiedSpacyToken extends ModifiedSpacyElement {
         this.segmentTokens.forEach( word => word.sourcePatternVertexId = undefined)
     }
 
+    setTranslationHelper(translationHelper: TranslationHelper) {
+        this.$translationHelper = translationHelper
+    }
+
     get tense() {
         return this.$tense
     }

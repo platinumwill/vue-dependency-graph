@@ -98,16 +98,6 @@ export default function () {
         words.forEach((word, index) => {
             const token = new sentenceManager.ModifiedSpacyToken(word, index)
 
-            // source pattern segment helper
-            const segmentHelper = sourcePattern.prepareSegment(token)
-            token.segmentHelper = segmentHelper
-            // target pattern helper
-            const targetPatternHelper = targetPattern.prepareTargetPattern(token)
-            token.targetPatternHelper = targetPatternHelper
-            // translation helper
-            const translation = translationHelper.prepareTranslationHelper(segmentHelper, targetPatternHelper)
-            token.translationHelper = translation
-
             token.selectedMorphologyInfoTypes = []
             tokens.push(token)
         })
