@@ -10,8 +10,8 @@
     <OverlayPanel ref="panel">
 
         <!-- source segment 下拉選單 -->
-        <Dropdown v-model="sourceSegment.selection.selectedPattern"
-            :options="sourceSegment.selection.options.value"
+        <Dropdown v-model="tokenCopy.segmentHelper.selection.selectedPattern"
+            :options="tokenCopy.segmentHelper.selection.options.value"
             optionLabel="dropdownOptionLabel"
             placeholder="Existing source pattern"
             :showClear="true"
@@ -30,7 +30,7 @@
     <!-- target pattern 對話框 -->
     <Dialog
         v-model:visible="showTargetPatternDialog" 
-        @show="targetPattern.dialogPieces.queryOrGenerateDefaultPieces(token)"
+        @show="tokenCopy.targetPatternHelper.dialogPieces.queryOrGenerateDefaultPieces(token)"
         :maximizable="true"
         :keepInViewport="false"
         :style="{width: '100vw'}" :modal="true" :closeOnEscape="true" position="topleft"
@@ -38,10 +38,10 @@
         <template #header>
             <h2>Target Pattern</h2>
 
-            <h3 v-if="sourceSegment.status.isSourcePatternNew()">New Source Pattern</h3>
+            <h3 v-if="tokenCopy.segmentHelper.status.isSourcePatternNew()">New Source Pattern</h3>
 
-            <Dropdown v-model="targetPattern.selection.selected"
-                :options="targetPattern.selection.options"
+            <Dropdown v-model="tokenCopy.targetPatternHelper.selection.selected"
+                :options="tokenCopy.targetPatternHelper.selection.options"
                 optionLabel="dropdownOptionLabel"
                 placeholder="Existing target pattern"
                 >
@@ -49,12 +49,12 @@
         </template>
 
         <div>
-            <Button icon="pi pi-replay" label="Revert" @click="targetPattern.dialogPieces.revertPieces" />
-            <Button icon="pi pi-plus" label="Add Fixed Text" @click="targetPattern.dialogPieces.addFixedTextPiece" style="margin-left: .5em" />
+            <Button icon="pi pi-replay" label="Revert" @click="tokenCopy.targetPatternHelper.dialogPieces.revertPieces" />
+            <Button icon="pi pi-plus" label="Add Fixed Text" @click="tokenCopy.targetPatternHelper.dialogPieces.addFixedTextPiece" style="margin-left: .5em" />
         </div>
 
         <vue-horizontal responsive>
-            <draggable v-model="targetPattern.dialogPieces.pieces" tag="transition-group" item-key="vueKey">
+            <draggable v-model="tokenCopy.targetPatternHelper.dialogPieces.pieces" tag="transition-group" item-key="vueKey">
                 <template #item="{element}">
                     <SegmentPiece :item="element"
                         @appliedTextChanged="changeAppliedText"
@@ -67,7 +67,7 @@
         </vue-horizontal>
 
         <span 
-            v-for="piece in targetPattern.dialogPieces.pieces.value"
+            v-for="piece in tokenCopy.targetPatternHelper.dialogPieces.pieces.value"
             :class="piece.isOptional ? 'optional' : ''"
             :key="piece.vueKey">
                 {{ piece.displayText }}
@@ -76,7 +76,7 @@
         <div>
             <Button 
                 :disabled="! isTargetPatternStorable"
-                @click="token.translationHelper.saveSelectedPattern(sourceSegment, targetPattern)"
+                @click="token.translationHelper.saveSelectedPattern(tokenCopy.segmentHelper, tokenCopy.targetPatternHelper)"
                 icon="pi pi-check" label="Save"
                 >
             </Button>
@@ -159,8 +159,7 @@ export default defineComponent({
             display
             , panel
             , togglePanel
-            , sourceSegment: props.token.segmentHelper
-            , targetPattern: props.token.targetPatternHelper
+            , tokenCopy: props.token
             , showTargetPatternDialog
             , toggleTargetPatternDialog
             , isTargetPatternStorable

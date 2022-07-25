@@ -37,7 +37,11 @@ export default {
             // this.morphologyInfo.token.translationHelper.toggleMorphologyInfoSelection(this.morphologyInfo)
             if (!this.morphologyInfo.token.translationHelper) {
                 const targetPatternHelper = targetPattern.prepareTargetPattern(this.morphologyInfo.token)
+                this.morphologyInfo.token.setTagetpatternHelper(targetPatternHelper)
+
                 const segmentHelper = sourcePattern.prepareSegment(this.morphologyInfo.token)
+                this.morphologyInfo.token.setSegmentHelper(segmentHelper)
+
                 const helper = translationHelper.prepareTranslationHelper(segmentHelper, targetPatternHelper)
                 this.morphologyInfo.token.setTranslationHelper(helper)
             }

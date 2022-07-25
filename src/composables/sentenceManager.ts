@@ -89,6 +89,12 @@ export class ModifiedSpacyToken extends ModifiedSpacyElement {
     setTranslationHelper(translationHelper: TranslationHelper) {
         this.$translationHelper = translationHelper
     }
+    setSegmentHelper(segmentHelper: SourcePatternManager) {
+        this.$segmentHelper = segmentHelper
+    }
+    setTagetpatternHelper(targetpatternHelper: TargetPattern) {
+        this.$targetPatternHelper = targetpatternHelper
+    }
 
     get tense() {
         return this.$tense
