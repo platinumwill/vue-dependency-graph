@@ -11,7 +11,7 @@
 
         <!-- source segment 下拉選單 -->
         <Dropdown v-model="tokenCopy.segmentHelper.selection.selectedPattern"
-            :options="tokenCopy.segmentHelper.selection.options.value"
+            :options="tokenCopy.segmentHelper.selection.options"
             optionLabel="dropdownOptionLabel"
             placeholder="Existing source pattern"
             :showClear="true"
