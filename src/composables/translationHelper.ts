@@ -88,11 +88,16 @@ export function prepareTranslationHelper (
         $targetPattern.selection.clearSelection()
         $targetPattern.selection.clearOptions()
 
-        if (! $toggling) {
-            clearSegmentSelection($targetPattern.token)
+        const currentBeginWord = $targetPattern.token
+
+        // 如果不是 toggling（也就是用選的，或是清除），
+        // 就要清除 sourceXxxId 和 selected 狀態        
+        if (! $toggling) { // 這個判斷要用 state machine 記錄一下
+            currentBeginWord.clearSegmentSelection()
         }
         
-        const currentBeginWord = $targetPattern.token
+        // 如果是 toggling，
+        // 就只要清除 sourceXxxId 就好，也就是保留原本的 selected 狀態
         currentBeginWord.clearSourcePatternInfo()
         if (currentBeginWord == undefined || newValue == undefined) {
             $toggling = false
@@ -119,13 +124,6 @@ export function prepareTranslationHelper (
     }
 }
 
-
-const clearSegmentSelection = (token: ModifiedSpacyToken) => {
-    token.segmentDeps.forEach( dep => dep.selected = false )
-    token.segmentTokens.forEach( token => {
-        token.selectedMorphologyInfoTypes.splice(0, token.selectedMorphologyInfoTypes.length)
-    })
-}
 
 const saveSelectedPattern = (
     sourcePattern: SourcePatternManager

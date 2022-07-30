@@ -81,6 +81,17 @@ export class ModifiedSpacyToken extends ModifiedSpacyElement {
         }
     }
 
+    clearSegmentSelection() {
+        this.segmentDeps.forEach( dep => {
+            dep.selected = false
+            dep.sourcePatternEdgeId = undefined
+        })
+        this.segmentTokens.forEach( token => {
+            token.selectedMorphologyInfoTypes.splice(0, token.selectedMorphologyInfoTypes.length)
+            token.sourcePatternVertexId = undefined
+        })
+    }
+
     clearSourcePatternInfo() {
         this.segmentDeps.forEach( arc => arc.sourcePatternEdgeId = undefined)
         this.segmentTokens.forEach( word => word.sourcePatternVertexId = undefined)
