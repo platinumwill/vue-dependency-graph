@@ -67,7 +67,7 @@
         </vue-horizontal>
 
         <span 
-            v-for="piece in tokenCopy.targetPatternHelper.dialogPieces.pieces.value"
+            v-for="piece in tokenCopy.targetPatternHelper.dialogPieces.pieces"
             :class="piece.isOptional ? 'optional' : ''"
             :key="piece.vueKey">
                 {{ piece.displayText }}
