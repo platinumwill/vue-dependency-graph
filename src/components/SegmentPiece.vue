@@ -17,6 +17,7 @@
                     @input="notifyOfAppliedTextChange"
                     @change="notifyOfAppliedTextChange"
                     :editable="true"
+                    :disabled='translationHelper.isTargetPatternConfirmed()'
                     >
                 </Dropdown>
             </div>
@@ -24,7 +25,8 @@
                 <Dropdown v-model="appliedText" :options="fixedTextOptions"
                     @input="notifyOfAppliedTextChange"
                     :editable="true"
-                >
+                    :disabled='translationHelper.isTargetPatternConfirmed()'
+                    >
                 </Dropdown>
             </div>
             <div v-if="item.isPlaceholder">
@@ -81,6 +83,9 @@ export default {
     , props: {
         item: {
             // type: LinearTargetPatternPiece
+            type: Object
+        }
+        , translationHelper: {
             type: Object
         }
     }

@@ -84,7 +84,7 @@ export function prepareTranslationHelper (
         TargetPatternConfirmed = 'TargetPatternConfirmed'
     }
     const status = ref<string | undefined>(undefined)
-    const toggleTargetPatternConfirmed = () => {
+    const toggleSegmentTranslationConfirmed = () => {
         if (status.value) {
             status.value = undefined
         } else {
@@ -137,7 +137,7 @@ export function prepareTranslationHelper (
         saveSelectedPattern: saveSelectedPattern
         , toggleMorphologyInfoSelection: _toggleMorphologyInfoSelection
         , toggleDependencySelection: _toggleDependencySelection
-        , toggleTargetPatternConfirmed
+        , toggleSegmentTranslationConfirmed
         , isTargetPatternConfirmed
     }
 }

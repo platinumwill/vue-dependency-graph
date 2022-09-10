@@ -57,7 +57,9 @@
         <vue-horizontal responsive>
             <draggable v-model="tokenCopy.targetPatternHelper.dialogPieces.pieces" tag="transition-group" item-key="vueKey">
                 <template #item="{element}">
-                    <SegmentPiece :item="element"
+                    <SegmentPiece
+                        :item="element"
+                        :translationHelper='tokenCopy.translationHelper'
                         @appliedTextChanged="changeAppliedText"
                         @removePiece="removePiece"
                         @isOptionalChanged="changeIsOptional"
@@ -72,16 +74,9 @@
             v-for="piece in tokenCopy.targetPatternHelper.dialogPieces.pieces"
             :key="piece.vueKey">
                 <span
-                    v-if='!piece.isPlaceholder && !tokenCopy.translationHelper.isTargetPatternConfirmed()'
                     >
                     {{ piece.displayText }}
                 </span>
-                <InputText
-                    v-if='!piece.isPlaceholder && tokenCopy.translationHelper.isTargetPatternConfirmed()'
-                    v-model='piece.displayText'
-                    :size='3'
-                    >
-                </InputText>
                 <Button
                     v-if='piece.isPlaceholder'
                     :label='piece.displayText'
@@ -99,10 +94,10 @@
             </Button>
             <Button
                 :label="! tokenCopy.translationHelper.isTargetPatternConfirmed() 
-                    ? 'Confirm Target Pattern' 
-                    : 'Reselect Target Pattern'"
+                    ? 'Confirm Segment Translation' 
+                    : 'Edit Segment Translation'"
                 :disabled="! tokenCopy.targetPatternHelper.selection.selected"
-                @click="toggleTargetPatternConfirmed()"
+                @click="toggleSegmentTranslationConfirmed()"
                 >
             </Button>
         </div>
@@ -119,7 +114,6 @@ import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import OverlayPanel from 'primevue/overlaypanel'
 import Dropdown from 'primevue/dropdown'
-import InputText from 'primevue/inputtext'
 
 import draggable from 'vuedraggable'
 import VueHorizontal from 'vue-horizontal'
@@ -181,9 +175,9 @@ export default defineComponent({
             console.log('pieceAndValue', pieceAndValue)
         }
 
-        function toggleTargetPatternConfirmed() {
+        function toggleSegmentTranslationConfirmed() {
             // props.token.targetPatternHelper.process.acceptInitialTranslation()
-            props.token.translationHelper.toggleTargetPatternConfirmed()
+            props.token.translationHelper.toggleSegmentTranslationConfirmed()
         }
 
         return {
@@ -197,7 +191,7 @@ export default defineComponent({
             , changeAppliedText: changeAppliedText
             , removePiece: removePiece
             , changeIsOptional: changeIsOptional
-            , toggleTargetPatternConfirmed
+            , toggleSegmentTranslationConfirmed
         }
     }
     , components: {
@@ -208,7 +202,6 @@ export default defineComponent({
         , draggable
         , VueHorizontal
         , SegmentPiece
-        , InputText
     }
 })
 </script>
