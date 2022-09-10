@@ -11,12 +11,12 @@ SourcePatternSelected --> TargetPatternSelected
 SourcePatternSelected: 這個時候 target pattern 沒有選
 TargetPatternSelected: 這個時候還可以選其他
 TargetPatternSelected: 的 target pattern
+TargetPatternSelected: 也可以編輯各 piece 的譯文
 TokenSelected --> [*] : TokenUnselect
 TargetPatternSelected --> SourcePatternSelected
 TargetPatternSelected --> TargetPatternConfirmed : AcceptInitialTranslation
 TargetPatternConfirmed --> TargetPatternSelected
 TargetPatternConfirmed: Lock target pattern
 TargetPatternConfirmed: , including dropdown & pieces
-TargetPatternConfirmed: 這個時候可以開始編輯譯文
 TargetPatternSelected --> [*] : TokenUnselect
 @enduml

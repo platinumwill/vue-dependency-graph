@@ -43,6 +43,7 @@
             <!-- target pattern 選單 -->
             <Dropdown v-model="tokenCopy.targetPatternHelper.selection.selected"
                 :options="tokenCopy.targetPatternHelper.selection.options"
+                :disabled='tokenCopy.translationHelper.isTargetPatternConfirmed()'
                 optionLabel="dropdownOptionLabel"
                 placeholder="Existing target pattern"
                 >
