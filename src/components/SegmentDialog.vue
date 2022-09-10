@@ -40,6 +40,7 @@
 
             <h3 v-if="tokenCopy.segmentHelper.status.isSourcePatternNew()">New Source Pattern</h3>
 
+            <!-- target pattern 選單 -->
             <Dropdown v-model="tokenCopy.targetPatternHelper.selection.selected"
                 :options="tokenCopy.targetPatternHelper.selection.options"
                 optionLabel="dropdownOptionLabel"
@@ -66,18 +67,42 @@
             </draggable>
         </vue-horizontal>
 
+        <!-- 譯文區 -->
         <span 
             v-for="piece in tokenCopy.targetPatternHelper.dialogPieces.pieces"
-            :class="piece.isOptional ? 'optional' : ''"
             :key="piece.vueKey">
-                {{ piece.displayText }}
+                <span
+                    v-if='!piece.isPlaceholder && !tokenCopy.translationHelper.isTargetPatternConfirmed()'
+                    >
+                    {{ piece.displayText }}
+                </span>
+                <InputText
+                    v-if='!piece.isPlaceholder && tokenCopy.translationHelper.isTargetPatternConfirmed()'
+                    v-model='piece.displayText'
+                    :size='3'
+                    >
+                </InputText>
+                <Button
+                    v-if='piece.isPlaceholder'
+                    :label='piece.displayText'
+                    >
+                </Button>
         </span>
 
+        <!-- 按鈕區 -->
         <div>
             <Button 
                 :disabled="! isTargetPatternStorable"
                 @click="token.translationHelper.saveSelectedPattern(tokenCopy.segmentHelper, tokenCopy.targetPatternHelper)"
-                icon="pi pi-check" label="Save"
+                icon="pi pi-check" label="Save Pattern"
+                >
+            </Button>
+            <Button
+                :label="! tokenCopy.translationHelper.isTargetPatternConfirmed() 
+                    ? 'Confirm Target Pattern' 
+                    : 'Reselect Target Pattern'"
+                :disabled="! tokenCopy.targetPatternHelper.selection.selected"
+                @click="toggleTargetPatternConfirmed()"
                 >
             </Button>
         </div>
@@ -94,6 +119,7 @@ import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import OverlayPanel from 'primevue/overlaypanel'
 import Dropdown from 'primevue/dropdown'
+import InputText from 'primevue/inputtext'
 
 import draggable from 'vuedraggable'
 import VueHorizontal from 'vue-horizontal'
@@ -155,6 +181,11 @@ export default defineComponent({
             console.log('pieceAndValue', pieceAndValue)
         }
 
+        function toggleTargetPatternConfirmed() {
+            // props.token.targetPatternHelper.process.acceptInitialTranslation()
+            props.token.translationHelper.toggleTargetPatternConfirmed()
+        }
+
         return {
             display
             , panel
@@ -166,6 +197,7 @@ export default defineComponent({
             , changeAppliedText: changeAppliedText
             , removePiece: removePiece
             , changeIsOptional: changeIsOptional
+            , toggleTargetPatternConfirmed
         }
     }
     , components: {
@@ -176,6 +208,7 @@ export default defineComponent({
         , draggable
         , VueHorizontal
         , SegmentPiece
+        , InputText
     }
 })
 </script>

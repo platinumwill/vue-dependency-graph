@@ -10,7 +10,7 @@ import {
 import { ModifiedSpacyDependency, ModifiedSpacyToken } from "@/composables/sentenceManager";
 import { SourcePatternOption } from "@/composables/sourcePatternSegment";
 
-import { watch } from "vue";
+import { ref, watch } from "vue";
 
 export type TranslationHelper = {
     saveSelectedPattern: Function
@@ -79,6 +79,22 @@ export function prepareTranslationHelper (
         })
     }
 
+    // status control / 狀態控制
+    enum SegmentStatus {
+        TargetPatternConfirmed = 'TargetPatternConfirmed'
+    }
+    const status = ref<string | undefined>(undefined)
+    const toggleTargetPatternConfirmed = () => {
+        if (status.value) {
+            status.value = undefined
+        } else {
+            status.value = SegmentStatus.TargetPatternConfirmed
+        }
+    }
+    const isTargetPatternConfirmed = () => {
+        return status.value == SegmentStatus.TargetPatternConfirmed
+    }
+
     const watchSourcePattern = async (newValue:SourcePatternOption, oldValue:SourcePatternOption) => {
         console.log('watching selected source pattern change: ', newValue, oldValue)
 
@@ -121,6 +137,8 @@ export function prepareTranslationHelper (
         saveSelectedPattern: saveSelectedPattern
         , toggleMorphologyInfoSelection: _toggleMorphologyInfoSelection
         , toggleDependencySelection: _toggleDependencySelection
+        , toggleTargetPatternConfirmed
+        , isTargetPatternConfirmed
     }
 }
 
