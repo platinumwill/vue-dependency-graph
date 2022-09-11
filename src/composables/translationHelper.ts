@@ -10,7 +10,7 @@ import {
 import { ModifiedSpacyDependency, ModifiedSpacyToken } from "@/composables/sentenceManager";
 import { SourcePatternOption } from "@/composables/sourcePatternSegment";
 
-import { ref, watch } from "vue";
+import { computed, ComputedRef, ref, watch } from "vue";
 import { LinearTargetPatternPiece } from "./targetPatternPieceManager";
 
 export type TranslationHelper = {
@@ -96,9 +96,9 @@ export function prepareTranslationHelper (
             status.value = SegmentStatus.TargetPatternConfirmed
         }
     }
-    const isTargetPatternConfirmed = () => {
+    const isTargetPatternConfirmed: ComputedRef<boolean> = computed( () => {
         return status.value == SegmentStatus.TargetPatternConfirmed
-    }
+    })
 
     const watchSourcePattern = async (newValue:SourcePatternOption, oldValue:SourcePatternOption) => {
         console.log('watching selected source pattern change: ', newValue, oldValue)

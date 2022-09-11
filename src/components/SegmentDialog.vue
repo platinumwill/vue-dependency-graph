@@ -43,7 +43,7 @@
             <!-- target pattern 選單 -->
             <Dropdown v-model="tokenCopy.targetPatternHelper.selection.selected"
                 :options="tokenCopy.targetPatternHelper.selection.options"
-                :disabled='tokenCopy.translationHelper.isTargetPatternConfirmed()'
+                :disabled='tokenCopy.translationHelper.isTargetPatternConfirmed'
                 optionLabel="dropdownOptionLabel"
                 placeholder="Existing target pattern"
                 >
@@ -51,8 +51,17 @@
         </template>
 
         <div>
-            <Button icon="pi pi-replay" label="Revert" @click="tokenCopy.targetPatternHelper.dialogPieces.revertPieces" />
-            <Button icon="pi pi-plus" label="Add Fixed Text" @click="tokenCopy.targetPatternHelper.dialogPieces.addFixedTextPiece" style="margin-left: .5em" />
+            <Button
+                :disabled='tokenCopy.translationHelper.isTargetPatternConfirmed'
+                icon="pi pi-replay"
+                label="Revert"
+                @click="tokenCopy.targetPatternHelper.dialogPieces.revertPieces" />
+            <Button
+                :disabled='tokenCopy.translationHelper.isTargetPatternConfirmed'
+                icon="pi pi-plus"
+                label="Add Fixed Text"
+                @click="tokenCopy.targetPatternHelper.dialogPieces.addFixedTextPiece"
+                style="margin-left: .5em" />
         </div>
 
         <vue-horizontal responsive>
@@ -95,7 +104,7 @@
                 >
             </Button>
             <Button
-                :label="! tokenCopy.translationHelper.isTargetPatternConfirmed() 
+                :label="! tokenCopy.translationHelper.isTargetPatternConfirmed 
                     ? 'Confirm Segment Translation' 
                     : 'Edit Segment Translation'"
                 :disabled="! tokenCopy.targetPatternHelper.selection.selected"
@@ -180,6 +189,9 @@ export default defineComponent({
         function toggleSegmentTranslationConfirmed(targetPatternHelper: TargetPattern) {
             props.token.translationHelper.toggleSegmentTranslationConfirmed(targetPatternHelper)
         }
+        const dialogLocked: ComputedRef<boolean> = computed( () => {
+            return props.token.translationHelper
+        })
 
         return {
             display
@@ -193,6 +205,7 @@ export default defineComponent({
             , removePiece: removePiece
             , changeIsOptional: changeIsOptional
             , toggleSegmentTranslationConfirmed
+            , dialogLocked
         }
     }
     , components: {

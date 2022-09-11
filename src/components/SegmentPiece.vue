@@ -17,7 +17,7 @@
                     @input="notifyOfAppliedTextChange"
                     @change="notifyOfAppliedTextChange"
                     :editable="true"
-                    :disabled='translationHelper.isTargetPatternConfirmed()'
+                    :disabled='translationHelper.isTargetPatternConfirmed'
                     >
                 </Dropdown>
             </div>
@@ -25,7 +25,7 @@
                 <Dropdown v-model="appliedText" :options="fixedTextOptions"
                     @input="notifyOfAppliedTextChange"
                     :editable="true"
-                    :disabled='translationHelper.isTargetPatternConfirmed()'
+                    :disabled='translationHelper.isTargetPatternConfirmed'
                     >
                 </Dropdown>
             </div>
