@@ -80,20 +80,10 @@
         </vue-horizontal>
 
         <!-- 譯文區 -->
-        <span 
-            v-for="piece in tokenCopy.targetPatternHelper.dialogPieces.pieces"
-            :key="piece.vueKey">
-                <span
-                    v-if='! piece.isPlaceholder'
-                    >
-                    {{ piece.displayText }}
-                </span>
-                <Button
-                    v-if='piece.isPlaceholder'
-                    :label='piece.displayText'
-                    >
-                </Button>
-        </span>
+        <SegmentTranslation
+            :token='tokenCopy'
+            >
+        </SegmentTranslation>
 
         <!-- 按鈕區 -->
         <div>
@@ -130,6 +120,7 @@ import draggable from 'vuedraggable'
 import VueHorizontal from 'vue-horizontal'
 
 import SegmentPiece from './SegmentPiece.vue'
+import SegmentTranslation from './SegmentTranslation.vue'
 
 import { ModifiedSpacySentence, ModifiedSpacyToken } from '@/composables/sentenceManager'
 import { LinearTargetPatternPiece, TargetPattern, TargetPatternPieceAppliedTextPair } from '@/composables/targetPattern'
@@ -216,6 +207,7 @@ export default defineComponent({
         , draggable
         , VueHorizontal
         , SegmentPiece
+        , SegmentTranslation
     }
 })
 </script>

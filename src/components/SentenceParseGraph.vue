@@ -19,6 +19,24 @@
             </SegmentDialog>
         </div>
 
+        <!-- 譯文區 -->
+        <div>
+            <span
+                v-for='(token, index) in currentSpacyFormatSentence.words'
+                :key='index'
+                class='translated'
+                >
+                <span
+                    v-if='token.translationHelper && token.translationHelper.isTargetPatternConfirmed'
+                    >
+                    <SegmentTranslation
+                        :token='token'
+                        >
+                    </SegmentTranslation>
+                </span>
+            </span>
+        </div>
+
     </div>
 </template>
 
@@ -27,7 +45,9 @@ import DependencyEdge from "./DependencyEdge.vue";
 import DependencyNode from "./DependencyNode.vue";
 import { mapGetters, useStore } from 'vuex'
 import { computed, provide, watch } from 'vue'
+
 import SegmentDialog from "@/components/SegmentDialog.vue"
+import SegmentTranslation from './SegmentTranslation.vue'
 
 import spacyFormatManager from "@/composables/spacyFormatManager"
 import sourcePatternLogic from '@/composables/sourcePatternManager'
@@ -99,6 +119,7 @@ export default {
         DependencyEdge
         , DependencyNode
         , SegmentDialog
+        , SegmentTranslation
     } 
     , setup(props) {
 
@@ -161,5 +182,8 @@ export default {
 
     span.optional {
         color: gray;
+    }
+    span.translated {
+        color: white;
     }
 </style>
