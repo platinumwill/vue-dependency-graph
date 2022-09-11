@@ -30,7 +30,7 @@
     <!-- target pattern 對話框 -->
     <Dialog
         v-model:visible="showTargetPatternDialog" 
-        @show="tokenCopy.targetPatternHelper.dialogPieces.queryOrGenerateDefaultPieces(token)"
+        @show="tokenCopy.targetPatternHelper.dialogPieces.queryOrGenerateDefaultPieces(token, true)"
         :maximizable="true"
         :keepInViewport="false"
         :style="{width: '100vw'}" :modal="true" :closeOnEscape="true" position="topleft"

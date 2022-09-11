@@ -78,8 +78,9 @@ export function prepareTargetPattern (token: ModifiedSpacyToken) {
 
     function queryOrGenerateDefaultPieces (
         token: ModifiedSpacyToken
+        , showingDialog: boolean
         ) {
-        if (selectedTargetPattern.value) return
+        if (selectedTargetPattern.value && showingDialog) return
         const defaultTargetPatternSamplePieces = _generateDefaultTargetPattern(token)
         setSelectedTargetPatternByPieces(defaultTargetPatternSamplePieces)
         renewDialogPieces(token, defaultTargetPatternSamplePieces)
