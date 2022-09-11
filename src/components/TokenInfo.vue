@@ -16,7 +16,6 @@ export default {
         'config'
         , 'tokenIndex'
         , 'spacyFormatSentences'
-        , 'patternManager'
         ]
     , props: {
         dy: {
@@ -33,7 +32,6 @@ export default {
     }
     , methods: {
         posClicked: function() {
-            // this.patternManager.toggleMorphologyInfoSelection(this.morphologyInfo)
             // this.morphologyInfo.token.translationHelper.toggleMorphologyInfoSelection(this.morphologyInfo)
             if (!this.morphologyInfo.token.translationHelper) {
                 const targetPatternHelper = targetPattern.prepareTargetPattern(this.morphologyInfo.token)

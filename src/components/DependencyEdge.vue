@@ -41,11 +41,9 @@ export default {
     , inject: [
         'config'
         , 'spacyFormatSentences'
-        , 'patternManager'
     ]
     , methods: {
         edgeLabelClicked: function() {
-            // this.patternManager.toggleDependencySelection(this.arc)
             if (!this.arc.beginToken.translationHelper) return
             this.arc.beginToken.translationHelper.toggleDependencySelection(this.arc)
         }

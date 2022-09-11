@@ -11,7 +11,6 @@ import { ModifiedSpacyDependency, ModifiedSpacyToken } from "@/composables/sente
 import { SourcePatternOption } from "@/composables/sourcePatternSegment";
 
 import { computed, ComputedRef, ref, watch } from "vue";
-import { LinearTargetPatternPiece } from "./targetPatternPieceManager";
 
 export type TranslationHelper = {
     saveSelectedPattern: Function

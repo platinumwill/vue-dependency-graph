@@ -1,4 +1,4 @@
-import * as targetPatternPieceManager from '@/composables/targetPatternPieceManager'
+import * as targetPatternPieceManager from '@/composables/targetPattern'
 import * as sentenceManager from '@/composables/sentenceManager'
 import { morphologyInfoTypeEnum } from "@/composables/morphologyInfo"
 

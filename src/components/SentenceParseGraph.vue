@@ -17,7 +17,6 @@
                 :config="config"
                 :key="index">
             </SegmentDialog>
-            <PatternDialog></PatternDialog>
         </div>
 
     </div>
@@ -28,14 +27,11 @@ import DependencyEdge from "./DependencyEdge.vue";
 import DependencyNode from "./DependencyNode.vue";
 import { mapGetters, useStore } from 'vuex'
 import { computed, provide, watch } from 'vue'
-import PatternDialog from "./PatternDialog.vue"
 import SegmentDialog from "@/components/SegmentDialog.vue"
 
 import spacyFormatManager from "@/composables/spacyFormatManager"
-import targetPatternPieceManager from '@/composables/targetPatternPieceManager'
 import sourcePatternLogic from '@/composables/sourcePatternManager'
 import sentenceManager from '@/composables/sentenceManager'
-import patternLogic from '@/composables/patternLogic'
 import * as documentPersistence from '@/composables/document/document-persistence'
 
 export default {
@@ -102,7 +98,6 @@ export default {
     , components: {
         DependencyEdge
         , DependencyNode
-        , PatternDialog
         , SegmentDialog
     } 
     , setup(props) {
@@ -117,15 +112,11 @@ export default {
         } = sentenceManager()
 
         // TODO 變數名稱待調整
-        const { targetPattern } = targetPatternPieceManager(currentSentence)
         const { sourcePatternManager } = sourcePatternLogic(currentSentence)
-        const { patternManager } = patternLogic(sourcePatternManager, targetPattern, currentSentence)
 
         provide('spacyFormatSentences', spacyFormatSentences)
         provide('sourcePattern', sourcePatternManager)
-        provide('targetPattern', targetPattern)
         provide('currentSentence', currentSentence)
-        provide('patternManager', patternManager)
 
         const isSegmentOperationEnabled = computed( () => {
             return props.spacyFormatParseProvider.name
@@ -163,3 +154,12 @@ export default {
     }
 }
 </script>
+<style>
+    @import '../../node_modules/primevue/resources/themes/bootstrap4-dark-blue/theme.css';
+    @import '../../node_modules/primevue/resources/primevue.css';
+    @import '../../node_modules/primeicons/primeicons.css';
+
+    span.optional {
+        color: gray;
+    }
+</style>
