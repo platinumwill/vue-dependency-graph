@@ -11,6 +11,7 @@ import { ModifiedSpacyDependency, ModifiedSpacyToken } from "@/composables/sente
 import { SourcePatternOption } from "@/composables/sourcePatternSegment";
 
 import { ref, watch } from "vue";
+import { LinearTargetPatternPiece } from "./targetPatternPieceManager";
 
 export type TranslationHelper = {
     saveSelectedPattern: Function
@@ -84,7 +85,11 @@ export function prepareTranslationHelper (
         TargetPatternConfirmed = 'TargetPatternConfirmed'
     }
     const status = ref<string | undefined>(undefined)
-    const toggleSegmentTranslationConfirmed = () => {
+    const toggleSegmentTranslationConfirmed = (targetPatternHelperCopy: TargetPattern) => {
+        // 把已經確認的 target pattern 選取值，和 target pattern pieces 存起來
+        targetPattern.dialogPieces.pieces = targetPatternHelperCopy.dialogPieces.pieces
+        targetPattern.selection.selected = targetPatternHelperCopy.selection.selected
+        // 切換狀態
         if (status.value) {
             status.value = undefined
         } else {

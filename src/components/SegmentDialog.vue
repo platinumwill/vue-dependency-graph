@@ -75,6 +75,7 @@
             v-for="piece in tokenCopy.targetPatternHelper.dialogPieces.pieces"
             :key="piece.vueKey">
                 <span
+                    v-if='! piece.isPlaceholder'
                     >
                     {{ piece.displayText }}
                 </span>
@@ -98,7 +99,7 @@
                     ? 'Confirm Segment Translation' 
                     : 'Edit Segment Translation'"
                 :disabled="! tokenCopy.targetPatternHelper.selection.selected"
-                @click="toggleSegmentTranslationConfirmed()"
+                @click="toggleSegmentTranslationConfirmed(tokenCopy.targetPatternHelper)"
                 >
             </Button>
         </div>
@@ -122,7 +123,7 @@ import VueHorizontal from 'vue-horizontal'
 import SegmentPiece from './SegmentPiece.vue'
 
 import { ModifiedSpacySentence, ModifiedSpacyToken } from '@/composables/sentenceManager'
-import { LinearTargetPatternPiece, TargetPatternPieceAppliedTextPair } from '@/composables/targetPattern'
+import { LinearTargetPatternPiece, TargetPattern, TargetPatternPieceAppliedTextPair } from '@/composables/targetPattern'
 
 export default defineComponent({
 
@@ -176,9 +177,8 @@ export default defineComponent({
             console.log('pieceAndValue', pieceAndValue)
         }
 
-        function toggleSegmentTranslationConfirmed() {
-            // props.token.targetPatternHelper.process.acceptInitialTranslation()
-            props.token.translationHelper.toggleSegmentTranslationConfirmed()
+        function toggleSegmentTranslationConfirmed(targetPatternHelper: TargetPattern) {
+            props.token.translationHelper.toggleSegmentTranslationConfirmed(targetPatternHelper)
         }
 
         return {

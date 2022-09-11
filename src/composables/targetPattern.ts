@@ -79,6 +79,7 @@ export function prepareTargetPattern (token: ModifiedSpacyToken) {
     function queryOrGenerateDefaultPieces (
         token: ModifiedSpacyToken
         ) {
+        if (selectedTargetPattern.value) return
         const defaultTargetPatternSamplePieces = _generateDefaultTargetPattern(token)
         setSelectedTargetPatternByPieces(defaultTargetPatternSamplePieces)
         renewDialogPieces(token, defaultTargetPatternSamplePieces)
@@ -184,6 +185,9 @@ export class LinearTargetPattern {
 
     get pieces() {
         return this.$pieces
+    }
+    set pieces(pieces: LinearTargetPatternPiece[]) {
+        this.$pieces = pieces
     }
 
     constructor(patternPieces?: LinearTargetPatternPiece[]) {
