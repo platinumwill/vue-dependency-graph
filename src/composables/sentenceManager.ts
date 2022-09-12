@@ -1,6 +1,10 @@
 import { computed, ref } from 'vue'
 import { useStore } from "vuex"
-import { MorphologyInfo, morphologyInfoTypeEnum } from "@/composables/morphologyInfo"
+import { MorphologyInfoType, minimalMorphologyInfo } from "@/composables/morphologyInfo"
+import { SourcePatternManager } from '@/composables/sourcePatternManager'
+import { TargetPattern } from '@/composables/targetPattern'
+import { TranslationHelper } from '@/composables/translationHelper'
+
 
 export default function () {
 
@@ -47,10 +51,13 @@ export class ModifiedSpacyToken extends ModifiedSpacyElement {
     text: string
     tag: string
     lemma: string
-    selectedMorphologyInfoTypes: MorphologyInfo[] = []
+    selectedMorphologyInfoTypes: MorphologyInfoType[] = []
     sourcePatternVertexId?: number
-    isBeginning?: boolean
+    $isBeginning: boolean = false
     $tense: string
+    $segmentHelper?: SourcePatternManager
+    $targetPatternHelper?: TargetPattern
+    $translationHelper?: TranslationHelper
 
     constructor(spacyWord: any, index: number) {
         super(index, "token")
@@ -62,13 +69,109 @@ export class ModifiedSpacyToken extends ModifiedSpacyElement {
         : spacyWord.tense
     }
 
-    markMorphologyInfoAsSelected(morphologyInfo: MorphologyInfo) {
-        this.selectedMorphologyInfoTypes.push(morphologyInfo)
-        if (! this.selectedMorphologyInfoTypes.includes(morphologyInfoTypeEnum.pos)) this.selectedMorphologyInfoTypes.push(morphologyInfoTypeEnum.pos)
+    markMorphologyInfoAsSelected(morphologyInfoType: MorphologyInfoType) {
+        this.selectedMorphologyInfoTypes.push(morphologyInfoType)
+        if (! this.selectedMorphologyInfoTypes.includes(minimalMorphologyInfo)) this.selectedMorphologyInfoTypes.push(minimalMorphologyInfo)
+    }
+    unmarkMorphologyInfoAsSelected(morphologyInfoType: MorphologyInfoType) {
+        if (morphologyInfoType == minimalMorphologyInfo) {// 如果是取消選取 pos
+            this.selectedMorphologyInfoTypes.splice(0, this.selectedMorphologyInfoTypes.length) // 把整個選取的 morph info 陣列清掉
+        } else {
+            this.selectedMorphologyInfoTypes.splice(this.selectedMorphologyInfoTypes.indexOf(morphologyInfoType)) // 否則只清除取消選取的 pos
+        }
+    }
+
+    clearSegmentSelection() {
+        this.segmentDeps.forEach( dep => {
+            dep.selected = false
+            dep.sourcePatternEdgeId = undefined
+        })
+        this.segmentTokens.forEach( token => {
+            token.selectedMorphologyInfoTypes.splice(0, token.selectedMorphologyInfoTypes.length)
+            token.sourcePatternVertexId = undefined
+        })
+    }
+
+    clearSourcePatternInfo() {
+        this.segmentDeps.forEach( arc => arc.sourcePatternEdgeId = undefined)
+        this.segmentTokens.forEach( word => word.sourcePatternVertexId = undefined)
+    }
+
+    setTranslationHelper(translationHelper: TranslationHelper) {
+        this.$translationHelper = translationHelper
+    }
+    setSegmentHelper(segmentHelper: SourcePatternManager) {
+        this.$segmentHelper = segmentHelper
+    }
+    setTagetpatternHelper(targetpatternHelper: TargetPattern) {
+        this.$targetPatternHelper = targetpatternHelper
     }
 
     get tense() {
         return this.$tense
+    }
+
+    get isSegmentRoot() {
+        const frontDep = this.sentence?.arcs.filter( dep => {return dep.selected && dep.trueEnd === this.indexInSentence} ).length
+        // https://stackoverflow.com/questions/20093613/typescript-conversion-to-boolean
+        return !! this.selectedMorphologyInfoTypes.length && !frontDep
+    }
+
+    get outDeps() {
+        const outDeps = this.sentence?.arcs
+            .filter( dep => {return dep.trueStart === this.indexInSentence} )
+        return outDeps || []
+    }
+
+    get segmentDeps() {
+        return this.outDeps.filter( outDep => {return outDep.selected})
+    }
+
+    get segmentTokens() {
+        if (! this.$isBeginning) return []
+
+        const result = []
+        result.push(this)
+        this.segmentDeps.forEach(dep => {if (dep.endToken?.selectedMorphologyInfoTypes.length) result.push(dep.endToken)})
+        return result
+    }
+
+    get isBeginning() {
+        return this.$isBeginning
+    }
+    set isBeginning(isBeginning) {
+        this.$isBeginning = isBeginning
+        if (! isBeginning) {
+            this.outDeps
+                .forEach( outDep => {
+                    outDep.sourcePatternEdgeId = undefined
+                    outDep.selected = false
+                } )
+        }
+    }
+
+    // source pattern segment helper
+    get segmentHelper() {
+        return this.$segmentHelper
+    }
+    set segmentHelper(segmentHelper) {
+        this.$segmentHelper = segmentHelper
+    }
+
+    // target pattern
+    get targetPatternHelper() {
+        return this.$targetPatternHelper
+    }
+    set targetPatternHelper(targetPatternHelper) {
+        this.$targetPatternHelper = targetPatternHelper
+    }
+
+    // translation helper
+    get translationHelper() {
+        return this.$translationHelper
+    }
+    set translationHelper(translationHelper) {
+        this.$translationHelper = translationHelper
     }
 
 }
@@ -105,8 +208,19 @@ export class ModifiedSpacyDependency extends ModifiedSpacyElement {
         return result
     }
     
+    get beginToken() {
+        return this.sentence?.words[this.trueStart]
+    }
     get endToken() {
         return this.sentence?.words[this.trueEnd]
+    }
+
+    get selectedEndToken() {
+        const endToken = this.sentence?.words[this.trueEnd]
+        if (endToken?.selectedMorphologyInfoTypes.length) {
+            return endToken
+        }
+        throw 'selectedEndToken() 邏輯有錯'
     }
 }
 

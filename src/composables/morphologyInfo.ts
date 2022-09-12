@@ -6,6 +6,24 @@ type GoogleMorphologyInfoType = typeof GoogleMorphologyInfoTypeKeys[number]
 type GoogleMorphologyInfoTypeProperty = "tag" | "lemma" | "tense"
 
 export class MorphologyInfo {
+    private _type: MorphologyInfoType
+    private _token: ModifiedSpacyToken
+    
+    constructor(token: ModifiedSpacyToken, type: MorphologyInfoType) {
+        this._type = type
+        this._token = token
+    }
+
+    get token() {
+        return this._token
+    }
+
+    get type() {
+        return this._type
+    }
+}
+
+export class MorphologyInfoType {
     name: GoogleMorphologyInfoType
     propertyInWord: GoogleMorphologyInfoTypeProperty
     
@@ -17,7 +35,11 @@ export class MorphologyInfo {
 }
 
 export const morphologyInfoTypeEnum = Object.freeze({
-    pos: new MorphologyInfo('pos', 'tag')
-    , lemma: new MorphologyInfo('lemma', 'lemma')
-    , tense: new MorphologyInfo('tense', 'tense')
+    lemma: new MorphologyInfoType('lemma', 'lemma')
+    , tense: new MorphologyInfoType('tense', 'tense')
+    , pos: new MorphologyInfoType('pos', 'tag')
 })
+
+export const minimalMorphologyInfo = morphologyInfoTypeEnum.pos
+
+export const morphologyInfoUnknownValuePostfix = "_UNKNOWN"

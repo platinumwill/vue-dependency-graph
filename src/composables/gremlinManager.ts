@@ -4,7 +4,7 @@ import axios from "axios"
 export function vertexAlias(word: sentenceManager.ModifiedSpacyToken | undefined) {
     if (word == undefined) {
         const error = '程式控制有問題，不應該執行到這裡'
-        return
+        throw error
     }
     return 'sourceV-' + word.indexInSentence
 }

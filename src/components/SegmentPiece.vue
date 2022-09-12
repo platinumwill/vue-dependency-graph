@@ -17,6 +17,7 @@
                     @input="notifyOfAppliedTextChange"
                     @change="notifyOfAppliedTextChange"
                     :editable="true"
+                    :disabled='translationHelper.isTargetPatternConfirmed'
                     >
                 </Dropdown>
             </div>
@@ -24,7 +25,8 @@
                 <Dropdown v-model="appliedText" :options="fixedTextOptions"
                     @input="notifyOfAppliedTextChange"
                     :editable="true"
-                >
+                    :disabled='translationHelper.isTargetPatternConfirmed'
+                    >
                 </Dropdown>
             </div>
             <div v-if="item.isPlaceholder">
@@ -52,7 +54,6 @@ import Card from 'primevue/card'
 import Button from 'primevue/button'
 import Dropdown from 'primevue/dropdown'
 import Checkbox from 'primevue/checkbox'
-import { LinearTargetPatternPiece } from '@/composables/targetPatternPieceManager'
 
 export default {
     components: {
@@ -81,7 +82,11 @@ export default {
     }
     , props: {
         item: {
-            type: LinearTargetPatternPiece
+            // type: LinearTargetPatternPiece
+            type: Object
+        }
+        , translationHelper: {
+            type: Object
         }
     }
     , methods: {

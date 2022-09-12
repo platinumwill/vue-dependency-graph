@@ -129,15 +129,16 @@ export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpa
     }
 }
 
+export type SourcePatternSegmentSelection = {
+    selectedPattern: any
+    , options: any
+    , reloadOptions: any
+    , setAsSelected: any
+    , clearOptions: Function
+}
+
 export type SourcePatternManager = {
-    selection: {
-        selectedPattern: any
-        , options: any
-        , save: any
-        , reloadOptions: any
-        , setAsSelected: any
-        , clearOptions: Function
-    }
+    selection: SourcePatternSegmentSelection
     , process: {
         save: Function
     }

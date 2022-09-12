@@ -1,15 +1,19 @@
 <template>
     <text class="displacy-token" fill="currentColor" text-anchor="middle" :y="y">
         <tspan class="displacy-word" fill="currentColor" :x="x">{{ word.text }}</tspan>
-        <TokenInfo :token="word" :morphologyInfoType="this.morphologyInfoTypeEnum.lemma" :dy="'2em'">{{ word.lemma }}</TokenInfo>
-        <TokenInfo :token="word" :morphologyInfoType="this.morphologyInfoTypeEnum.tense" :dy="'2em'">{{ word.tense }}</TokenInfo>
-        <TokenInfo :token="word" :morphologyInfoType="this.morphologyInfoTypeEnum.pos" :dy="'2em'">{{ word.tag }}</TokenInfo>
+        <TokenInfo v-for="(morphologyInfo, index) in morphologyInfoArray"
+            :morphologyInfo="morphologyInfo"
+            :key="index"
+            :dy="'2em'"
+            >
+            {{ word[morphologyInfo.type.propertyInWord] }}
+        </TokenInfo>
     </text>
 </template>
 
 <script>
 import TokenInfo from "./TokenInfo.vue"
-import { morphologyInfoTypeEnum } from "@/composables/morphologyInfo"
+import { MorphologyInfo, morphologyInfoTypeEnum } from "@/composables/morphologyInfo"
 
 export default {
     name: 'DependencyeNode'
@@ -48,9 +52,16 @@ export default {
     , inject: [
         'config'
     ]
-    , setup() {
+    , setup(props) {
+
+        const morphologyInfoArray = [];
+        for (const property in morphologyInfoTypeEnum) {
+            const morphologyInfo = new MorphologyInfo(props.word, morphologyInfoTypeEnum[property])
+            morphologyInfoArray.push(morphologyInfo)
+        }
+
         return {
-            morphologyInfoTypeEnum
+            morphologyInfoArray
         }
     }
 }

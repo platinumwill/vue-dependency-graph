@@ -4,7 +4,11 @@
 
 <script>
 import { mapGetters } from 'vuex'
-import { morphologyInfoTypeEnum } from "@/composables/morphologyInfo"
+import { MorphologyInfo, minimalMorphologyInfo } from "@/composables/morphologyInfo"
+
+import * as translationHelper from '@/composables/translationHelper'
+import * as sourcePattern from '@/composables/sourcePatternSegment'
+import * as targetPattern from '@/composables/targetPattern'
 
 export default {
     name: 'TokenInfo'
@@ -12,18 +16,14 @@ export default {
         'config'
         , 'tokenIndex'
         , 'spacyFormatSentences'
-        , 'patternManager'
         ]
     , props: {
         dy: {
             type: String
             , default: ''
         }
-        , token: {
-            type: Object
-        }
-        , morphologyInfoType: {
-            type: Object
+        , morphologyInfo: {
+            type: MorphologyInfo
         }
     }
     , data() {
@@ -32,7 +32,18 @@ export default {
     }
     , methods: {
         posClicked: function() {
-            this.patternManager.toggleMorphologyInfoSelection(this.morphologyInfoType, this.token)
+            // this.morphologyInfo.token.translationHelper.toggleMorphologyInfoSelection(this.morphologyInfo)
+            if (!this.morphologyInfo.token.translationHelper) {
+                const targetPatternHelper = targetPattern.prepareTargetPattern(this.morphologyInfo.token)
+                this.morphologyInfo.token.setTagetpatternHelper(targetPatternHelper)
+
+                const segmentHelper = sourcePattern.prepareSegment(this.morphologyInfo.token)
+                this.morphologyInfo.token.setSegmentHelper(segmentHelper)
+
+                const helper = translationHelper.prepareTranslationHelper(segmentHelper, targetPatternHelper)
+                this.morphologyInfo.token.setTranslationHelper(helper)
+            }
+            this.morphologyInfo.token.translationHelper.toggleMorphologyInfoSelection(this.morphologyInfo)
         }
     }
     , computed: {
@@ -48,21 +59,21 @@ export default {
             currentSentenceIndex: 'currentSentenceIndex'
         })
         , selected: function() {
-            return this.currentSpacyWord.selectedMorphologyInfoTypes.includes(this.morphologyInfoType)
+            return this.currentSpacyWord.selectedMorphologyInfoTypes.includes(this.morphologyInfo.type)
         }
         , matchExisting: function() {
-            return this.token.sourcePatternVertexId !== undefined && this.selected
+            return this.morphologyInfo.token.sourcePatternVertexId !== undefined && this.selected
         }
         , isBeginning: function() {
-            return this.currentSpacyWord.isBeginning && this.morphologyInfoType == this.morphologyInfoTypeEnum.pos
+            return this.currentSpacyWord.isBeginning && this.morphologyInfo.type == this.minimalMorphologyInfo
         }
         , currentSpacyWord: function() {
-            return this.spacyFormatSentences[this.currentSentenceIndex].words[this.token.indexInSentence]
+            return this.spacyFormatSentences[this.currentSentenceIndex].words[this.morphologyInfo.token.indexInSentence]
         }
     }
     , setup() {
         return {
-            morphologyInfoTypeEnum
+            minimalMorphologyInfo
         }
     }
 }

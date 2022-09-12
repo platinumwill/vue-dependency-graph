@@ -1,10 +1,31 @@
-import { ComputedRef, ref, watch } from 'vue'
-import * as sentenceManager from "@/composables/sentenceManager"
-import * as gremlinManager from "@/composables/gremlinManager"
+import { ref, watch } from 'vue'
+import { ModifiedSpacyDependency, ModifiedSpacyElement, ModifiedSpacyToken } from "@/composables/sentenceManager"
 import { GremlinInvoke } from '@/composables/gremlinManager'
+import * as gremlinManager from "@/composables/gremlinManager"
 
-// TODO 想要把 selectedTargetPattern 拿掉
-export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpacySentence>) {
+export type TargetPattern = {
+    dialogPieces: {
+        pieces: any
+        , removePiece: Function
+        , addFixedTextPiece: Function
+        , revertPieces: Function
+        , isPatternNew: Function
+        , queryOrGenerateDefaultPieces: Function
+    }
+    , selection: {
+        selected: any
+        , clearSelection: Function
+        , options: LinearTargetPattern[]
+        , clearOptions: Function
+        , reloadOptions: Function
+    }
+    , process: {
+        save: Function
+    }
+    , token: ModifiedSpacyToken
+}
+
+export function prepareTargetPattern (token: ModifiedSpacyToken) {
 
     const selectedTargetPattern = ref<LinearTargetPattern | undefined>(undefined)
     let dialogPiecesModified = false
@@ -16,7 +37,7 @@ export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpa
                 return
             }
         }
-        renewDialogPieces(currentSentence.value)
+        renewDialogPieces(token)
     })
 
     const dialogPieces = ref<LinearTargetPatternPiece[]>([])
@@ -56,11 +77,13 @@ export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpa
     }
 
     function queryOrGenerateDefaultPieces (
-        currentSpacySentence: sentenceManager.ModifiedSpacySentence
+        token: ModifiedSpacyToken
+        , showingDialog: boolean
         ) {
-        const defaultTargetPatternSamplePieces = _generateDefaultTargetPattern(currentSpacySentence)
+        if (selectedTargetPattern.value && showingDialog) return
+        const defaultTargetPatternSamplePieces = _generateDefaultTargetPattern(token)
         setSelectedTargetPatternByPieces(defaultTargetPatternSamplePieces)
-        renewDialogPieces(currentSpacySentence, defaultTargetPatternSamplePieces)
+        renewDialogPieces(token, defaultTargetPatternSamplePieces)
     }
 
     function setSelectedTargetPatternByDialog() {
@@ -73,7 +96,7 @@ export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpa
     }
 
     function renewDialogPieces(
-        currentSpacySentence: sentenceManager.ModifiedSpacySentence
+        token: ModifiedSpacyToken
         , defaultTargetPatternPieces?: LinearTargetPatternPiece[]
         ) {
 
@@ -84,7 +107,7 @@ export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpa
         } else if (defaultTargetPatternPieces != undefined) {
             tempDialogPieces = defaultTargetPatternPieces
         } else {
-            tempDialogPieces = _generateDefaultPieces(currentSpacySentence)
+            tempDialogPieces = _generateDefaultPieces(token)
         }
 
         dialogPieces.value.splice(0, dialogPieces.value.length, ...tempDialogPieces)
@@ -96,7 +119,11 @@ export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpa
     }
 
     async function reloadTargetPatternOptions(sourcePatternBeginningId: number) {
-        const result: LinearTargetPattern[] = await reloadMatchingTargetPatternOptions(sourcePatternBeginningId, currentSentence.value, targetPatternOptions.value)
+        const result: LinearTargetPattern[] = await _reloadMatchingTargetPatternOptions(
+            sourcePatternBeginningId
+            , token
+            , targetPatternOptions.value
+            )
         setSelectedTargetPatternByDialog()
         return result
     }
@@ -112,252 +139,31 @@ export default function(currentSentence: ComputedRef<sentenceManager.ModifiedSpa
     }
 
     function save(gremlinInvoke: GremlinInvoke) {
-        return processTargetPatternStoring(dialogPieces.value, gremlinInvoke)
+        return _processTargetPatternStoring(dialogPieces.value, gremlinInvoke)
     }
 
     return {
-        targetPattern: {
-            dialogPieces: {
-                pieces: dialogPieces
-                , removePiece: removePiece
-                , addFixedTextPiece: addFixedTextPiece
-                , revertPieces: revertPieces
-                , isPatternNew: isDialogPatternNew
-                , queryOrGenerateDefaultPieces: queryOrGenerateDefaultPieces
-            }
-            , selection: {
-                selected: selectedTargetPattern
-                , clearSelection: clearTargetPatternSelection
-                , options: targetPatternOptions.value
-                , clearOptions: clearTargetPatternOptions
-                , reloadOptions: reloadTargetPatternOptions
-            }
-            , process: {
-                save: save
-            }
+        dialogPieces: {
+            pieces: dialogPieces
+            , removePiece: removePiece
+            , addFixedTextPiece: addFixedTextPiece
+            , revertPieces: revertPieces
+            , isPatternNew: isDialogPatternNew
+            , queryOrGenerateDefaultPieces: queryOrGenerateDefaultPieces
         }
+        , selection: {
+            selected: selectedTargetPattern
+            , clearSelection: clearTargetPatternSelection
+            , options: targetPatternOptions.value
+            , clearOptions: clearTargetPatternOptions
+            , reloadOptions: reloadTargetPatternOptions
+        }
+        , process: {
+            save: save
+        }
+        , token: token
     }
 
-}
-
-export class LinearTargetPatternPiece {
-
-    source?: sentenceManager.ModifiedSpacyElement
-    appliedText?: string
-    specifiedVuekey?: string
-    mappedGraphVertexId?: string
-
-    static types = Object.freeze({
-        token: {
-            caption: "Token"
-            , name: "token"
-            , isToken: true
-        }
-        , dependency: {
-            caption: "Dependency"
-            , name: "dependency"
-        }
-        , text: {
-            caption: "Text"
-            , name: "text"
-            , isText: true
-        }
-    })
-
-    constructor(source?: sentenceManager.ModifiedSpacyElement) {
-        this.source = source
-    }
-
-    get isPlaceholder () {
-        if (this.source instanceof sentenceManager.ModifiedSpacyDependency) return this.source.isPlaceholder
-        return false
-    }
-
-    get displayText () {
-        if (
-            this.source instanceof sentenceManager.ModifiedSpacyDependency
-            && this.source.isPlaceholder
-            ) return "{" + this.source.label + " 連接處}"
-        return this.appliedText
-    }
-    
-    get content () {
-        if (this.source instanceof sentenceManager.ModifiedSpacyToken) return this.source.tag + " (" + this.source.lemma + ")"
-        if (this.source instanceof sentenceManager.ModifiedSpacyDependency) return this.source.label
-        return "TEXT" // fixed text 
-    }
-
-    get type () {
-        if (this.source instanceof sentenceManager.ModifiedSpacyToken) return LinearTargetPatternPiece.types.token
-        if (this.source instanceof sentenceManager.ModifiedSpacyDependency) return LinearTargetPatternPiece.types.dependency
-        return LinearTargetPatternPiece.types.text
-    }
-
-    get vueKey () {
-        if (this.specifiedVuekey == undefined && this.source != undefined) return this.source.vueKey
-        return this.specifiedVuekey
-    }
-
-    get sortOrder () {
-        if (this.source instanceof sentenceManager.ModifiedSpacyToken) return this.source.indexInSentence
-        if (this.source instanceof sentenceManager.ModifiedSpacyDependency) return (this.source.trueStart + this.source.trueEnd) / 2
-        const error: string = "不應該執行到這裡"
-        throw error
-    }
-
-    equalsForPattern(anotherPiece: LinearTargetPatternPiece): boolean {
-        if (this.source == undefined || anotherPiece.source == undefined) {
-            return this.source == undefined && anotherPiece.source == undefined
-        }
-        if (this.source.constructor.name != anotherPiece.source.constructor.name) return false
-
-        let result = true
-        // source 是 token 的比對邏輯
-        if (this.source instanceof sentenceManager.ModifiedSpacyToken 
-            && anotherPiece.source instanceof sentenceManager.ModifiedSpacyToken
-        ) {
-            if (! (anotherPiece.source instanceof sentenceManager.ModifiedSpacyToken)) return false
-            const selfMorphologyInfoTypes = this.source.selectedMorphologyInfoTypes
-            const anotherMorphInfoTypes = anotherPiece.source.selectedMorphologyInfoTypes
-            selfMorphologyInfoTypes.forEach( morphInfoType => {
-                if (! anotherMorphInfoTypes.includes(morphInfoType)) {
-                    result = false
-                    return
-                }
-            })
-            anotherPiece.source.selectedMorphologyInfoTypes.forEach( morphologyInfoType => {
-                if (! selfMorphologyInfoTypes.includes(morphologyInfoType)) {
-                    result = false
-                    return
-                }
-            })
-        }
-        // source 是 dependency 的比對邏輯
-        if (this.source instanceof sentenceManager.ModifiedSpacyDependency 
-            && anotherPiece.source instanceof sentenceManager.ModifiedSpacyDependency
-        ) {
-            return (this.source.label == anotherPiece.source.label)
-        }
-        return result
-    }
-
-}
-
-function _generateDefaultTargetPattern (currentSpacySentence: sentenceManager.ModifiedSpacySentence) {
-    const defaultPieces = _generateDefaultPieces(currentSpacySentence)
-    return defaultPieces
-}
-
-function _generateDefaultPieces (
-    currentSpacySentence: sentenceManager.ModifiedSpacySentence
-    ) {
-
-    const segmentPieces: LinearTargetPatternPiece[] = []
-
-    currentSpacySentence.selectedTokens.forEach((selectedWord) => {
-        const piece = new LinearTargetPatternPiece(selectedWord)
-        segmentPieces.push(piece)
-    })
-    currentSpacySentence.selectedDependencies.forEach((selectedArc) => {
-        const piece = new LinearTargetPatternPiece(selectedArc)
-        segmentPieces.push(piece)
-    })
-
-    segmentPieces.sort(function(a, b) {
-        return a.sortOrder - b.sortOrder
-    })
-
-    return segmentPieces
-}
-function _duplicateTargetPattern(targetPattern: LinearTargetPattern) {
-    const pieces: LinearTargetPatternPiece[] = []
-    targetPattern.pieces.forEach( piece => {
-        pieces.push(_createTargetPatternPiece(piece, targetPattern.pieces))
-    })
-    console.log('pieces: ', pieces)
-    return pieces
-}
-
-function _createTargetPatternPiece(piece?: LinearTargetPatternPiece, targetPatternPieces?: LinearTargetPatternPiece[]) {
-    if (piece == undefined && targetPatternPieces == undefined) {
-        const error = '傳入參數都是 undefined，這樣是錯的'
-        throw error
-    }
-    let source = undefined
-    let appliedText = undefined
-    if (piece != undefined) {
-        appliedText = piece.appliedText
-        source = piece.source
-    }
-    const tempPiece = new LinearTargetPatternPiece(source)
-    tempPiece.appliedText = appliedText
-    if (source == undefined && targetPatternPieces != undefined) {
-        tempPiece.specifiedVuekey = 'fixed-' + targetPatternPieces.filter(item => item.type === LinearTargetPatternPiece.types.text).length
-    }
-    return tempPiece
-}
-
-export const processTargetPatternStoring = (segmentPieces: LinearTargetPatternPiece[], gremlinInvoke: GremlinInvoke) => {
-    console.log('gremlin invoke: ', gremlinInvoke)
-    // save target pattern
-    let lastAddedPieceAlias: string
-    segmentPieces.forEach((piece, pieceIdx) => {
-        const currentPieceAlias = 'v' + pieceIdx
-        gremlinInvoke = gremlinInvoke
-        .call("addV", gremlinManager.vertexLabels.linearTargetPattern)
-        .call("property", gremlinManager.propertyNames.isPlaceholder, piece.isPlaceholder)
-        if (piece.appliedText != undefined) {
-            gremlinInvoke.property(gremlinManager.propertyNames.appliedText, piece.appliedText)
-        }
-        gremlinInvoke.as(currentPieceAlias)
-        if (lastAddedPieceAlias) {
-            gremlinInvoke = gremlinInvoke
-            .call("addE", gremlinManager.edgeLabels.follows)
-            .call("to", lastAddedPieceAlias)
-        } else {
-            gremlinInvoke = gremlinInvoke
-            .call("addE", gremlinManager.edgeLabels.applicable)
-            .call("to", gremlinManager.aliases.sourcePatternBeginning)
-        }
-        // 建立和 source 的關連
-        if (piece.source != undefined) {
-            gremlinInvoke
-            .call("addE", gremlinManager.edgeLabels.traceTo)
-            .call("from", currentPieceAlias)
-        }
-        if (piece.source instanceof sentenceManager.ModifiedSpacyDependency) {
-            // 和 dependency 的關連
-            gremlinInvoke.property(gremlinManager.edgePropertyNames.traceToInDep, true)
-            if (piece.source.sourcePatternEdgeId != undefined) { // 如果 source pattern 是既有的的狀況
-                gremlinInvoke.call(
-                    "to"
-                    , new gremlinManager.GremlinInvoke()
-                    .call("E", piece.source.sourcePatternEdgeId)
-                    .call("inV")
-                )
-            } else {
-                if (piece.source.isPlaceholder) {
-                    gremlinInvoke.call("to", gremlinManager.connectorAlias(piece.source))
-                } else {
-                    gremlinInvoke.call("to", gremlinManager.vertexAlias(piece.source.endToken))
-                }
-            }
-        }
-        if (piece.source instanceof sentenceManager.ModifiedSpacyToken) {
-            if (piece.source.sourcePatternVertexId != undefined) {
-                gremlinInvoke.call(
-                    "to"
-                    , new gremlinManager.GremlinInvoke(true)
-                    .call("V", piece.source.sourcePatternVertexId)
-                )
-            } else {
-                gremlinInvoke.call("to", gremlinManager.vertexAlias(piece.source))
-            }
-        }
-        // TODO 處理和 source VERTEX 的關連
-        lastAddedPieceAlias = currentPieceAlias
-    })
-    return gremlinInvoke
 }
 
 export class LinearTargetPattern {
@@ -368,8 +174,8 @@ export class LinearTargetPattern {
         this.$pieces.forEach( (piece, index) => {
             if (index !== 0) result += '-'
             if (piece.source == undefined) result += 'text'
-            if (piece.source instanceof sentenceManager.ModifiedSpacyToken) result += piece.source.tag
-            if (piece.source instanceof sentenceManager.ModifiedSpacyDependency) {
+            if (piece.source instanceof ModifiedSpacyToken) result += piece.source.tag
+            if (piece.source instanceof ModifiedSpacyDependency) {
                 if (piece.source.isPlaceholder) result += '{'
                 result += piece.source.label.toLowerCase()
                 if (piece.source.isPlaceholder) result += '}'
@@ -380,6 +186,9 @@ export class LinearTargetPattern {
 
     get pieces() {
         return this.$pieces
+    }
+    set pieces(pieces: LinearTargetPatternPiece[]) {
+        this.$pieces = pieces
     }
 
     constructor(patternPieces?: LinearTargetPatternPiece[]) {
@@ -409,9 +218,235 @@ export class LinearTargetPattern {
 
 }
 
-export function reloadMatchingTargetPatternOptions (
+export class LinearTargetPatternPiece {
+
+    source?: ModifiedSpacyElement
+    appliedText?: string
+    specifiedVuekey?: string
+    mappedGraphVertexId?: string
+
+    static types = Object.freeze({
+        token: {
+            caption: "Token"
+            , name: "token"
+            , isToken: true
+        }
+        , dependency: {
+            caption: "Dependency"
+            , name: "dependency"
+        }
+        , text: {
+            caption: "Text"
+            , name: "text"
+            , isText: true
+        }
+    })
+
+    constructor(source?: ModifiedSpacyElement) {
+        this.source = source
+    }
+
+    get isPlaceholder () {
+        if (this.source instanceof ModifiedSpacyDependency) return this.source.isPlaceholder
+        return false
+    }
+
+    get displayText () {
+        if (
+            this.source instanceof ModifiedSpacyDependency
+            && this.source.isPlaceholder
+            ) return "{" + this.source.label + " 連接處}"
+        return this.appliedText
+    }
+    
+    get content () {
+        if (this.source instanceof ModifiedSpacyToken) return this.source.tag + " (" + this.source.lemma + ")"
+        if (this.source instanceof ModifiedSpacyDependency) return this.source.label
+        return "TEXT" // fixed text 
+    }
+
+    get type () {
+        if (this.source instanceof ModifiedSpacyToken) return LinearTargetPatternPiece.types.token
+        if (this.source instanceof ModifiedSpacyDependency) return LinearTargetPatternPiece.types.dependency
+        return LinearTargetPatternPiece.types.text
+    }
+
+    get vueKey () {
+        if (this.specifiedVuekey == undefined && this.source != undefined) return this.source.vueKey
+        return this.specifiedVuekey
+    }
+
+    get sortOrder () {
+        if (this.source instanceof ModifiedSpacyToken) return this.source.indexInSentence
+        if (this.source instanceof ModifiedSpacyDependency) return (this.source.trueStart + this.source.trueEnd) / 2
+        const error: string = "不應該執行到這裡"
+        throw error
+    }
+
+    equalsForPattern(anotherPiece: LinearTargetPatternPiece): boolean {
+        if (this.source == undefined || anotherPiece.source == undefined) {
+            return this.source == undefined && anotherPiece.source == undefined
+        }
+        if (this.source.constructor.name != anotherPiece.source.constructor.name) return false
+
+        let result = true
+        // source 是 token 的比對邏輯
+        if (this.source instanceof ModifiedSpacyToken 
+            && anotherPiece.source instanceof ModifiedSpacyToken
+        ) {
+            if (! (anotherPiece.source instanceof ModifiedSpacyToken)) return false
+            const selfMorphologyInfoTypes = this.source.selectedMorphologyInfoTypes
+            const anotherMorphInfoTypes = anotherPiece.source.selectedMorphologyInfoTypes
+            selfMorphologyInfoTypes.forEach( morphInfoType => {
+                if (! anotherMorphInfoTypes.includes(morphInfoType)) {
+                    result = false
+                    return
+                }
+            })
+            anotherPiece.source.selectedMorphologyInfoTypes.forEach( morphologyInfoType => {
+                if (! selfMorphologyInfoTypes.includes(morphologyInfoType)) {
+                    result = false
+                    return
+                }
+            })
+        }
+        // source 是 dependency 的比對邏輯
+        if (this.source instanceof ModifiedSpacyDependency 
+            && anotherPiece.source instanceof ModifiedSpacyDependency
+        ) {
+            return (this.source.label == anotherPiece.source.label)
+        }
+        return result
+    }
+}
+
+export type TargetPatternPieceAppliedTextPair = {
+    piece: LinearTargetPatternPiece
+    , value: string
+}
+
+function _createTargetPatternPiece(piece?: LinearTargetPatternPiece, targetPatternPieces?: LinearTargetPatternPiece[], appliedText?: string) {
+    if (piece == undefined && targetPatternPieces == undefined) {
+        const error = '傳入參數都是 undefined，這樣是錯的'
+        throw error
+    }
+    let source = undefined
+    if (piece != undefined) {
+        appliedText = piece.appliedText
+        source = piece.source
+    }
+    const tempPiece = new LinearTargetPatternPiece(source)
+    tempPiece.appliedText = appliedText
+    if (piece && piece?.specifiedVuekey) {
+        tempPiece.specifiedVuekey = piece.specifiedVuekey
+    } else if (source == undefined && targetPatternPieces != undefined) {
+        tempPiece.specifiedVuekey = 'fixed-' + targetPatternPieces.filter(item => item.type === LinearTargetPatternPiece.types.text).length
+    }
+    return tempPiece
+}
+
+function _duplicateTargetPattern(targetPattern: LinearTargetPattern) {
+    const pieces: LinearTargetPatternPiece[] = []
+    targetPattern.pieces.forEach( piece => {
+        pieces.push(_createTargetPatternPiece(piece, targetPattern.pieces))
+    })
+    console.log('pieces: ', pieces)
+    return pieces
+}
+
+function _generateDefaultTargetPattern (token: ModifiedSpacyToken) {
+    const defaultPieces = _generateDefaultPieces(token)
+    return defaultPieces
+}
+
+function _generateDefaultPieces (
+    token: ModifiedSpacyToken
+    ) {
+
+    const segmentPieces: LinearTargetPatternPiece[] = []
+
+    token.segmentTokens.forEach((selectedWord) => {
+        const piece = new LinearTargetPatternPiece(selectedWord)
+        segmentPieces.push(piece)
+    })
+    token.segmentDeps.forEach((selectedArc) => {
+        const piece = new LinearTargetPatternPiece(selectedArc)
+        segmentPieces.push(piece)
+    })
+
+    segmentPieces.sort(function(a, b) {
+        return a.sortOrder - b.sortOrder
+    })
+
+    return segmentPieces
+}
+
+function _processTargetPatternStoring(segmentPieces: LinearTargetPatternPiece[], gremlinInvoke: GremlinInvoke) {
+    console.log('gremlin invoke: ', gremlinInvoke)
+    // save target pattern
+    let lastAddedPieceAlias: string
+    segmentPieces.forEach((piece, pieceIdx) => {
+        const currentPieceAlias = 'v' + pieceIdx
+        gremlinInvoke = gremlinInvoke
+        .call("addV", gremlinManager.vertexLabels.linearTargetPattern)
+        .call("property", gremlinManager.propertyNames.isPlaceholder, piece.isPlaceholder)
+        if (piece.appliedText != undefined) {
+            gremlinInvoke.property(gremlinManager.propertyNames.appliedText, piece.appliedText)
+        }
+        gremlinInvoke.as(currentPieceAlias)
+        if (lastAddedPieceAlias) {
+            gremlinInvoke = gremlinInvoke
+            .call("addE", gremlinManager.edgeLabels.follows)
+            .call("to", lastAddedPieceAlias)
+        } else {
+            gremlinInvoke = gremlinInvoke
+            .call("addE", gremlinManager.edgeLabels.applicable)
+            .call("to", gremlinManager.aliases.sourcePatternBeginning)
+        }
+        // 建立和 source 的關連
+        if (piece.source != undefined) {
+            gremlinInvoke
+            .call("addE", gremlinManager.edgeLabels.traceTo)
+            .call("from", currentPieceAlias)
+        }
+        if (piece.source instanceof ModifiedSpacyDependency) {
+            // 和 dependency 的關連
+            gremlinInvoke.property(gremlinManager.edgePropertyNames.traceToInDep, true)
+            if (piece.source.sourcePatternEdgeId != undefined) { // 如果 source pattern 是既有的的狀況
+                gremlinInvoke.call(
+                    "to"
+                    , new gremlinManager.GremlinInvoke()
+                    .call("E", piece.source.sourcePatternEdgeId)
+                    .call("inV")
+                )
+            } else {
+                if (piece.source.isPlaceholder) {
+                    gremlinInvoke.call("to", gremlinManager.connectorAlias(piece.source))
+                } else {
+                    gremlinInvoke.call("to", gremlinManager.vertexAlias(piece.source.endToken))
+                }
+            }
+        }
+        if (piece.source instanceof ModifiedSpacyToken) {
+            if (piece.source.sourcePatternVertexId != undefined) {
+                gremlinInvoke.call(
+                    "to"
+                    , new gremlinManager.GremlinInvoke(true)
+                    .call("V", piece.source.sourcePatternVertexId)
+                )
+            } else {
+                gremlinInvoke.call("to", gremlinManager.vertexAlias(piece.source))
+            }
+        }
+        // TODO 處理和 source VERTEX 的關連
+        lastAddedPieceAlias = currentPieceAlias
+    })
+    return gremlinInvoke
+}
+
+export function _reloadMatchingTargetPatternOptions (
     sourcePatternBeginningId: number
-    , currentSpacySentence: sentenceManager.ModifiedSpacySentence
+    , token: ModifiedSpacyToken
     , targetPatternOptions: LinearTargetPattern[]) {
 
     targetPatternOptions.splice(0, targetPatternOptions.length)
@@ -489,8 +524,7 @@ export function reloadMatchingTargetPatternOptions (
                     const projectedTraceToEdge = projectedMapArray[1]['@value']
                     if (projectedTraceToEdge.length <= 0) {
                         // text piece
-                        targetPatternPiece = new LinearTargetPatternPiece()
-                        targetPatternPiece.appliedText = projectedMapArray[9]
+                        targetPatternPiece = _createTargetPatternPiece(undefined, targetPattern.$pieces, projectedMapArray[9])
                         // TODO 這裡還要再抓 text 選項 (？)
                         targetPattern.addPieces(targetPatternPiece)
                         return
@@ -555,11 +589,11 @@ export function reloadMatchingTargetPatternOptions (
                                 }
                             }
                         })
-                        const tracedDependency = sentenceManager.findDependencyByPatternEdgeId(depEdgeId, currentSpacySentence)
+                        const tracedDependency = findDependencyByPatternEdgeId(depEdgeId, token)
                         targetPatternPiece = new LinearTargetPatternPiece(tracedDependency)
                     } else {
                         if (tracedVertexId != undefined) {
-                            const tracedToken = sentenceManager.findTokenByPatternVertexId(tracedVertexId, currentSpacySentence)
+                            const tracedToken = findTokenByPatternVertexId(tracedVertexId, token)
                             targetPatternPiece = new LinearTargetPatternPiece(tracedToken)
                         }
                     }
@@ -575,4 +609,24 @@ export function reloadMatchingTargetPatternOptions (
             reject(error)
         })
     })
+}
+
+export const findDependencyByPatternEdgeId = (sourceEdgeId: string, token: ModifiedSpacyToken): ModifiedSpacyDependency => {
+    const result = token.segmentDeps.find( dependency => {
+        return dependency.sourcePatternEdgeId == sourceEdgeId
+    })
+    if (result != undefined) return result
+    const error = "source pattern edge 記錄有問題"
+    console.error(error)
+    throw error
+}
+
+export const findTokenByPatternVertexId = (sourceVertexId: number, token: ModifiedSpacyToken): ModifiedSpacyToken => {
+    const result = token.segmentTokens.find( token => {
+        return token.sourcePatternVertexId == sourceVertexId
+    })
+    if (result != undefined) return result
+    const error = "source pattern vertex 記錄有問題"
+    console.error(error, 'source vertex id: ', sourceVertexId, ' not found in tokens')
+    throw error
 }
