@@ -47,7 +47,7 @@ import { mapGetters, useStore } from 'vuex'
 import { computed, provide, watch } from 'vue'
 
 import SegmentDialog from "@/components/SegmentDialog.vue"
-import SegmentTranslation from './SegmentTranslation.vue'
+import SegmentTranslation from '@/components/SegmentTranslation.vue'
 
 import spacyFormatManager from "@/composables/spacyFormatManager"
 import sourcePatternLogic from '@/composables/sourcePatternManager'
