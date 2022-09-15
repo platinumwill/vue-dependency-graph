@@ -41,15 +41,15 @@
 </template>
 
 <script>
-import DependencyEdge from "./DependencyEdge.vue";
-import DependencyNode from "./DependencyNode.vue";
+import DependencyEdge from '@/components/DependencyEdge.vue';
+import DependencyNode from '@/components/DependencyNode.vue';
 import { mapGetters, useStore } from 'vuex'
 import { computed, provide, watch } from 'vue'
 
-import SegmentDialog from "@/components/SegmentDialog.vue"
+import SegmentDialog from '@/components/SegmentDialog.vue'
 import SegmentTranslation from '@/components/SegmentTranslation.vue'
 
-import spacyFormatManager from "@/composables/spacyFormatManager"
+import spacyFormatManager from '@/composables/spacyFormatManager'
 import sourcePatternLogic from '@/composables/sourcePatternManager'
 import sentenceManager from '@/composables/sentenceManager'
 import * as documentPersistence from '@/composables/document/document-persistence'
