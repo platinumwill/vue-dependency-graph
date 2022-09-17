@@ -1,9 +1,7 @@
 import { Ref, ref } from "vue"
 import { useStore } from "vuex"
 import * as sentenceManager from "@/composables/sentenceManager"
-import * as sourcePattern from '@/composables/sourcePatternSegment'
-import * as targetPattern from '@/composables/targetPattern'
-import * as translationHelper from '@/composables/translationHelper'
+import { Document } from "@/composables/document/document-persistence"
 
 export type SpacyArc = {
     label: string
@@ -33,10 +31,7 @@ export class SpacyFormatHelper {
         this.$generateSentences = generateSentences
     }
 
-    get documentParse() {
-        return this.$documentParse
-    }
-    set documentParse(documentParse) {
+    set documentParse(documentParse: Ref<SpacySentence>) {
         this.$documentParse = documentParse
     }
 
