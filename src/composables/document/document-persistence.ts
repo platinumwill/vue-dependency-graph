@@ -36,7 +36,7 @@ export async function saveDocumentParse (document: Document) {
 
     return document
 }
-export async function queryExistingDocument(documentText: string) {
+async function queryExistingDocument(documentText: string) {
 
     const gremlinInvoke = new gremlinApi.GremlinInvoke()
 
