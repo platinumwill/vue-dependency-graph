@@ -9,6 +9,7 @@ import {
 } from "@/composables/morphologyInfo"
 import { ModifiedSpacyDependency, ModifiedSpacyToken } from "@/composables/sentenceManager";
 import { SourcePatternOption } from "@/composables/sourcePatternSegment";
+import * as documentPersistence from '@/composables/document/document-persistence'
 
 import { computed, ComputedRef, ref, watch } from "vue";
 
@@ -84,7 +85,11 @@ export function prepareTranslationHelper (
         TargetPatternConfirmed = 'TargetPatternConfirmed'
     }
     const status = ref<string | undefined>(undefined)
-    const toggleSegmentTranslationConfirmed = (targetPatternHelperCopy: TargetPattern) => {
+    const toggleSegmentTranslationConfirmed = (
+        targetPatternHelperCopy: TargetPattern
+        , document: documentPersistence.Document
+        ) => {
+
         // 把已經確認的 target pattern 選取值，和 target pattern pieces 存起來
         targetPattern.dialogPieces.pieces = targetPatternHelperCopy.dialogPieces.pieces
         targetPattern.selection.selected = targetPatternHelperCopy.selection.selected
@@ -93,6 +98,13 @@ export function prepareTranslationHelper (
             status.value = undefined
         } else {
             status.value = SegmentStatus.TargetPatternConfirmed
+            // 儲存 segment 初步翻譯
+            if (! targetPattern.token.sentence) return
+            console.log('document', document)
+            documentPersistence.saveInitialSegmentTranslation(
+                targetPattern.token.sentence?.index
+                , document
+                )
         }
     }
     const isTargetPatternConfirmed: ComputedRef<boolean> = computed( () => {

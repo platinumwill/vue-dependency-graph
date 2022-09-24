@@ -109,7 +109,7 @@
 
 <script lang="ts">
 
-import { defineComponent, ref, computed, inject, ComputedRef, toRef } from 'vue'
+import { defineComponent, ref, computed, inject, ComputedRef, toRef, PropType } from 'vue'
 
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
@@ -119,8 +119,9 @@ import Dropdown from 'primevue/dropdown'
 import draggable from 'vuedraggable'
 import VueHorizontal from 'vue-horizontal'
 
-import SegmentPiece from './SegmentPiece.vue'
-import SegmentTranslation from './SegmentTranslation.vue'
+import SegmentPiece from '@/components/SegmentPiece.vue'
+import SegmentTranslation from '@/components/SegmentTranslation.vue'
+import { Document } from '@/composables/document/document-persistence'
 
 import { ModifiedSpacySentence, ModifiedSpacyToken } from '@/composables/sentenceManager'
 import { LinearTargetPatternPiece, TargetPattern, TargetPatternPieceAppliedTextPair } from '@/composables/targetPattern'
@@ -131,6 +132,9 @@ export default defineComponent({
         token: ModifiedSpacyToken
         , config: Object
         , index: Number
+        , document: {
+            type: Object as PropType<Document>
+        }
     }
     , setup(props: any) {
 
@@ -178,7 +182,10 @@ export default defineComponent({
         }
 
         function toggleSegmentTranslationConfirmed(targetPatternHelper: TargetPattern) {
-            props.token.translationHelper.toggleSegmentTranslationConfirmed(targetPatternHelper)
+            props.token.translationHelper.toggleSegmentTranslationConfirmed(
+                targetPatternHelper
+                , props.document
+                )
         }
         const dialogLocked: ComputedRef<boolean> = computed( () => {
             return props.token.translationHelper

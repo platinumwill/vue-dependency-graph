@@ -69,22 +69,83 @@ async function queryExistingDocument(documentText: string) {
     })
 }
 
+// 儲存 segment 初步翻譯
+export const saveInitialSegmentTranslation = (
+    sentenceIndex: number
+    , document: Document
+    ) => {
+
+    const gremlinInvoke = new gremlinApi.GremlinInvoke()
+
+    const existingSentence = document.translatedSentence(sentenceIndex)
+    if (existingSentence.length) {
+        // 更新
+        console.log(existingSentence)
+    } else {
+        // 新建
+        console.log('gremlin invoke: ', gremlinInvoke)
+        console.log('document', document)
+        console.log('document id', document.id)
+        if (!document || !document.id) {
+            throw '必須有 Document，而且 Document 必須有 Id'
+        }
+        gremlinInvoke
+        .addV(gremlinApi.translatedVertexLabels.translatedSentence)
+        .property('index', sentenceIndex)
+        .addE(gremlinApi.translatedVertexLabels.isPartOf)
+        .to(new gremlinApi.GremlinInvoke(true).V(document.id))
+        gremlinApi.submitAndParse(gremlinInvoke.command()).then((newSentenceData) => {
+            console.log('new sentence', newSentenceData)
+            // 回傳的是最後建的 edge
+        })
+        
+        console.log(gremlinInvoke.command())
+        // PROGRESS
+    }
+}
+
+export class TranslatedSentence {
+    $index: number
+    $id: string
+
+    constructor(index: number, id: string) {
+        this.$index = index
+        this.$id = id
+    }
+
+    get index() {
+        return this.$index
+    }
+}
 export class Document {
-    content: string
+    content: string = ''
     parse: any
     private _id: any
+    $translatedSentences: TranslatedSentence[]
 
-    constructor(content:string, parse: any) {
-        this.content = content
+    constructor(content?:string, parse?: any, translatedSentences?: TranslatedSentence[]) {
+        this.content = content || this.content
         this.parse = parse
+        this.$translatedSentences =  translatedSentences || []
+    }
+
+    translatedSentence(index: number) {
+        // 測試發現如果沒有資料，會回傳空陣列
+        return this.$translatedSentences.filter(sentence => {return sentence.index == index})
     }
 
     public get id() {
         return this._id
     }
-
     public set id(id: any) {
         this._id = id
+    }
+
+    get translatedSentences() {
+        return this.$translatedSentences
+    }
+    set translatedSentences(translatedSentences) {
+        this.$translatedSentences = translatedSentences
     }
 
 }

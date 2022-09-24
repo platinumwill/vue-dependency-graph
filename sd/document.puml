@@ -1,0 +1,20 @@
+@startuml document
+
+class Document
+class TranslatedSentence {
+    index: int
+}
+
+class TranslatedSegment {
+    rootTokenIndex: int
+    targetPattern: string 
+}
+note right of TranslatedSegment::rootTokenIndex
+    這裡要記 segment 開頭的
+    LinearTargetPatternPiece 的 id
+endnote
+
+TranslatedSentence --x TranslatedSegment
+Document --x TranslatedSentence
+
+@enduml

@@ -18,6 +18,10 @@ export const vertexLabels = Object.freeze({
     , sourcePattern: "SourcePatternPiece"
     , document: "Document"
 })
+export const translatedVertexLabels = Object.freeze({
+    translatedSentence: 'TranslatedSentence'
+    , isPartOf: 'isPartOf'
+})
 export const edgeLabels = Object.freeze({
     applicable: 'applicable'
     , follows: 'follows'
@@ -84,6 +88,9 @@ export class GremlinInvoke {
     addV(...values: string[] | number[] | boolean[] | GremlinInvoke[]) {
         return this.call("addV", ...values)
     }
+    addE(value: string) {
+        return this.call("addE", value)
+    }
     valueMap(...values: string[] | number[] | boolean[] | GremlinInvoke[]) {
         return this.call("valueMap", ...values)
     }
@@ -138,6 +145,9 @@ export class GremlinInvoke {
     count() {
         return this.call("count")
     }
+    to(value: number | GremlinInvoke) {
+        return this.call("to", value)
+    }
 
     command() {
         return this.commandBuffer
@@ -165,12 +175,33 @@ export const submit = (commandOrObject: string | GremlinInvoke) => {
         })
     })
 }
+export const submitAndParse = async (commandOrObject: string | GremlinInvoke) => {
+    // 非同步實在很不會處理，這裡恐怕容易出錯
+    return new Promise( (resolve, reject) => {
+        submit(commandOrObject).then( (resultData: any) => {
+            if (resultData[keys.type] == resultDataConstants.list) { // g:List
+                const resultArray = resultData[keys.value]
+                // PROGRESS
+                resolve(resultArray)
+            } else {
+                throw '這裡的邏輯待補，撞到了，要補'
+            }
+        }).catch((error) => {
+            console.error(error)
+            reject(error)
+        })
+    })
+}
 
 export const valueKey = '@value'
 export const keys = {
     value: '@value'
     , properties: 'properties'
     , id: 'id'
+    , type: '@type'
+}
+export const resultDataConstants = {
+    list: 'g:List'
 }
 
 export const isConnector = async (id: number) => {

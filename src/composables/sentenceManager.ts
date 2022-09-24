@@ -228,14 +228,25 @@ export class ModifiedSpacySentence {
 
     words: ModifiedSpacyToken[]
     arcs: ModifiedSpacyDependency[]
+    $index: number
+    
     constructor(
         modifiedSpacyTokens: ModifiedSpacyToken[]
         , modifiedSpacyDependencies: ModifiedSpacyDependency[]
+        , index: number
         ) {
         this.words = modifiedSpacyTokens
         this.words.forEach(word => word.sentence = this)
         this.arcs = modifiedSpacyDependencies
         this.arcs.forEach(arc => arc.sentence = this)
+        this.$index = index
+    }
+
+    get index() {
+        return this.$index
+    }
+    set index(index: number) {
+        this.$index = index
     }
 
     get selectedDependencies() {

@@ -15,7 +15,9 @@
                 :token="word"
                 :index="index"
                 :config="config"
-                :key="index">
+                :key="index"
+                :document="document"
+                >
             </SegmentDialog>
         </div>
 
@@ -143,8 +145,10 @@ export default {
             return props.spacyFormatParseProvider.name
         })
 
-        const processParseResult = (document) => {
-            spacyFormatHelper.value.documentParse = document.parse // 文件的 id 可以從這裡開始取
+        const document = new documentPersistence.Document()
+        const processParseResult = (retrievedDocument) => {
+            Object.assign(document, retrievedDocument)
+            spacyFormatHelper.value.documentParse = retrievedDocument.parse // 文件的 id 可以從這裡開始取
             const sentences = spacyFormatHelper.value.generateSentences()
             spacyFormatSentences.push(...sentences)
         }
@@ -163,9 +167,9 @@ export default {
         )
     
         return {
-            spacyFormatHelper
-            , spacyFormatSentences
+            spacyFormatSentences
             , isSegmentOperationEnabled
+            , document
         }
     }
     , provide() {

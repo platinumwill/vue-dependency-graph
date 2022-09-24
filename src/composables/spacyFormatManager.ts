@@ -59,13 +59,13 @@ export default function () {
             || !store.getters.isDocumentReady) {
             return result
         }
-        store.getters.baselineSentences.forEach((baselineSentence: SpacySentence) => {
-            result.push(generateSentence(baselineSentence))
+        store.getters.baselineSentences.forEach((baselineSentence: SpacySentence, index: number) => {
+            result.push(generateSentence(baselineSentence, index))
         })
         return result
     }
 
-    const generateSentence = (baselineSentence: SpacySentence) => {
+    const generateSentence = (baselineSentence: SpacySentence, sentenceIndex: number) => {
         const filteredArcs = spacyFormatDocumentParse.value.arcs.filter(
             arc =>
             arc.start >= baselineSentence.start
@@ -96,7 +96,7 @@ export default function () {
             token.selectedMorphologyInfoTypes = []
             tokens.push(token)
         })
-        const sentence = new sentenceManager.ModifiedSpacySentence(tokens, dependencies)
+        const sentence = new sentenceManager.ModifiedSpacySentence(tokens, dependencies, sentenceIndex)
         return sentence
     }
 
