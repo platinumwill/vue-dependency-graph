@@ -92,8 +92,8 @@ export const saveInitialSegmentTranslation = (
         .addE(gremlinApi.translatedVertexLabels.isPartOf)
         .to(new gremlinApi.GremlinInvoke(true).V(document.id))
         .outV()
-        gremlinApi.submitAndParse(gremlinInvoke.command()).then((newTranslatedSentence) => {
-            console.log('new sentence', newTranslatedSentence)
+        gremlinApi.submitAndParse(gremlinInvoke.command()).then((objects) => {
+            console.log('new sentence', objects)
             // 回傳的是最後建的 edge
         })
         

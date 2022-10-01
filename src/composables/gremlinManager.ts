@@ -179,11 +179,15 @@ export const submit = (commandOrObject: string | GremlinInvoke) => {
     })
 }
 
-export class Entity {
+export class QueryResultObject {
+
+}
+export class Entity extends QueryResultObject {
     $id: number
     $label: string
     $properties: Object
     constructor(responseData: any) {
+        super()
         const responseDataValue = responseData[keys.value]
         this.$id = responseDataValue[keys.id][keys.value]
         this.$label = responseDataValue[keys.label]
@@ -194,11 +198,12 @@ export class Entity {
         return this.$id
     }
 }
-export class Relation {
+export class Relation extends QueryResultObject {
     $id: string
     $label: string
     $properties: Object
     constructor(responseData: any) {
+        super()
         const responseDataValue = responseData[keys.value]
         this.$id = responseDataValue[keys.id][keys.value]
         this.$label = responseDataValue[keys.label]
@@ -212,28 +217,31 @@ export class Relation {
 export const submitAndParse = async (commandOrObject: string | GremlinInvoke) => {
     // 非同步實在很不會處理，這裡恐怕容易出錯
     return new Promise( (resolve, reject) => {
-        submit(commandOrObject).then( (resultData: any) => {
-            console.log('result data', resultData)
-            const resultArray = resultData[keys.value]
-            switch (resultData[keys.type]) {
+        submit(commandOrObject).then( (queryResultData: any) => {
+            console.log('result data', queryResultData)
+            const queryResultArray = queryResultData[keys.value]
+            switch (queryResultData[keys.type]) {
                 case responseDataType.list: // g:List
-                resultArray.forEach((entry: any) => {
-                    console.log(entry)
-                    let ele = undefined
-                    switch (entry[keys.type]) {
-                        case responseDataType.edge:
-                            ele = new Relation(entry)
-                            break
-                        case responseDataType.vertex:
-                            ele = new Entity(entry)
-                            break
-                        default:
-                            throw '意外狀況，資料有問題'
-                    }
-                    resolve(ele)
-                })
-                // PROGRESS
-                break
+                {
+                    const result: QueryResultObject[] = []
+                    queryResultArray.forEach((entry: any) => {
+                        console.log(entry)
+                        let ele = undefined
+                        switch (entry[keys.type]) {
+                            case responseDataType.edge:
+                                ele = new Relation(entry)
+                                break
+                            case responseDataType.vertex:
+                                ele = new Entity(entry)
+                                break
+                            default:
+                                throw '意外狀況，資料有問題'
+                        }
+                        result.push(ele)
+                        resolve(result)
+                    })
+                    break
+                }
                 default:
                     throw '這裡的邏輯本來待補，現在撞到了，要補'
             }
