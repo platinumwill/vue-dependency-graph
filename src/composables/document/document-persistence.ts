@@ -79,13 +79,10 @@ export const saveInitialSegmentTranslation = (
 
     const existingSentence = document.translatedSentence(sentenceIndex)
     if (existingSentence.length) {
-        // 更新
+        // 更新 sentence
         console.log(existingSentence)
     } else {
-        // 新建
-        console.log('gremlin invoke: ', gremlinInvoke)
-        console.log('document', document)
-        console.log('document id', document.id)
+        // 新建 TranslatedSentence
         if (!document || !document.id) {
             throw '必須有 Document，而且 Document 必須有 Id'
         }
@@ -94,8 +91,9 @@ export const saveInitialSegmentTranslation = (
         .property('index', sentenceIndex)
         .addE(gremlinApi.translatedVertexLabels.isPartOf)
         .to(new gremlinApi.GremlinInvoke(true).V(document.id))
-        gremlinApi.submitAndParse(gremlinInvoke.command()).then((newSentenceData) => {
-            console.log('new sentence', newSentenceData)
+        .outV()
+        gremlinApi.submitAndParse(gremlinInvoke.command()).then((newTranslatedSentence) => {
+            console.log('new sentence', newTranslatedSentence)
             // 回傳的是最後建的 edge
         })
         

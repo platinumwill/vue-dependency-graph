@@ -100,6 +100,9 @@ export class GremlinInvoke {
     outE(...values: string[] | number[] | boolean[] | GremlinInvoke[]) {
         return this.call("outE", ...values)
     }
+    outV(...values: string[] | number[] | boolean[] | GremlinInvoke[]) {
+        return this.call("outV", ...values)
+    }
     property(...values: any[]) {
         return this.call("property", ...values)
     }
@@ -175,16 +178,64 @@ export const submit = (commandOrObject: string | GremlinInvoke) => {
         })
     })
 }
+
+export class Entity {
+    $id: number
+    $label: string
+    $properties: Object
+    constructor(responseData: any) {
+        const responseDataValue = responseData[keys.value]
+        this.$id = responseDataValue[keys.id][keys.value]
+        this.$label = responseDataValue[keys.label]
+        this.$properties = responseDataValue[keys.properties]
+    }
+
+    get id() {
+        return this.$id
+    }
+}
+export class Relation {
+    $id: string
+    $label: string
+    $properties: Object
+    constructor(responseData: any) {
+        const responseDataValue = responseData[keys.value]
+        this.$id = responseDataValue[keys.id][keys.value]
+        this.$label = responseDataValue[keys.label]
+        this.$properties = responseDataValue[keys.properties]
+    }
+
+    get id() {
+        return this.$id
+    }
+}
 export const submitAndParse = async (commandOrObject: string | GremlinInvoke) => {
     // 非同步實在很不會處理，這裡恐怕容易出錯
     return new Promise( (resolve, reject) => {
         submit(commandOrObject).then( (resultData: any) => {
-            if (resultData[keys.type] == resultDataConstants.list) { // g:List
-                const resultArray = resultData[keys.value]
+            console.log('result data', resultData)
+            const resultArray = resultData[keys.value]
+            switch (resultData[keys.type]) {
+                case responseDataType.list: // g:List
+                resultArray.forEach((entry: any) => {
+                    console.log(entry)
+                    let ele = undefined
+                    switch (entry[keys.type]) {
+                        case responseDataType.edge:
+                            ele = new Relation(entry)
+                            break
+                        case responseDataType.vertex:
+                            ele = new Entity(entry)
+                            break
+                        default:
+                            throw '意外狀況，資料有問題'
+                    }
+                    resolve(ele)
+                })
                 // PROGRESS
-                resolve(resultArray)
-            } else {
-                throw '這裡的邏輯待補，撞到了，要補'
+                break
+                default:
+                    throw '這裡的邏輯本來待補，現在撞到了，要補'
             }
         }).catch((error) => {
             console.error(error)
@@ -192,16 +243,19 @@ export const submitAndParse = async (commandOrObject: string | GremlinInvoke) =>
         })
     })
 }
-
+enum responseDataType {
+    list = "g:List"
+    , vertex = 'g:Vertex'
+    , edge = 'g:Edge'
+}
 export const valueKey = '@value'
 export const keys = {
     value: '@value'
     , properties: 'properties'
     , id: 'id'
+    , label: 'label'
     , type: '@type'
-}
-export const resultDataConstants = {
-    list: 'g:List'
+    , relationId: 'relationId'
 }
 
 export const isConnector = async (id: number) => {
