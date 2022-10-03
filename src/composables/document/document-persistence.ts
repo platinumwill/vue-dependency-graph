@@ -1,11 +1,19 @@
 import * as gremlinApi from '@/composables/gremlinManager'
+import { Entity } from '@/composables/gremlinManager'
 
 export async function retrieveDocument(documentText: string, spacyFormatParseProviderName: string, spacyFormatParseProvider: any) {
     if (spacyFormatParseProviderName != undefined) { // 有名字，就可以視同解析解果會被儲存
         let document: Document|undefined = undefined
         await queryExistingDocument(documentText).then( (queryResult) => {
             document = queryResult
-        })
+            return document
+        } ).then( (document) => {
+            if (! document) throw 'document 為空值，資料錯誤'
+            return queryTranslatedSentences(document.id)
+        } ).then( (sentenceQueryResult: any) => {
+            console.log(sentenceQueryResult)
+            // PROGRESS
+        } )
         if (document != undefined) {
             console.log('existing document retrieved: ', document)
             return document
@@ -68,6 +76,23 @@ async function queryExistingDocument(documentText: string) {
         throw error
     })
 }
+async function queryTranslatedSentences(documentId: number) {
+    const gremlinInvoke = new gremlinApi.GremlinInvoke()
+    gremlinInvoke
+    .V(documentId).in().hasLabel(gremlinApi.vertexLabels.translatedSentence)
+    return await gremlinApi.submitAndParse(gremlinInvoke).then( (sentenceQueryResult) => {
+        const translatedSentences = []
+        sentenceQueryResult.forEach( (queryResultEntry) => {
+            if (! (queryResultEntry instanceof Entity)) throw '參數沒有控制好，這裡只能有 Entity'
+            const translatedSentence = new TranslatedSentence(queryResultEntry)
+            translatedSentences.push(translatedSentence)
+            // PROGRESS
+            console.log('one entry', queryResultEntry)
+        } )
+        return sentenceQueryResult
+        // PROGRESS
+    })
+}
 
 // 儲存 segment 初步翻譯
 export const saveInitialSegmentTranslation = (
@@ -104,16 +129,20 @@ export const saveInitialSegmentTranslation = (
 
 export class TranslatedSentence {
     $index: number
-    $id: string
+    $id: number
 
-    constructor(index: number, id: string) {
-        this.$index = index
-        this.$id = id
+    constructor(entity: Entity) {
+        this.$id = entity.id
+        this.$index = entity.propertyJson[this.propertyNames.index]
     }
 
     get index() {
         return this.$index
     }
+
+    propertyNames = Object.freeze({
+        index: 'index'
+    })
 }
 export class Document {
     content: string = ''

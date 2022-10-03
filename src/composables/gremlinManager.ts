@@ -17,6 +17,7 @@ export const vertexLabels = Object.freeze({
     linearTargetPattern: "LinearTargetPatternPiece"
     , sourcePattern: "SourcePatternPiece"
     , document: "Document"
+    , translatedSentence: "TranslatedSentence"
 })
 export const translatedVertexLabels = Object.freeze({
     translatedSentence: 'TranslatedSentence'
@@ -94,6 +95,9 @@ export class GremlinInvoke {
     valueMap(...values: string[] | number[] | boolean[] | GremlinInvoke[]) {
         return this.call("valueMap", ...values)
     }
+    in() {
+        return this.call("in")
+    }
     out(...values: string[] | number[] | boolean[] | GremlinInvoke[]) {
         return this.call("out", ...values)
     }
@@ -117,6 +121,9 @@ export class GremlinInvoke {
     }
     hasNot(...values: any[]) {
         return this.call("hasNot", ...values)
+    }
+    hasLabel(...values: string[]) {
+        return this.call("hasLabel", ...values)
     }
     as(alias: string) {
         return this.call("as", alias)
@@ -197,6 +204,9 @@ export class Entity extends QueryResultObject {
     get id() {
         return this.$id
     }
+    get propertyJson(): any {
+        return this.$properties
+    }
 }
 export class Relation extends QueryResultObject {
     $id: string
@@ -214,18 +224,17 @@ export class Relation extends QueryResultObject {
         return this.$id
     }
 }
-export const submitAndParse = async (commandOrObject: string | GremlinInvoke) => {
+export const submitAndParse = async (commandOrObject: string | GremlinInvoke): Promise<QueryResultObject[]> => {
     // 非同步實在很不會處理，這裡恐怕容易出錯
     return new Promise( (resolve, reject) => {
         submit(commandOrObject).then( (queryResultData: any) => {
-            console.log('result data', queryResultData)
+            console.log('submitAndParse result data', queryResultData)
             const queryResultArray = queryResultData[keys.value]
             switch (queryResultData[keys.type]) {
                 case responseDataType.list: // g:List
                 {
                     const result: QueryResultObject[] = []
                     queryResultArray.forEach((entry: any) => {
-                        console.log(entry)
                         let ele = undefined
                         switch (entry[keys.type]) {
                             case responseDataType.edge:
