@@ -76,29 +76,32 @@ async function queryExistingDocument(documentText: string) {
         throw error
     })
 }
-async function queryTranslatedSentences(documentId: number) {
+async function queryTranslatedSentences(documentId: number): Promise<TranslatedSentence[]> {
     const gremlinInvoke = new gremlinApi.GremlinInvoke()
     gremlinInvoke
     .V(documentId).in().hasLabel(gremlinApi.vertexLabels.translatedSentence)
     return await gremlinApi.submitAndParse(gremlinInvoke).then( (sentenceQueryResult) => {
-        const translatedSentences = []
+        const translatedSentences: any[] = []
         sentenceQueryResult.forEach( (queryResultEntry) => {
             if (! (queryResultEntry instanceof Entity)) throw '參數沒有控制好，這裡只能有 Entity'
             const translatedSentence = new TranslatedSentence(queryResultEntry)
             translatedSentences.push(translatedSentence)
-            // PROGRESS
-            console.log('one entry', queryResultEntry)
         } )
-        return sentenceQueryResult
-        // PROGRESS
+        // 檢查 sentence index 有沒有重覆
+        const sentenceIndexArray = translatedSentences.map( (element: TranslatedSentence) => {return element.index} )
+        const indexDuplicated = new Set(sentenceIndexArray).size !== sentenceIndexArray.length
+        console.log('indexDuplicated', indexDuplicated)
+        if (indexDuplicated) throw 'Document 裡的不同 sentence 的 index 有重覆，資料有問題'
+
+        return translatedSentences
     })
 }
 
 // 儲存 segment 初步翻譯
-export const saveInitialSegmentTranslation = (
+export function saveInitialSegmentTranslation (
     sentenceIndex: number
     , document: Document
-    ) => {
+    ) {
 
     const gremlinInvoke = new gremlinApi.GremlinInvoke()
 
@@ -111,6 +114,7 @@ export const saveInitialSegmentTranslation = (
         if (!document || !document.id) {
             throw '必須有 Document，而且 Document 必須有 Id'
         }
+        // TODO 檢查 sentence index 有沒有重覆
         gremlinInvoke
         .addV(gremlinApi.translatedVertexLabels.translatedSentence)
         .property('index', sentenceIndex)
@@ -118,12 +122,9 @@ export const saveInitialSegmentTranslation = (
         .to(new gremlinApi.GremlinInvoke(true).V(document.id))
         .outV()
         gremlinApi.submitAndParse(gremlinInvoke.command()).then((objects) => {
-            console.log('new sentence', objects)
-            // 回傳的是最後建的 edge
+            console.log('sentence saved', objects)
+            // 回傳的是新建的 vertex
         })
-        
-        console.log(gremlinInvoke.command())
-        // PROGRESS
     }
 }
 
@@ -133,7 +134,8 @@ export class TranslatedSentence {
 
     constructor(entity: Entity) {
         this.$id = entity.id
-        this.$index = entity.propertyJson[this.propertyNames.index]
+        this.$index = 
+        entity.propertyJson[this.propertyNames.index][0][gremlinApi.keys.value][gremlinApi.keys.propertyValue][gremlinApi.keys.value]
     }
 
     get index() {

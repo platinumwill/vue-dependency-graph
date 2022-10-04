@@ -268,6 +268,7 @@ enum responseDataType {
 export const valueKey = '@value'
 export const keys = {
     value: '@value'
+    , propertyValue: 'value'
     , properties: 'properties'
     , id: 'id'
     , label: 'label'
