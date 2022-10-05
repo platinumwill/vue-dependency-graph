@@ -12,7 +12,12 @@ export async function retrieveDocument(documentText: string, spacyFormatParsePro
             return queryTranslatedSentences(document.id)
         } ).then( (sentenceQueryResult: any) => {
             console.log(sentenceQueryResult)
-            // PROGRESS
+            document?.translatedSentences.splice(
+                0
+                , document.translatedSentences.length
+                , sentenceQueryResult
+                )
+            return document
         } )
         if (document != undefined) {
             console.log('existing document retrieved: ', document)
@@ -114,10 +119,13 @@ export function saveInitialSegmentTranslation (
         if (!document || !document.id) {
             throw '必須有 Document，而且 Document 必須有 Id'
         }
-        // TODO 檢查 sentence index 有沒有重覆
+        // 檢查 sentence index 有沒有重覆(有重覆的話會有例外)
+        queryTranslatedSentences(document.id)
+
+        // 存檔
         gremlinInvoke
         .addV(gremlinApi.translatedVertexLabels.translatedSentence)
-        .property('index', sentenceIndex)
+        .property(TranslatedSentence.propertyNames.index, sentenceIndex)
         .addE(gremlinApi.translatedVertexLabels.isPartOf)
         .to(new gremlinApi.GremlinInvoke(true).V(document.id))
         .outV()
@@ -135,14 +143,14 @@ export class TranslatedSentence {
     constructor(entity: Entity) {
         this.$id = entity.id
         this.$index = 
-        entity.propertyJson[this.propertyNames.index][0][gremlinApi.keys.value][gremlinApi.keys.propertyValue][gremlinApi.keys.value]
+        entity.propertyJson[TranslatedSentence.propertyNames.index][0][gremlinApi.keys.value][gremlinApi.keys.propertyValue][gremlinApi.keys.value]
     }
 
     get index() {
         return this.$index
     }
 
-    propertyNames = Object.freeze({
+    static propertyNames = Object.freeze({
         index: 'index'
     })
 }
