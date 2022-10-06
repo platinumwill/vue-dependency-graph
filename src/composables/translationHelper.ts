@@ -103,7 +103,7 @@ export function prepareTranslationHelper (
             console.log('document', document)
             documentPersistence.saveInitialSegmentTranslation(
                 targetPattern.token.sentence?.index
-                , targetPattern.selection.selected
+                , targetPattern.selection.selected.pieces[0].mappedGraphVertexId
                 , document
                 )
         }

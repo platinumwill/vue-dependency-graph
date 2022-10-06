@@ -73,7 +73,7 @@ export class GremlinInvoke {
         }
         this.commandBuffer = this.commandBuffer.concat(method, "(")
         if (values !== undefined) {
-            values.forEach( (value: string | number | boolean | GremlinInvoke, index: number) => {
+            values.forEach( (value: string | bigint | number | boolean | GremlinInvoke, index: number) => {
                 if (index !== 0) this.commandBuffer = this.commandBuffer.concat(", ")
                 if (value instanceof GremlinInvoke) {
                     this.commandBuffer = this.commandBuffer.concat(value.command())

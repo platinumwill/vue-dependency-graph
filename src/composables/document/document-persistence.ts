@@ -129,6 +129,7 @@ export function saveInitialSegmentTranslation (
         .property(TranslatedSentence.propertyNames.index, sentenceIndex)
         .addE(gremlinApi.translatedEdgeLabels.isPartOf)
         .to(new gremlinApi.GremlinInvoke(true).V(document.id))
+        .outV()
         .addE(gremlinApi.translatedEdgeLabels.translateWith)
         .to(new gremlinApi.GremlinInvoke(true).V(selectedTargetPatternId))
         .outV()
