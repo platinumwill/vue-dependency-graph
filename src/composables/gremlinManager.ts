@@ -250,8 +250,8 @@ export const submitAndParse = async (commandOrObject: string | GremlinInvoke): P
                                 throw '意外狀況，資料有問題'
                         }
                         result.push(ele)
-                        resolve(result)
                     })
+                    resolve(result)
                     break
                 }
                 default:
