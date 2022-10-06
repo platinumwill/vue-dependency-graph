@@ -105,6 +105,7 @@ async function queryTranslatedSentences(documentId: number): Promise<TranslatedS
 // 儲存 segment 初步翻譯
 export function saveInitialSegmentTranslation (
     sentenceIndex: number
+    , selectedTargetPatternId: bigint
     , document: Document
     ) {
 
@@ -126,8 +127,10 @@ export function saveInitialSegmentTranslation (
         gremlinInvoke
         .addV(gremlinApi.translatedVertexLabels.translatedSentence)
         .property(TranslatedSentence.propertyNames.index, sentenceIndex)
-        .addE(gremlinApi.translatedVertexLabels.isPartOf)
+        .addE(gremlinApi.translatedEdgeLabels.isPartOf)
         .to(new gremlinApi.GremlinInvoke(true).V(document.id))
+        .addE(gremlinApi.translatedEdgeLabels.translateWith)
+        .to(new gremlinApi.GremlinInvoke(true).V(selectedTargetPatternId))
         .outV()
         gremlinApi.submitAndParse(gremlinInvoke.command()).then((objects) => {
             console.log('sentence saved', objects)
@@ -136,6 +139,13 @@ export function saveInitialSegmentTranslation (
     }
 }
 
+class TranslatedSegment {
+    $rootTokenIndex: bigint
+
+    constructor(rootTokenIdx: bigint) {
+        this.$rootTokenIndex = rootTokenIdx
+    }
+}
 export class TranslatedSentence {
     $index: number
     $id: number
