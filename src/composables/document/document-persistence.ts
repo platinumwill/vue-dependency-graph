@@ -1,5 +1,6 @@
 import * as gremlinApi from '@/composables/gremlinManager'
 import { Entity } from '@/composables/gremlinManager'
+import { TargetPattern } from '../targetPattern'
 
 export async function retrieveDocument(documentText: string, spacyFormatParseProviderName: string, spacyFormatParseProvider: any) {
     if (spacyFormatParseProviderName != undefined) { // 有名字，就可以視同解析解果會被儲存
@@ -104,16 +105,20 @@ async function queryTranslatedSentences(documentId: number): Promise<TranslatedS
 
 // 儲存 segment 初步翻譯
 export function saveInitialSegmentTranslation (
-    sentenceIndex: number
-    , selectedTargetPatternId: bigint
+    targetPattern: TargetPattern
     , document: Document
     ) {
 
+    if (targetPattern.token.sentence?.index == undefined) throw '資料有問題'
+
+    const sentenceIndex: number = targetPattern.token.sentence?.index
+    const selectedTargetPatternId: bigint = targetPattern.selection.selected.pieces[0].mappedGraphVertexId
     const gremlinInvoke = new gremlinApi.GremlinInvoke()
 
     const existingSentence = document.translatedSentence(sentenceIndex)
     if (existingSentence.length) {
         // 更新 sentence
+        // TODO
         console.log(existingSentence)
     } else {
         // 新建 TranslatedSentence
@@ -124,6 +129,7 @@ export function saveInitialSegmentTranslation (
         queryTranslatedSentences(document.id)
 
         // 存檔
+        // 還要考慮 segment 更新的狀況
         gremlinInvoke
         .addV(gremlinApi.translatedVertexLabels.translatedSentence)
         .property(TranslatedSentence.propertyNames.index, sentenceIndex)
