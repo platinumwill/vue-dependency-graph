@@ -147,6 +147,7 @@ export function saveInitialSegmentTranslation (
         .addE(gremlinApi.translatedEdgeLabels.translateWith)
         .to(new gremlinApi.GremlinInvoke(true).V(selectedTargetPatternId)) // segment -> target pattern
         .outV()
+        // TODO 還要存 text pieces
         gremlinApi.submitAndParse(gremlinInvoke.command()).then((objects) => {
             console.log('sentence saved', objects)
             // 回傳的是新建的 vertex
