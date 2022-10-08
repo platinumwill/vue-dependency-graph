@@ -390,7 +390,8 @@ function _processTargetPatternStoring(segmentPieces: LinearTargetPatternPiece[],
         gremlinInvoke = gremlinInvoke
         .call("addV", gremlinManager.vertexLabels.linearTargetPattern)
         .call("property", gremlinManager.propertyNames.isPlaceholder, piece.isPlaceholder)
-        if (piece.appliedText != undefined) {
+        // text piece 才需要存文字內容
+        if (piece.appliedText != undefined && piece.type == LinearTargetPatternPiece.types.text) {
             gremlinInvoke.property(gremlinManager.propertyNames.appliedText, piece.appliedText)
         }
         gremlinInvoke.as(currentPieceAlias)
