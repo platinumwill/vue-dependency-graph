@@ -130,14 +130,19 @@ export function saveInitialSegmentTranslation (
 
         // 存檔
         // 還要考慮 segment 更新的狀況
+        const sentenceVertexAlias = 'translatedSentence'
         gremlinInvoke
-        .addV(gremlinApi.translatedVertexLabels.translatedSentence)
+        .addV(gremlinApi.translatedVertexLabels.translatedSentence) // sentence
+        .as(sentenceVertexAlias)
         .property(TranslatedSentence.propertyNames.index, sentenceIndex)
         .addE(gremlinApi.translatedEdgeLabels.isPartOf)
-        .to(new gremlinApi.GremlinInvoke(true).V(document.id))
-        .outV()
+        .to(new gremlinApi.GremlinInvoke(true).V(document.id)) // sentence -> document
+        .addV(gremlinApi.translatedVertexLabels.translatedSegment) // segement
+        .addE(gremlinApi.translatedEdgeLabels.isPartOf)
+        .to(sentenceVertexAlias) // segment -> sentence
+        .outV() // segment
         .addE(gremlinApi.translatedEdgeLabels.translateWith)
-        .to(new gremlinApi.GremlinInvoke(true).V(selectedTargetPatternId))
+        .to(new gremlinApi.GremlinInvoke(true).V(selectedTargetPatternId)) // segment -> target pattern
         .outV()
         gremlinApi.submitAndParse(gremlinInvoke.command()).then((objects) => {
             console.log('sentence saved', objects)

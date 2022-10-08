@@ -21,6 +21,7 @@ export const vertexLabels = Object.freeze({
 })
 export const translatedVertexLabels = Object.freeze({
     translatedSentence: 'TranslatedSentence'
+    , translatedSegment: 'TranslatedSegment'
 })
 export const translatedEdgeLabels = Object.freeze({
     isPartOf: 'isPartOf'
@@ -158,7 +159,7 @@ export class GremlinInvoke {
     count() {
         return this.call("count")
     }
-    to(value: number | GremlinInvoke) {
+    to(value: string | GremlinInvoke) {
         return this.call("to", value)
     }
 
