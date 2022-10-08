@@ -90,7 +90,9 @@ export default {
             + "," + (this.startY - this.config.arrowWidth) 
         }
         , color: function() {
-            if (this.matchExisting) {
+            if (this.initialTranslationConfirmed) {
+                return 'grey'
+            } else if (this.matchExisting) {
                 return "yellow"
             } else if (this.selected) {
                 return this.config.selectedForegroundColor 
@@ -102,6 +104,11 @@ export default {
         }
         , matchExisting: function() {
             return this.arc.sourcePatternEdgeId !== undefined
+        }
+        , initialTranslationConfirmed: function() {
+            return this.arc.beginToken.translationHelper 
+                && this.arc.beginToken.translationHelper.isTargetPatternConfirmed
+                && this.selected
         }
         , ...mapGetters({ 
             currentSentenceIndex: 'currentSentenceIndex'

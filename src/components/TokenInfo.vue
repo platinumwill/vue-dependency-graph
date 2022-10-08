@@ -48,7 +48,9 @@ export default {
     }
     , computed: {
         color: function() {
-            if (this.matchExisting) {
+            if (this.initialTranslationConfirmed) {
+                return 'grey'
+            } else if (this.matchExisting) {
                 return "yellow"
             } else if (this.selected) {
                 return this.config.selectedForegroundColor 
@@ -63,6 +65,11 @@ export default {
         }
         , matchExisting: function() {
             return this.morphologyInfo.token.sourcePatternVertexId !== undefined && this.selected
+        }
+        , initialTranslationConfirmed: function() {
+            return this.morphologyInfo.token.translationHelper 
+                && this.morphologyInfo.token.translationHelper.isTargetPatternConfirmed
+                && this.selected
         }
         , isBeginning: function() {
             return this.currentSpacyWord.isBeginning && this.morphologyInfo.type == this.minimalMorphologyInfo

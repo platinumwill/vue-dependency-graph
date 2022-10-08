@@ -16,6 +16,7 @@ import { computed, ComputedRef, ref, watch } from "vue";
 export type TranslationHelper = {
     saveSelectedPattern: Function
     , toggleMorphologyInfoSelection: Function
+    , isTargetPatternConfirmed: boolean
 }
 
 export function prepareTranslationHelper (
