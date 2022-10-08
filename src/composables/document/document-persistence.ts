@@ -16,7 +16,7 @@ export async function retrieveDocument(documentText: string, spacyFormatParsePro
             document?.translatedSentences.splice(
                 0
                 , document.translatedSentences.length
-                , sentenceQueryResult
+                , ...sentenceQueryResult
                 )
             return document
         } )
@@ -87,7 +87,7 @@ async function queryTranslatedSentences(documentId: number): Promise<TranslatedS
     gremlinInvoke
     .V(documentId).in().hasLabel(gremlinApi.vertexLabels.translatedSentence)
     return await gremlinApi.submitAndParse(gremlinInvoke).then( (sentenceQueryResult) => {
-        const translatedSentences: any[] = []
+        const translatedSentences: TranslatedSentence[] = []
         sentenceQueryResult.forEach( (queryResultEntry) => {
             if (! (queryResultEntry instanceof Entity)) throw '參數沒有控制好，這裡只能有 Entity'
             const translatedSentence = new TranslatedSentence(queryResultEntry)
@@ -115,11 +115,15 @@ export function saveInitialSegmentTranslation (
     const selectedTargetPatternId: bigint = targetPattern.selection.selected.pieces[0].mappedGraphVertexId
     const gremlinInvoke = new gremlinApi.GremlinInvoke()
 
+    const sentenceVertexAlias = 'translatedSentence'
+
+    // 存檔
     const existingSentence = document.translatedSentence(sentenceIndex)
     if (existingSentence) {
         // 更新 sentence
-        // TODO
         console.log(existingSentence)
+        gremlinInvoke.V(existingSentence.id)
+        .as(sentenceVertexAlias)
     } else {
         // 新建 TranslatedSentence
         if (!document || !document.id) {
@@ -128,9 +132,6 @@ export function saveInitialSegmentTranslation (
         // 檢查 sentence index 有沒有重覆(有重覆的話會有例外)
         queryTranslatedSentences(document.id)
 
-        // 存檔
-        // 還要分別考慮 sentence 和 segment 更新的狀況
-        const sentenceVertexAlias = 'translatedSentence'
         gremlinInvoke
         // setence
         .addV(gremlinApi.translatedVertexLabels.translatedSentence) // sentence
@@ -138,21 +139,23 @@ export function saveInitialSegmentTranslation (
         .property(TranslatedSentence.propertyNames.index, sentenceIndex)
         .addE(gremlinApi.translatedEdgeLabels.isPartOf)
         .to(new gremlinApi.GremlinInvoke(true).V(document.id)) // sentence -> document
-        // segment
-        .addV(gremlinApi.translatedVertexLabels.translatedSegment) // segement
-        .property(TranslatedSegment.propertyNames.rootTokenIndex, targetPattern.token.indexInSentence)
-        .addE(gremlinApi.translatedEdgeLabels.isPartOf)
-        .to(sentenceVertexAlias) // segment -> sentence
-        .outV() // segment
-        .addE(gremlinApi.translatedEdgeLabels.translateWith)
-        .to(new gremlinApi.GremlinInvoke(true).V(selectedTargetPatternId)) // segment -> target pattern
-        .outV()
-        // TODO 還要存 text pieces
-        gremlinApi.submitAndParse(gremlinInvoke.command()).then((objects) => {
-            console.log('sentence saved', objects)
-            // 回傳的是新建的 vertex
-        })
     }
+    // TODO 還要考慮 segment 更新的狀況
+    gremlinInvoke
+    // segment
+    .addV(gremlinApi.translatedVertexLabels.translatedSegment) // segement
+    .property(TranslatedSegment.propertyNames.rootTokenIndex, targetPattern.token.indexInSentence)
+    .addE(gremlinApi.translatedEdgeLabels.isPartOf)
+    .to(sentenceVertexAlias) // segment -> sentence
+    .outV() // segment
+    .addE(gremlinApi.translatedEdgeLabels.translateWith)
+    .to(new gremlinApi.GremlinInvoke(true).V(selectedTargetPatternId)) // segment -> target pattern
+    .outV()
+    // TODO 還要存 text pieces
+    gremlinApi.submitAndParse(gremlinInvoke.command()).then((objects) => {
+        console.log('sentence saved', objects)
+        // 回傳的是新建的 vertex
+    })
 }
 
 class TranslatedSegment {
@@ -177,6 +180,9 @@ export class TranslatedSentence {
 
     get index() {
         return this.$index
+    }
+    get id() {
+        return this.$id
     }
 
     static propertyNames = Object.freeze({
