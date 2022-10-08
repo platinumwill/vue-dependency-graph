@@ -129,15 +129,18 @@ export function saveInitialSegmentTranslation (
         queryTranslatedSentences(document.id)
 
         // 存檔
-        // 還要考慮 segment 更新的狀況
+        // 還要分別考慮 sentence 和 segment 更新的狀況
         const sentenceVertexAlias = 'translatedSentence'
         gremlinInvoke
+        // setence
         .addV(gremlinApi.translatedVertexLabels.translatedSentence) // sentence
         .as(sentenceVertexAlias)
         .property(TranslatedSentence.propertyNames.index, sentenceIndex)
         .addE(gremlinApi.translatedEdgeLabels.isPartOf)
         .to(new gremlinApi.GremlinInvoke(true).V(document.id)) // sentence -> document
+        // segment
         .addV(gremlinApi.translatedVertexLabels.translatedSegment) // segement
+        .property(TranslatedSegment.propertyNames.rootTokenIndex, targetPattern.token.indexInSentence)
         .addE(gremlinApi.translatedEdgeLabels.isPartOf)
         .to(sentenceVertexAlias) // segment -> sentence
         .outV() // segment
@@ -157,6 +160,9 @@ class TranslatedSegment {
     constructor(rootTokenIdx: bigint) {
         this.$rootTokenIndex = rootTokenIdx
     }
+    static propertyNames = Object.freeze({
+        rootTokenIndex: 'rootTokenIndex'
+    })
 }
 export class TranslatedSentence {
     $index: number
