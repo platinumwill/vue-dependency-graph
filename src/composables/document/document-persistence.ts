@@ -116,7 +116,7 @@ export function saveInitialSegmentTranslation (
     const gremlinInvoke = new gremlinApi.GremlinInvoke()
 
     const existingSentence = document.translatedSentence(sentenceIndex)
-    if (existingSentence.length) {
+    if (existingSentence) {
         // 更新 sentence
         // TODO
         console.log(existingSentence)
@@ -195,9 +195,10 @@ export class Document {
         this.$translatedSentences =  translatedSentences || []
     }
 
-    translatedSentence(index: number) {
+    translatedSentence(index: number): TranslatedSentence {
         // 測試發現如果沒有資料，會回傳空陣列
-        return this.$translatedSentences.filter(sentence => {return sentence.index == index})
+        const matchingSentenceArray = this.$translatedSentences.filter(sentence => {return sentence.index == index})
+        return (undefined || matchingSentenceArray[0])
     }
 
     public get id() {
