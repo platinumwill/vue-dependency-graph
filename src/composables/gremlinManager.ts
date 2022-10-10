@@ -232,13 +232,11 @@ export const submitAndParse = async (commandOrObject: string | GremlinInvoke): P
     // 非同步實在很不會處理，這裡恐怕容易出錯
     return new Promise( (resolve, reject) => {
         submit(commandOrObject).then( (queryResultData: any) => {
-            console.log('submitAndParse result data', queryResultData)
-            const queryResultArray = queryResultData[keys.value]
             switch (queryResultData[keys.type]) {
                 case responseDataType.list: // g:List
                 {
                     const result: QueryResultObject[] = []
-                    queryResultArray.forEach((entry: any) => {
+                    queryResultData[keys.value].forEach((entry: any) => {
                         let ele = undefined
                         switch (entry[keys.type]) {
                             case responseDataType.edge:
