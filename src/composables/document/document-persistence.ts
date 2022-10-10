@@ -53,21 +53,19 @@ export async function saveDocumentParse (document: Document) {
 async function queryExistingDocument(documentText: string) {
 
     const gremlinInvoke = new gremlinApi.GremlinInvoke()
-
     gremlinInvoke
     .V()
     .has('content', new gremlinApi.GremlinInvoke(true).call('textFuzzy', documentText))
+    .in().hasLabel(TranslatedSentence.className).in().hasLabel(TranslatedSegment.className).tree()
 
-    return await gremlinApi.submit(gremlinInvoke).then( (resultData: any) => {
+    return await gremlinApi.submitAndParse(gremlinInvoke).then( (resultData: any) => {
+        if (resultData.length > 1) throw '查詢文件有多筆結果，程式或資料有問題'
+        if (! resultData.size) return undefined
+        if (! (resultData[0] instanceof Map)) throw '查詢結果應該要是 Map，程式或資料有問題'
+        console.log('document', resultData[0])
+        // PROGRESS
+        return
         const queryResult = resultData[gremlinApi.valueKey]
-        if (queryResult.length > 1) {
-            const error = '查詢結果有多筆，資料不正確'
-            console.error(error)
-            throw error
-        }
-        if (queryResult.length <= 0) {
-            return undefined
-        }
         // 以下就是查詢結果剛好有 1 筆的正常流程
         const parseJsonString = queryResult[0][gremlinApi.valueKey][gremlinApi.keys.properties][gremlinApi.propertyNames.parse][0][gremlinApi.keys.value]['value']
         const parse = JSON.parse(parseJsonString)
@@ -168,6 +166,7 @@ class TranslatedSegment {
     static propertyNames = Object.freeze({
         rootTokenIndex: 'rootTokenIndex'
     })
+    static className = 'TranslatedSegment'
 }
 export class TranslatedSentence {
     $index: number
@@ -189,6 +188,7 @@ export class TranslatedSentence {
     static propertyNames = Object.freeze({
         index: 'index'
     })
+    static className = 'TranslatedSentence'
 }
 export class Document {
     content: string = ''

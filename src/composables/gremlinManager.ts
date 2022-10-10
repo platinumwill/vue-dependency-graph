@@ -162,6 +162,9 @@ export class GremlinInvoke {
     to(value: string | GremlinInvoke) {
         return this.call("to", value)
     }
+    tree() {
+        return this.call("tree")
+    }
 
     command() {
         return this.commandBuffer
@@ -231,6 +234,7 @@ export class Relation extends QueryResultObject {
 export const submitAndParse = async (commandOrObject: string | GremlinInvoke)
     : Promise<Entity 
         | Relation
+        | Map<any, Array<any>>
         | QueryResultObject[]> => {
     // 非同步實在很不會處理，這裡恐怕容易出錯
     return new Promise( (resolve, reject) => {
@@ -243,19 +247,27 @@ export const submitAndParse = async (commandOrObject: string | GremlinInvoke)
         })
     })
 }
-const parseJson = async (json: any) => {
+const parseJson = (json: any) => {
     let result = undefined
     switch (json[keys.type]) {
         case responseDataType.list: // g:List
         {
             const result: QueryResultObject[] = []
             json[keys.value].forEach((entry: any) => {
-                parseJson(entry).then( (parsedResult) => {
-                    result.push(parsedResult)
-                })
+                result.push(parseJson(entry))
             })
             return result
-            break
+        }
+        case responseDataType.tree:
+        {
+            const result = new Map()
+            json[keys.value].forEach((entry: any) => {
+                const node = parseJson(entry[keys.key])
+                const children = parseJson(entry[keys.propertyValue])
+                result.set(node, children)
+            })
+            // PROGRESS
+            return result
         }
         case responseDataType.edge:
             result = new Relation(json)
@@ -271,6 +283,7 @@ const parseJson = async (json: any) => {
 }
 enum responseDataType {
     list = "g:List"
+    , tree = 'g:Tree'
     , vertex = 'g:Vertex'
     , edge = 'g:Edge'
 }
@@ -281,6 +294,7 @@ export const keys = {
     , properties: 'properties'
     , id: 'id'
     , label: 'label'
+    , key: 'key'
     , type: '@type'
     , relationId: 'relationId'
 }
