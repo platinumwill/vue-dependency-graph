@@ -44,7 +44,7 @@ async function queryExistingDocument(documentText: string) {
     const gremlinInvoke = new gremlinApi.GremlinInvoke()
     gremlinInvoke
     .V()
-    .has('content', new gremlinApi.GremlinInvoke(true).call('textFuzzy', documentText))
+    .has(gremlinApi.propertyNames.content, new gremlinApi.GremlinInvoke(true).call('textFuzzy', documentText))
     .in().hasLabel(TranslatedSentence.className).in().hasLabel(TranslatedSegment.className).tree()
 
     return await gremlinApi.submitAndParse(gremlinInvoke).then( (resultData: any) => {
@@ -53,8 +53,8 @@ async function queryExistingDocument(documentText: string) {
         if (! (resultData[0] instanceof Map)) throw '查詢結果應該要是 Map，程式或資料有問題'
 
         const documentEntity: Entity = resultData[0].keys().next().value
-        const documentResult = new Document(documentEntity)
-        return documentResult
+        const document = new Document(documentEntity)
+        return document
     }).catch( (error) => {
         console.error(error)
         throw error
@@ -97,7 +97,7 @@ export function saveInitialSegmentTranslation (
         .addE(gremlinApi.translatedEdgeLabels.isPartOf)
         .to(new gremlinApi.GremlinInvoke(true).V(document.id)) // sentence -> document
     }
-    // TODO 還要考慮 segment 更新的狀況
+    // TODO 還要考慮 segment 更新的狀況，避免 segment index 重覆
     gremlinInvoke
     // segment
     .addV(gremlinApi.translatedVertexLabels.translatedSegment) // segement
@@ -160,7 +160,7 @@ export class Document {
         const parse = JSON.parse(parseJsonString)
         this.parse = parse
         
-        const content = documentEntity.propertyJson[gremlinApi.propertyNames.content][0][gremlinApi.keys.value]['value']
+        const content = documentEntity.propertyJson[gremlinApi.propertyNames.content][0][gremlinApi.keys.value][gremlinApi.keys.propertyValue]
         this.content = content || this.content
     }
 
