@@ -8,17 +8,6 @@ export async function retrieveDocument(documentText: string, spacyFormatParsePro
         await queryExistingDocument(documentText).then( (queryResult) => {
             document = queryResult
             return document
-        } ).then( (document) => {
-            if (! document) throw 'document 為空值，資料錯誤'
-            return queryTranslatedSentences(document.id)
-        } ).then( (sentenceQueryResult: any) => {
-            console.log(sentenceQueryResult)
-            document?.translatedSentences.splice(
-                0
-                , document.translatedSentences.length
-                , ...sentenceQueryResult
-                )
-            return document
         } )
         if (document != undefined) {
             console.log('existing document retrieved: ', document)
@@ -60,45 +49,15 @@ async function queryExistingDocument(documentText: string) {
 
     return await gremlinApi.submitAndParse(gremlinInvoke).then( (resultData: any) => {
         if (resultData.length > 1) throw '查詢文件有多筆結果，程式或資料有問題'
-        if (! resultData.size) return undefined
+        if (! resultData.length) return undefined
         if (! (resultData[0] instanceof Map)) throw '查詢結果應該要是 Map，程式或資料有問題'
-        console.log('document', resultData[0])
-        // PROGRESS
-        return
-        const queryResult = resultData[gremlinApi.valueKey]
-        // 以下就是查詢結果剛好有 1 筆的正常流程
-        const parseJsonString = queryResult[0][gremlinApi.valueKey][gremlinApi.keys.properties][gremlinApi.propertyNames.parse][0][gremlinApi.keys.value]['value']
-        const parse = JSON.parse(parseJsonString)
-        const content = queryResult[0][gremlinApi.valueKey][gremlinApi.keys.properties][gremlinApi.propertyNames.content][0][gremlinApi.keys.value]['value']
-        const id = queryResult[0][gremlinApi.valueKey][gremlinApi.keys.id][gremlinApi.keys.value]
-        const document = new Document(content, parse)
-        document.id = id
-        console.log('document query result: ', document)
-        return document
+
+        const documentEntity: Entity = resultData[0].keys().next().value
+        const documentResult = new Document(documentEntity)
+        return documentResult
     }).catch( (error) => {
         console.error(error)
         throw error
-    })
-}
-async function queryTranslatedSentences(documentId: number): Promise<TranslatedSentence[]> {
-    const gremlinInvoke = new gremlinApi.GremlinInvoke()
-    gremlinInvoke
-    .V(documentId).in().hasLabel(gremlinApi.vertexLabels.translatedSentence)
-    return await gremlinApi.submitAndParse(gremlinInvoke).then( (sentenceQueryResult) => {
-        const translatedSentences: TranslatedSentence[] = []
-        if (! (Array.isArray(sentenceQueryResult))) throw '查詢結果解析結果有問題'
-        sentenceQueryResult.forEach( (queryResultEntry) => {
-            if (! (queryResultEntry instanceof Entity)) throw '參數沒有控制好，這裡只能有 Entity'
-            const translatedSentence = new TranslatedSentence(queryResultEntry)
-            translatedSentences.push(translatedSentence)
-        } )
-        // 檢查 sentence index 有沒有重覆
-        const sentenceIndexArray = translatedSentences.map( (element: TranslatedSentence) => {return element.index} )
-        const indexDuplicated = new Set(sentenceIndexArray).size !== sentenceIndexArray.length
-        console.log('indexDuplicated', indexDuplicated)
-        if (indexDuplicated) throw 'Document 裡的不同 sentence 的 index 有重覆，資料有問題'
-
-        return translatedSentences
     })
 }
 
@@ -128,8 +87,7 @@ export function saveInitialSegmentTranslation (
         if (!document || !document.id) {
             throw '必須有 Document，而且 Document 必須有 Id'
         }
-        // 檢查 sentence index 有沒有重覆(有重覆的話會有例外)
-        queryTranslatedSentences(document.id)
+        // TODO 更新 document 的 sentence 和 segement
 
         gremlinInvoke
         // setence
@@ -194,12 +152,16 @@ export class Document {
     content: string = ''
     parse: any
     private _id: any
-    $translatedSentences: TranslatedSentence[]
+    $translatedSentences: TranslatedSentence[] = []
 
-    constructor(content?:string, parse?: any, translatedSentences?: TranslatedSentence[]) {
-        this.content = content || this.content
+    constructor(documentEntity?: Entity) {
+        if (! documentEntity) return
+        const parseJsonString = documentEntity.propertyJson[gremlinApi.propertyNames.parse][0][gremlinApi.keys.value][gremlinApi.keys.propertyValue]
+        const parse = JSON.parse(parseJsonString)
         this.parse = parse
-        this.$translatedSentences =  translatedSentences || []
+        
+        const content = documentEntity.propertyJson[gremlinApi.propertyNames.content][0][gremlinApi.keys.value]['value']
+        this.content = content || this.content
     }
 
     translatedSentence(index: number): TranslatedSentence {
