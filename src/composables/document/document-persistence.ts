@@ -88,6 +88,7 @@ async function queryTranslatedSentences(documentId: number): Promise<TranslatedS
     .V(documentId).in().hasLabel(gremlinApi.vertexLabels.translatedSentence)
     return await gremlinApi.submitAndParse(gremlinInvoke).then( (sentenceQueryResult) => {
         const translatedSentences: TranslatedSentence[] = []
+        if (! (Array.isArray(sentenceQueryResult))) throw '查詢結果解析結果有問題'
         sentenceQueryResult.forEach( (queryResultEntry) => {
             if (! (queryResultEntry instanceof Entity)) throw '參數沒有控制好，這裡只能有 Entity'
             const translatedSentence = new TranslatedSentence(queryResultEntry)

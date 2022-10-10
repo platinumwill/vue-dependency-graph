@@ -228,44 +228,46 @@ export class Relation extends QueryResultObject {
         return this.$id
     }
 }
-export const submitAndParse = async (commandOrObject: string | GremlinInvoke): Promise<QueryResultObject[]> => {
+export const submitAndParse = async (commandOrObject: string | GremlinInvoke)
+    : Promise<Entity 
+        | Relation
+        | QueryResultObject[]> => {
     // 非同步實在很不會處理，這裡恐怕容易出錯
     return new Promise( (resolve, reject) => {
         submit(commandOrObject).then( (queryResultData: any) => {
-            switch (queryResultData[keys.type]) {
-                case responseDataType.list: // g:List
-                {
-                    const result: QueryResultObject[] = []
-                    queryResultData[keys.value].forEach((entry: any) => {
-                        parseJson(entry).then( (parsedResult) => {
-                            result.push(parsedResult)
-                        })
-                    })
-                    resolve(result)
-                    break
-                }
-                default:
-                    throw '這裡的邏輯本來待補，現在撞到了，要補'
-            }
+            const parseResult = parseJson(queryResultData)
+            resolve(parseResult)
         }).catch((error) => {
             console.error(error)
             reject(error)
         })
     })
 }
-const parseJson = async (entry: any) => {
-    let ele = undefined
-    switch (entry[keys.type]) {
+const parseJson = async (json: any) => {
+    let result = undefined
+    switch (json[keys.type]) {
+        case responseDataType.list: // g:List
+        {
+            const result: QueryResultObject[] = []
+            json[keys.value].forEach((entry: any) => {
+                parseJson(entry).then( (parsedResult) => {
+                    result.push(parsedResult)
+                })
+            })
+            return result
+            break
+        }
         case responseDataType.edge:
-            ele = new Relation(entry)
+            result = new Relation(json)
             break
         case responseDataType.vertex:
-            ele = new Entity(entry)
+            result = new Entity(json)
             break
         default:
             throw '意外狀況，資料有問題'
     }
-    return ele
+    if (! result) throw 'parseJson 結果必須有值，程式有問題'
+    return result
 }
 enum responseDataType {
     list = "g:List"
