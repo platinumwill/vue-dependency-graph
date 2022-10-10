@@ -50,10 +50,25 @@ async function queryExistingDocument(documentText: string) {
     return await gremlinApi.submitAndParse(gremlinInvoke).then( (resultData: any) => {
         if (resultData.length > 1) throw '查詢文件有多筆結果，程式或資料有問題'
         if (! resultData.length) return undefined
-        if (! (resultData[0] instanceof Map)) throw '查詢結果應該要是 Map，程式或資料有問題'
+        const resultMap = resultData[0]
+        if (! (resultMap instanceof Map)) throw '查詢結果不是 Map，程式或資料有問題'
 
-        const documentEntity: Entity = resultData[0].keys().next().value
+        const sentencesJson = resultMap.values().next().value
+        const documentTranslatedSentences: TranslatedSentence[] = []
+        sentencesJson.forEach( (segmentMap: any, sentenceNode: any) => {
+            const sentenceTranslatedSegments: TranslatedSegment[] = []
+            segmentMap.forEach( (emptyMap: any, segmentNode:any ) => {
+                const segment = new TranslatedSegment(segmentNode)
+                sentenceTranslatedSegments.push(segment)
+            })
+            const sentence = new TranslatedSentence(sentenceNode)
+            sentence.translatedSegments = sentenceTranslatedSegments
+            documentTranslatedSentences.push(sentence)
+        })
+
+        const documentEntity: Entity = resultMap.keys().next().value
         const document = new Document(documentEntity)
+        document.translatedSentences = documentTranslatedSentences
         return document
     }).catch( (error) => {
         console.error(error)
@@ -118,8 +133,9 @@ export function saveInitialSegmentTranslation (
 class TranslatedSegment {
     $rootTokenIndex: bigint
 
-    constructor(rootTokenIdx: bigint) {
-        this.$rootTokenIndex = rootTokenIdx
+    constructor(entity: Entity) {
+        this.$rootTokenIndex = 
+        entity.propertyJson[TranslatedSegment.propertyNames.rootTokenIndex][0][gremlinApi.keys.value][gremlinApi.keys.propertyValue][gremlinApi.keys.value]
     }
     static propertyNames = Object.freeze({
         rootTokenIndex: 'rootTokenIndex'
@@ -129,6 +145,7 @@ class TranslatedSegment {
 export class TranslatedSentence {
     $index: number
     $id: number
+    $translatedSegments: TranslatedSegment[] = []
 
     constructor(entity: Entity) {
         this.$id = entity.id
@@ -141,6 +158,13 @@ export class TranslatedSentence {
     }
     get id() {
         return this.$id
+    }
+
+    get translatedSegments() {
+        return this.$translatedSegments
+    }
+    set translatedSegments(translatedSegments) {
+        this.$translatedSegments = translatedSegments
     }
 
     static propertyNames = Object.freeze({
