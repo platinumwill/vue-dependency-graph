@@ -237,18 +237,9 @@ export const submitAndParse = async (commandOrObject: string | GremlinInvoke): P
                 {
                     const result: QueryResultObject[] = []
                     queryResultData[keys.value].forEach((entry: any) => {
-                        let ele = undefined
-                        switch (entry[keys.type]) {
-                            case responseDataType.edge:
-                                ele = new Relation(entry)
-                                break
-                            case responseDataType.vertex:
-                                ele = new Entity(entry)
-                                break
-                            default:
-                                throw '意外狀況，資料有問題'
-                        }
-                        result.push(ele)
+                        parseJson(entry).then( (parsedResult) => {
+                            result.push(parsedResult)
+                        })
                     })
                     resolve(result)
                     break
@@ -261,6 +252,20 @@ export const submitAndParse = async (commandOrObject: string | GremlinInvoke): P
             reject(error)
         })
     })
+}
+const parseJson = async (entry: any) => {
+    let ele = undefined
+    switch (entry[keys.type]) {
+        case responseDataType.edge:
+            ele = new Relation(entry)
+            break
+        case responseDataType.vertex:
+            ele = new Entity(entry)
+            break
+        default:
+            throw '意外狀況，資料有問題'
+    }
+    return ele
 }
 enum responseDataType {
     list = "g:List"
