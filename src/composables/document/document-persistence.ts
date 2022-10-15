@@ -224,6 +224,7 @@ export class Document {
         const parseJsonString = documentEntity.propertyJson[gremlinApi.propertyNames.parse][0][gremlinApi.keys.value][gremlinApi.keys.propertyValue]
         const parse = JSON.parse(parseJsonString)
         this.parse = parse
+        this._id = documentEntity.id
         
         const content = documentEntity.propertyJson[gremlinApi.propertyNames.content][0][gremlinApi.keys.value][gremlinApi.keys.propertyValue]
         this.content = content || this.content
