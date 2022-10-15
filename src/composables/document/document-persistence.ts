@@ -92,11 +92,13 @@ export function saveInitialSegmentTranslation (
 
     // 存檔
     const existingSentence = document.translatedSentence(sentenceIndex)
+    let existingSegment = undefined
     if (existingSentence) {
         // 更新 sentence
-        console.log(existingSentence)
         gremlinInvoke.V(existingSentence.id)
         .as(sentenceVertexAlias)
+
+        existingSegment = existingSentence.translatedSegment(targetPattern.token.indexInSentence)
     } else {
         // 新建 TranslatedSentence
         if (!document || !document.id) {
@@ -112,6 +114,13 @@ export function saveInitialSegmentTranslation (
         .addE(gremlinApi.translatedEdgeLabels.isPartOf)
         .to(new gremlinApi.GremlinInvoke(true).V(document.id)) // sentence -> document
     }
+    
+    if (existingSegment) {
+        gremlinInvoke.V(existingSegment.id)
+        // .property(TranslatedSegment.propertyNames.rootTokenIndex, targetPattern.token.indexInSentence)
+        // PROGRESS 要先刪 TranslatedPiece 再建？
+    }
+        
     // TODO 還要考慮 segment 更新的狀況，避免 segment index 重覆
     gremlinInvoke
     // segment
@@ -123,7 +132,9 @@ export function saveInitialSegmentTranslation (
     .addE(gremlinApi.translatedEdgeLabels.translateWith)
     .to(new gremlinApi.GremlinInvoke(true).V(selectedTargetPatternId)) // segment -> target pattern
     .outV()
-    // TODO 還要存 text pieces
+    // TODO 還要存 text pieces 和 token pieces
+    // TODO 處理 piece
+    // TODO targetPattern.selection.selected.pieces
     gremlinApi.submitAndParse(gremlinInvoke.command()).then((objects) => {
         console.log('sentence saved', objects)
         // 回傳的是新建的 vertex
@@ -131,14 +142,26 @@ export function saveInitialSegmentTranslation (
 }
 
 class TranslatedSegment {
-    $rootTokenIndex: bigint
+    $rootTokenIndex: number
+    $id: bigint
 
     constructor(entity: Entity) {
         this.$rootTokenIndex = 
         entity.propertyJson[TranslatedSegment.propertyNames.rootTokenIndex][0][gremlinApi.keys.value][gremlinApi.keys.propertyValue][gremlinApi.keys.value]
+        this.$id = 
+        entity.propertyJson[TranslatedSegment.propertyNames.rootTokenIndex][0][gremlinApi.keys.value][gremlinApi.keys.propertyValue][gremlinApi.keys.value]
     }
+
+    get rootTokenIndex() {
+        return this.$rootTokenIndex
+    }
+    get id() {
+        return this.$id
+    }
+
     static propertyNames = Object.freeze({
         rootTokenIndex: 'rootTokenIndex'
+        , id: 'id'
     })
     static className = 'TranslatedSegment'
 }
@@ -151,6 +174,12 @@ export class TranslatedSentence {
         this.$id = entity.id
         this.$index = 
         entity.propertyJson[TranslatedSentence.propertyNames.index][0][gremlinApi.keys.value][gremlinApi.keys.propertyValue][gremlinApi.keys.value]
+    }
+
+    translatedSegment(index: number): TranslatedSegment {
+        // 測試發現如果沒有資料，會回傳空陣列
+        const matchingSentenceArray = this.$translatedSegments.filter(segment => {return segment.rootTokenIndex == index})
+        return (undefined || matchingSentenceArray[0])
     }
 
     get index() {
