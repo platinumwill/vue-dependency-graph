@@ -45,31 +45,42 @@ async function queryExistingDocument(documentText: string) {
     gremlinInvoke
     .V()
     .has(gremlinApi.propertyNames.content, new gremlinApi.GremlinInvoke(true).call('textFuzzy', documentText))
-    .in().hasLabel(TranslatedSentence.className).in().hasLabel(TranslatedSegment.className).tree()
+    .until(
+        new gremlinApi.GremlinInvoke(true)
+        .__not(new gremlinApi.GremlinInvoke(true).__in())
+    )
+    .repeat(
+        new gremlinApi.GremlinInvoke(true).__in()
+    )
 
     return await gremlinApi.submitAndParse(gremlinInvoke).then( (resultData: any) => {
         if (resultData.length > 1) throw '查詢文件有多筆結果，程式或資料有問題'
         if (! resultData.length) return undefined
-        const resultMap = resultData[0]
-        if (! (resultMap instanceof Map)) throw '查詢結果不是 Map，程式或資料有問題'
-        const sentencesJson = resultMap.values().next().value
-        if (! sentencesJson) return undefined
-        
-        const documentTranslatedSentences: TranslatedSentence[] = []
-        sentencesJson.forEach( (segmentMap: any, sentenceNode: any) => {
-            const sentenceTranslatedSegments: TranslatedSegment[] = []
-            segmentMap.forEach( (emptyMap: any, segmentNode:any ) => {
-                const segment = new TranslatedSegment(segmentNode)
-                sentenceTranslatedSegments.push(segment)
-            })
-            const sentence = new TranslatedSentence(sentenceNode)
-            sentence.translatedSegments = sentenceTranslatedSegments
-            documentTranslatedSentences.push(sentence)
-        })
 
-        const documentEntity: Entity = resultMap.keys().next().value
-        const document = new Document(documentEntity)
-        document.translatedSentences = documentTranslatedSentences
+        const resultDocumentOrMap = resultData[0]
+        let document = undefined
+        if (resultDocumentOrMap instanceof Entity) {
+            document = new Document(resultDocumentOrMap)
+        } else if ((resultDocumentOrMap instanceof Map)) {
+            const sentencesJson = resultDocumentOrMap.values().next().value
+            const documentTranslatedSentences: TranslatedSentence[] = []
+            sentencesJson.forEach( (segmentMap: any, sentenceNode: any) => {
+                const sentenceTranslatedSegments: TranslatedSegment[] = []
+                segmentMap.forEach( (emptyMap: any, segmentNode:any ) => {
+                    const segment = new TranslatedSegment(segmentNode)
+                    sentenceTranslatedSegments.push(segment)
+                })
+                const sentence = new TranslatedSentence(sentenceNode)
+                sentence.translatedSegments = sentenceTranslatedSegments
+                documentTranslatedSentences.push(sentence)
+            })
+            const documentEntity: Entity = resultDocumentOrMap.keys().next().value
+            document = new Document(documentEntity)
+            document.translatedSentences = documentTranslatedSentences
+        } else {
+            throw '查詢結果不是 Map 或 Entity，程式或資料有問題'
+        }
+
         return document
     }).catch( (error) => {
         console.error(error)

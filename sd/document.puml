@@ -2,10 +2,12 @@
 
 class Document
 class TranslatedSentence {
+    id: int
     index: int
 }
 
 class TranslatedSegment {
+    id: int
     rootTokenIndex: int
     targetPattern: string 
 }

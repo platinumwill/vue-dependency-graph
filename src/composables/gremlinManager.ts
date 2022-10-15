@@ -132,8 +132,8 @@ export class GremlinInvoke {
     as(alias: string) {
         return this.call("as", alias)
     }
-    select(key: string) {
-        return this.call("select", key)
+    select(...values: string[]) {
+        return this.call("select", values)
     }
     eq(value: number) {
         return this.call("eq", value)
@@ -144,8 +144,8 @@ export class GremlinInvoke {
     lt(value: number) {
         return this.call("lt", value)
     }
-    where(value: GremlinInvoke) {
-        return this.call("where", value)
+    where(...values: any[]) {
+        return this.call("where", ...values)
     }
     and(value: GremlinInvoke) {
         return this.call("and", value)
@@ -164,6 +164,19 @@ export class GremlinInvoke {
     }
     tree() {
         return this.call("tree")
+    }
+    until(value: GremlinInvoke) {
+        return this.call("until", value)
+    }
+    repeat(value: GremlinInvoke) {
+        return this.call("repeat", value)
+    }
+
+    __not(value: GremlinInvoke) {
+        return this.call("__.not", value)
+    }
+    __in() {
+        return this.call("__.in")
     }
 
     command() {
