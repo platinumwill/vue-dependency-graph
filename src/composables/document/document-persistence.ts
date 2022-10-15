@@ -52,8 +52,9 @@ async function queryExistingDocument(documentText: string) {
         if (! resultData.length) return undefined
         const resultMap = resultData[0]
         if (! (resultMap instanceof Map)) throw '查詢結果不是 Map，程式或資料有問題'
-
         const sentencesJson = resultMap.values().next().value
+        if (! sentencesJson) return undefined
+        
         const documentTranslatedSentences: TranslatedSentence[] = []
         sentencesJson.forEach( (segmentMap: any, sentenceNode: any) => {
             const sentenceTranslatedSegments: TranslatedSegment[] = []
