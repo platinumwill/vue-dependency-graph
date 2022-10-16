@@ -51,7 +51,7 @@ async function queryExistingDocument(documentText: string) {
     )
     .repeat(
         new gremlinApi.GremlinInvoke(true).__in()
-    )
+    ).tree()
 
     return await gremlinApi.submitAndParse(gremlinInvoke).then( (resultData: any) => {
         if (resultData.length > 1) throw '查詢文件有多筆結果，程式或資料有問題'
@@ -59,24 +59,26 @@ async function queryExistingDocument(documentText: string) {
 
         const resultDocumentOrMap = resultData[0]
         let document = undefined
-        if (resultDocumentOrMap instanceof Entity) {
-            document = new Document(resultDocumentOrMap)
-        } else if ((resultDocumentOrMap instanceof Map)) {
+        if ((resultDocumentOrMap instanceof Map)) {
+            if (! resultDocumentOrMap.size) return undefined // 裡面可能沒東西
+
             const sentencesJson = resultDocumentOrMap.values().next().value
             const documentTranslatedSentences: TranslatedSentence[] = []
-            sentencesJson.forEach( (segmentMap: any, sentenceNode: any) => {
-                const sentenceTranslatedSegments: TranslatedSegment[] = []
-                segmentMap.forEach( (emptyMap: any, segmentNode:any ) => {
-                    const segment = new TranslatedSegment(segmentNode)
-                    sentenceTranslatedSegments.push(segment)
-                })
-                const sentence = new TranslatedSentence(sentenceNode)
-                sentence.translatedSegments = sentenceTranslatedSegments
-                documentTranslatedSentences.push(sentence)
-            })
             const documentEntity: Entity = resultDocumentOrMap.keys().next().value
             document = new Document(documentEntity)
-            document.translatedSentences = documentTranslatedSentences
+            if (sentencesJson) {
+                sentencesJson.forEach( (segmentMap: any, sentenceNode: any) => {
+                    const sentenceTranslatedSegments: TranslatedSegment[] = []
+                    segmentMap.forEach( (emptyMap: any, segmentNode:any ) => {
+                        const segment = new TranslatedSegment(segmentNode)
+                        sentenceTranslatedSegments.push(segment)
+                    })
+                    const sentence = new TranslatedSentence(sentenceNode)
+                    sentence.translatedSegments = sentenceTranslatedSegments
+                    documentTranslatedSentences.push(sentence)
+                })
+                document.translatedSentences = documentTranslatedSentences
+            }
         } else {
             throw '查詢結果不是 Map 或 Entity，程式或資料有問題'
         }
@@ -121,31 +123,30 @@ export function saveInitialSegmentTranslation (
         gremlinInvoke
         // setence
         .addV(gremlinApi.translatedVertexLabels.translatedSentence) // sentence
-        .as(sentenceVertexAlias)
         .property(TranslatedSentence.propertyNames.index, sentenceIndex)
+        .as(sentenceVertexAlias)
+
         .addE(gremlinApi.translatedEdgeLabels.isPartOf)
         .to(new gremlinApi.GremlinInvoke(true).V(document.id)) // sentence -> document
     }
     
+    // segment
     if (existingSegment) {
         gremlinInvoke.V(existingSegment.id)
-        // .property(TranslatedSegment.propertyNames.rootTokenIndex, targetPattern.token.indexInSentence)
-        // PROGRESS 要先刪 TranslatedPiece 再建？
+    } else {
+        gremlinInvoke
+        .addV(gremlinApi.translatedVertexLabels.translatedSegment) // segement
+        .property(TranslatedSegment.propertyNames.rootTokenIndex, targetPattern.token.indexInSentence)
+        .addE(gremlinApi.translatedEdgeLabels.isPartOf)
+        .to(sentenceVertexAlias) // segment -> sentence
+        .outV() // segment
+        .addE(gremlinApi.translatedEdgeLabels.translateWith)
+        .to(new gremlinApi.GremlinInvoke(true).V(selectedTargetPatternId)) // segment -> target pattern
+        .outV()
     }
-        
-    // TODO 還要考慮 segment 更新的狀況，避免 segment index 重覆
-    gremlinInvoke
-    // segment
-    .addV(gremlinApi.translatedVertexLabels.translatedSegment) // segement
-    .property(TranslatedSegment.propertyNames.rootTokenIndex, targetPattern.token.indexInSentence)
-    .addE(gremlinApi.translatedEdgeLabels.isPartOf)
-    .to(sentenceVertexAlias) // segment -> sentence
-    .outV() // segment
-    .addE(gremlinApi.translatedEdgeLabels.translateWith)
-    .to(new gremlinApi.GremlinInvoke(true).V(selectedTargetPatternId)) // segment -> target pattern
-    .outV()
+    // PROGRESS 要先刪 TranslatedPiece 再建？
+    // PROGRESS 要更新 Document
     // TODO 還要存 text pieces 和 token pieces
-    // TODO 處理 piece
     // TODO targetPattern.selection.selected.pieces
     gremlinApi.submitAndParse(gremlinInvoke.command()).then((objects) => {
         console.log('sentence saved', objects)
@@ -155,13 +156,12 @@ export function saveInitialSegmentTranslation (
 
 class TranslatedSegment {
     $rootTokenIndex: number
-    $id: bigint
+    $id: number
 
     constructor(entity: Entity) {
         this.$rootTokenIndex = 
         entity.propertyJson[TranslatedSegment.propertyNames.rootTokenIndex][0][gremlinApi.keys.value][gremlinApi.keys.propertyValue][gremlinApi.keys.value]
-        this.$id = 
-        entity.propertyJson[TranslatedSegment.propertyNames.rootTokenIndex][0][gremlinApi.keys.value][gremlinApi.keys.propertyValue][gremlinApi.keys.value]
+        this.$id = entity.id
     }
 
     get rootTokenIndex() {
