@@ -5,7 +5,7 @@ import { TargetPattern } from '../targetPattern'
 export async function retrieveDocument(documentText: string, spacyFormatParseProviderName: string, spacyFormatParseProvider: any) {
     if (spacyFormatParseProviderName != undefined) { // 有名字，就可以視同解析解果會被儲存
         let document: Document|undefined = undefined
-        await queryExistingDocument(documentText).then( (queryResult) => {
+        await queryExistingDocument(undefined, documentText).then( (queryResult) => {
             document = queryResult
             return document
         } )
@@ -39,13 +39,23 @@ export async function saveDocumentParse (document: Document) {
 
     return document
 }
-async function queryExistingDocument(documentText: string) {
+async function queryExistingDocument(documentId: number|undefined, documentText: string|undefined) {
 
     const gremlinInvoke = new gremlinApi.GremlinInvoke()
-    gremlinInvoke
-    .V()
-    .has(gremlinApi.propertyNames.content, new gremlinApi.GremlinInvoke(true).call('textFuzzy', documentText))
-    .until(
+
+    if (documentId) {
+        gremlinInvoke.V(documentId)
+    } else if (documentText) {
+        gremlinInvoke
+        .V()
+        .has(gremlinApi.propertyNames.content, new gremlinApi.GremlinInvoke(true).call('textFuzzy', documentText))
+    } else {
+        const error = '沒有參數，程式錯誤'
+        console.error(error)
+        throw error
+    }
+
+    gremlinInvoke.until(
         new gremlinApi.GremlinInvoke(true)
         .__not(new gremlinApi.GremlinInvoke(true).__in())
     )
@@ -144,8 +154,14 @@ export function saveInitialSegmentTranslation (
         .to(new gremlinApi.GremlinInvoke(true).V(selectedTargetPatternId)) // segment -> target pattern
         .outV()
     }
+
+    // 更新 Document
+    // 不知道這裡會不會有 async 的問題
+    queryExistingDocument(document.id, undefined).then( (reloadedDocument) => {
+        Object.assign(document, reloadedDocument)
+    } )
+
     // PROGRESS 要先刪 TranslatedPiece 再建？
-    // PROGRESS 要更新 Document
     // TODO 還要存 text pieces 和 token pieces
     // TODO targetPattern.selection.selected.pieces
     gremlinApi.submitAndParse(gremlinInvoke.command()).then((objects) => {
