@@ -22,6 +22,8 @@ export const vertexLabels = Object.freeze({
 export const translatedVertexLabels = Object.freeze({
     translatedSentence: 'TranslatedSentence'
     , translatedSegment: 'TranslatedSegment'
+    , translatedToken: 'TranslatedToken'
+    , translatedText: 'TranslatedText'
 })
 export const translatedEdgeLabels = Object.freeze({
     isPartOf: 'isPartOf'
@@ -105,6 +107,9 @@ export class GremlinInvoke {
     out(...values: string[] | number[] | boolean[] | GremlinInvoke[]) {
         return this.call("out", ...values)
     }
+    inE(...values: string[] | number[] | boolean[] | GremlinInvoke[]) {
+        return this.call("inE", ...values)
+    }
     outE(...values: string[] | number[] | boolean[] | GremlinInvoke[]) {
         return this.call("outE", ...values)
     }
@@ -170,6 +175,12 @@ export class GremlinInvoke {
     }
     repeat(value: GremlinInvoke) {
         return this.call("repeat", value)
+    }
+    choose(...values: any[]) {
+        return this.call("choose", ...values)
+    }
+    drop() {
+        return this.call("drop")
     }
 
     __not(value: GremlinInvoke) {

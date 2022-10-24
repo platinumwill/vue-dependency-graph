@@ -1,6 +1,6 @@
 import * as gremlinApi from '@/composables/gremlinManager'
 import { Entity } from '@/composables/gremlinManager'
-import { TargetPattern } from '../targetPattern'
+import { LinearTargetPatternPiece, TargetPattern } from '@/composables/targetPattern'
 
 export async function retrieveDocument(documentText: string, spacyFormatParseProviderName: string, spacyFormatParseProvider: any) {
     if (spacyFormatParseProviderName != undefined) { // 有名字，就可以視同解析解果會被儲存
@@ -128,7 +128,6 @@ export function saveInitialSegmentTranslation (
         if (!document || !document.id) {
             throw '必須有 Document，而且 Document 必須有 Id'
         }
-        // TODO 更新 document 的 sentence 和 segement
 
         gremlinInvoke
         // setence
@@ -141,11 +140,22 @@ export function saveInitialSegmentTranslation (
     }
     
     // segment
+    const segmentAlias = 'segmentAlias'
+    const oldPiecesAlias = 'oldPiecesAlias'
     if (existingSegment) {
-        gremlinInvoke.V(existingSegment.id)
+        gremlinInvoke
+        .V(existingSegment.id)
+        .as(segmentAlias)
+        .choose(
+            new gremlinApi.GremlinInvoke(true).__in().hasLabel(gremlinApi.translatedEdgeLabels.isPartOf)
+            , new gremlinApi.GremlinInvoke(true).__in().hasLabel(gremlinApi.translatedEdgeLabels.isPartOf).as(oldPiecesAlias) // 舊的 pieces 先選起來，最後才能刪
+        )
+    // PROGRESS 要先刪 TranslatedPiece 再建？
+        .select(segmentAlias)
     } else {
         gremlinInvoke
         .addV(gremlinApi.translatedVertexLabels.translatedSegment) // segement
+        .as(segmentAlias)
         .property(TranslatedSegment.propertyNames.rootTokenIndex, targetPattern.token.indexInSentence)
         .addE(gremlinApi.translatedEdgeLabels.isPartOf)
         .to(sentenceVertexAlias) // segment -> sentence
@@ -154,15 +164,45 @@ export function saveInitialSegmentTranslation (
         .to(new gremlinApi.GremlinInvoke(true).V(selectedTargetPatternId)) // segment -> target pattern
         .outV()
     }
+    // TODO 還要存 text pieces 和 token pieces
+    targetPattern.dialogPieces.pieces.forEach( (piece: LinearTargetPatternPiece) => {
+        if (piece.type.name == LinearTargetPatternPiece.types.dependency.name) return // type 是 text 或 token 才要處理
 
+        let text = ''
+        if (piece.appliedText) {
+            text = piece.appliedText
+        }
+        let tokenLabel = undefined
+        let property = undefined
+
+        if (piece.type.name == LinearTargetPatternPiece.types.token.name) {
+            tokenLabel = gremlinApi.translatedVertexLabels.translatedToken
+            property = TranslatedToken.propertyNames.translatedText
+        } else if (piece.type.name == LinearTargetPatternPiece.types.text.name) {
+            tokenLabel = gremlinApi.translatedVertexLabels.translatedText
+            property = TranslatedText.propertyNames.text
+        } else {
+            const error = '例外流程，程式控制有錯'
+            console.log(error)
+            throw error
+        }
+        gremlinInvoke
+        .addV(tokenLabel)
+        .property(property, text)
+        .addE(gremlinApi.translatedEdgeLabels.isPartOf)
+        .to(segmentAlias)
+        // .outV() // 回到 segment
+    })
+    gremlinInvoke.select(oldPiecesAlias).drop()
+
+
+    // TODO 更新 document 的 sentence 和 segement
     // 更新 Document
     // 不知道這裡會不會有 async 的問題
     queryExistingDocument(document.id, undefined).then( (reloadedDocument) => {
         Object.assign(document, reloadedDocument)
     } )
 
-    // PROGRESS 要先刪 TranslatedPiece 再建？
-    // TODO 還要存 text pieces 和 token pieces
     // TODO targetPattern.selection.selected.pieces
     gremlinApi.submitAndParse(gremlinInvoke.command()).then((objects) => {
         console.log('sentence saved', objects)
@@ -170,6 +210,34 @@ export function saveInitialSegmentTranslation (
     })
 }
 
+class TranslatedText {
+    $text: string = ''
+
+    get text() {
+        return this.$text
+    }
+    set text(text: string) {
+        this.$text = text
+    }
+
+    static propertyNames = Object.freeze({
+        text: 'text'
+    })
+}
+class TranslatedToken {
+    $translatedText: string = ''
+
+    get translatedText() {
+        return this.$translatedText
+    }
+    set translatedText(translatedText: string) {
+        this.$translatedText = translatedText
+    }
+
+    static propertyNames = Object.freeze({
+        translatedText: 'translatedText'
+    })
+}
 class TranslatedSegment {
     $rootTokenIndex: number
     $id: number
