@@ -115,8 +115,8 @@ export function saveInitialSegmentTranslation (
     const sentenceVertexAlias = 'translatedSentence'
 
     // 存檔
-    const existingSentence = document.translatedSentence(sentenceIndex)
     let existingSegment = undefined
+    const existingSentence = document.translatedSentence(sentenceIndex)
     if (existingSentence) {
         // 更新 sentence
         gremlinInvoke.V(existingSentence.id)
@@ -206,6 +206,7 @@ export function saveInitialSegmentTranslation (
     // 不知道這裡會不會有 async 的問題
     queryExistingDocument(document.id, undefined).then( (reloadedDocument) => {
         Object.assign(document, reloadedDocument)
+        console.log('reloaded document', document)
     } )
 }
 
@@ -316,6 +317,11 @@ export class Document {
     translatedSentence(index: number): TranslatedSentence {
         // 測試發現如果沒有資料，會回傳空陣列
         const matchingSentenceArray = this.$translatedSentences.filter(sentence => {return sentence.index == index})
+        if (matchingSentenceArray.length > 1) {
+            const error = '相同 index 的 sentence 有重覆，資料有問題'
+            console.log(error)
+            throw error
+        }
         return (undefined || matchingSentenceArray[0])
     }
 
@@ -330,6 +336,7 @@ export class Document {
         return this.$translatedSentences
     }
     set translatedSentences(translatedSentences) {
+        // TODO 檢查重覆
         this.$translatedSentences = translatedSentences
     }
 
