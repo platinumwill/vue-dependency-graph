@@ -134,7 +134,6 @@ export function saveInitialSegmentTranslation (
         .addV(gremlinApi.translatedVertexLabels.translatedSentence) // sentence
         .property(TranslatedSentence.propertyNames.index, sentenceIndex)
         .as(sentenceVertexAlias)
-
         .addE(gremlinApi.translatedEdgeLabels.isPartOf)
         .to(new gremlinApi.GremlinInvoke(true).V(document.id)) // sentence -> document
     }
@@ -147,11 +146,12 @@ export function saveInitialSegmentTranslation (
         .V(existingSegment.id)
         .as(segmentAlias)
         .choose(
-            new gremlinApi.GremlinInvoke(true).__in().hasLabel(gremlinApi.translatedEdgeLabels.isPartOf)
-            , new gremlinApi.GremlinInvoke(true).__in().hasLabel(gremlinApi.translatedEdgeLabels.isPartOf).as(oldPiecesAlias) // 舊的 pieces 先選起來，最後才能刪
+            new gremlinApi.GremlinInvoke(true).inE().hasLabel(gremlinApi.translatedEdgeLabels.isPartOf)
+            , new gremlinApi.GremlinInvoke(true).inE().hasLabel(gremlinApi.translatedEdgeLabels.isPartOf).outV().as(oldPiecesAlias) // 舊的 pieces 先選起來，最後才能刪
         )
     // PROGRESS 要先刪 TranslatedPiece 再建？
         .select(segmentAlias)
+        .dedup()
     } else {
         gremlinInvoke
         .addV(gremlinApi.translatedVertexLabels.translatedSegment) // segement
@@ -193,8 +193,13 @@ export function saveInitialSegmentTranslation (
         .to(segmentAlias)
         // .outV() // 回到 segment
     })
-    gremlinInvoke.select(oldPiecesAlias).drop()
+    gremlinInvoke.select(oldPiecesAlias).dedup().drop()
 
+    // TODO targetPattern.selection.selected.pieces
+    gremlinApi.submitAndParse(gremlinInvoke.command()).then((objects) => {
+        console.log('sentence saved', objects)
+        // 回傳的是新建的 vertex
+    })
 
     // TODO 更新 document 的 sentence 和 segement
     // 更新 Document
@@ -202,12 +207,6 @@ export function saveInitialSegmentTranslation (
     queryExistingDocument(document.id, undefined).then( (reloadedDocument) => {
         Object.assign(document, reloadedDocument)
     } )
-
-    // TODO targetPattern.selection.selected.pieces
-    gremlinApi.submitAndParse(gremlinInvoke.command()).then((objects) => {
-        console.log('sentence saved', objects)
-        // 回傳的是新建的 vertex
-    })
 }
 
 class TranslatedText {

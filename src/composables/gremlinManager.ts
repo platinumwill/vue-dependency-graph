@@ -138,7 +138,10 @@ export class GremlinInvoke {
         return this.call("as", alias)
     }
     select(...values: string[]) {
-        return this.call("select", values)
+        return this.call("select", ...values)
+    }
+    dedup() {
+        return this.call("dedup")
     }
     eq(value: number) {
         return this.call("eq", value)
