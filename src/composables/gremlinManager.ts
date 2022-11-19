@@ -155,8 +155,8 @@ export class GremlinInvoke {
     where(...values: any[]) {
         return this.call("where", ...values)
     }
-    and(value: GremlinInvoke) {
-        return this.call("and", value)
+    and(...values: GremlinInvoke[]) {
+        return this.call("and", ...values)
     }
     not(value: GremlinInvoke) {
         return this.call("not", value)
@@ -189,8 +189,8 @@ export class GremlinInvoke {
     __not(value: GremlinInvoke) {
         return this.call("__.not", value)
     }
-    __in() {
-        return this.call("__.in")
+    __in(...edgeLabels: string[]) {
+        return this.call("__.in", ...edgeLabels)
     }
 
     command() {

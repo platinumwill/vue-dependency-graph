@@ -55,9 +55,15 @@ async function queryExistingDocument(documentId: number|undefined, documentText:
         throw error
     }
 
+    // 查詢 document 的內容
     gremlinInvoke.until(
         new gremlinApi.GremlinInvoke(true)
-        .__not(new gremlinApi.GremlinInvoke(true).__in())
+        .and(
+            new gremlinApi.GremlinInvoke(true)
+            .__not(new gremlinApi.GremlinInvoke(true).__in(gremlinApi.translatedEdgeLabels.isPartOf))
+            , new gremlinApi.GremlinInvoke(true)
+            .__not(new gremlinApi.GremlinInvoke(true).out(gremlinApi.translatedEdgeLabels.translateWith))
+        )
     )
     .repeat(
         new gremlinApi.GremlinInvoke(true).__in()
@@ -77,13 +83,13 @@ async function queryExistingDocument(documentId: number|undefined, documentText:
             const documentEntity: Entity = resultDocumentOrMap.keys().next().value
             document = new Document(documentEntity)
             if (sentencesJson) {
-                sentencesJson.forEach( (segmentMap: any, sentenceNode: any) => {
+                sentencesJson.forEach( (segmentMap: any, sentenceNode: any) => { // loop sentences
                     const sentenceTranslatedSegments: TranslatedSegment[] = []
-                    segmentMap.forEach( (emptyMap: any, segmentNode:any ) => {
-                        const segment = new TranslatedSegment(segmentNode)
+                    segmentMap.forEach( (emptyMap: any, segmentNode:any ) => { // loop segments
+                        const segment = new TranslatedSegment(segmentNode) // load segment
                         sentenceTranslatedSegments.push(segment)
                     })
-                    const sentence = new TranslatedSentence(sentenceNode)
+                    const sentence = new TranslatedSentence(sentenceNode) // load sentence
                     sentence.translatedSegments = sentenceTranslatedSegments
                     documentTranslatedSentences.push(sentence)
                 })
@@ -164,7 +170,7 @@ export function saveInitialSegmentTranslation (
         .to(new gremlinApi.GremlinInvoke(true).V(selectedTargetPatternId)) // segment -> target pattern
         .outV()
     }
-    // TODO 還要存 text pieces 和 token pieces
+    // 存 text pieces 和 token pieces
     targetPattern.dialogPieces.pieces.forEach( (piece: LinearTargetPatternPiece) => {
         if (piece.type.name == LinearTargetPatternPiece.types.dependency.name) return // type 是 text 或 token 才要處理
 
