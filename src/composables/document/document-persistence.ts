@@ -106,10 +106,30 @@ async function queryExistingDocument(documentId: number|undefined, documentText:
     })
 }
 
-// 儲存 segment 初步翻譯
 export function saveInitialSegmentTranslation (
     targetPattern: TargetPattern
     , document: Document
+    ) {
+
+    if (targetPattern.token.sentence?.index == undefined) throw '資料有問題'
+    const sentenceIndex: number = targetPattern.token.sentence?.index
+    const existingSentence = document.translatedSentence(sentenceIndex)
+    let existingSegment = undefined
+    if (existingSentence) {
+        // 更新 sentence
+        const gremlinInvoke = new gremlinApi.GremlinInvoke()
+        gremlinInvoke.V(existingSentence.id)
+
+        existingSegment = existingSentence.translatedSegment(targetPattern.token.indexInSentence)
+    }
+    addInitialSegmentTranslation(targetPattern, document, existingSegment)
+}
+
+// 儲存 segment 初步翻譯
+function addInitialSegmentTranslation (
+    targetPattern: TargetPattern
+    , document: Document
+    , existingSegment: TranslatedSegment | undefined
     ) {
 
     if (targetPattern.token.sentence?.index == undefined) throw '資料有問題'
@@ -121,7 +141,6 @@ export function saveInitialSegmentTranslation (
     const sentenceVertexAlias = 'translatedSentence'
 
     // 存檔
-    let existingSegment = undefined
     const existingSentence = document.translatedSentence(sentenceIndex)
     if (existingSentence) {
         // 更新 sentence

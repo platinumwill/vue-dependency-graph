@@ -206,6 +206,7 @@ export const submit = (commandOrObject: string | GremlinInvoke) => {
         command = commandOrObject
     }
 
+    console.log('gremlin', command)
     const argument = {
         gremlin: command
     }
