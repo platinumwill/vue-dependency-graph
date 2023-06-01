@@ -44,8 +44,10 @@ async function queryExistingDocument(documentId: number|undefined, documentText:
     const gremlinInvoke = new gremlinApi.GremlinInvoke()
 
     if (documentId) {
+        // search by document id
         gremlinInvoke.V(documentId)
     } else if (documentText) {
+        // search by document text
         gremlinInvoke
         .V()
         .has(gremlinApi.propertyNames.content, new gremlinApi.GremlinInvoke(true).call('textFuzzy', documentText))
