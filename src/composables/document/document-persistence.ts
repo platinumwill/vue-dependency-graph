@@ -1,6 +1,7 @@
 import * as gremlinApi from '@/composables/gremlinManager'
 import { Entity } from '@/composables/gremlinManager'
 import { LinearTargetPatternPiece, TargetPattern } from '@/composables/targetPattern'
+import * as backendAgent from "@/composables/backend-agent"
 
 export async function retrieveDocument(documentText: string, spacyFormatParseProviderName: string, spacyFormatParseProvider: any) {
     if (spacyFormatParseProviderName != undefined) { // 有名字，就可以視同解析解果會被儲存
@@ -42,6 +43,7 @@ export async function saveDocumentParse (document: Document) {
 async function queryExistingDocument(documentId: number|undefined, documentText: string|undefined) {
 
     const gremlinInvoke = new gremlinApi.GremlinInvoke()
+    backendAgent.xxxx()
 
     if (documentId) {
         // search by document id
