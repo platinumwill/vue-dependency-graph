@@ -6,7 +6,7 @@ import * as backendAgent from "@/composables/backend-agent"
 export async function retrieveDocument(documentText: string, spacyFormatParseProviderName: string, spacyFormatParseProvider: any) {
     if (spacyFormatParseProviderName != undefined) { // 有名字，就可以視同解析解果會被儲存
         let document: Document|undefined = undefined
-        await queryExistingDocument(undefined, documentText).then( (queryResult) => {
+        await queryExistingDocument(undefined, documentText).then( (queryResult) => { // 轉換到 aws 的初期，全文檢索暫時不實做
             document = queryResult
             return document
         } )
@@ -48,6 +48,7 @@ async function queryExistingDocument(documentId: number|undefined, documentText:
     if (documentId) {
         // search by document id
         gremlinInvoke.V(documentId)
+    // 轉換到 aws 的初期，全文檢索暫時不實做
     } else if (documentText) {
         // search by document text
         gremlinInvoke
@@ -110,6 +111,7 @@ async function queryExistingDocument(documentId: number|undefined, documentText:
     })
 }
 
+// translationHelper.toggleSegmentTranslationConfirmed 會來呼叫
 export function saveInitialSegmentTranslation (
     targetPattern: TargetPattern
     , document: Document
