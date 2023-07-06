@@ -43,7 +43,7 @@ export async function saveDocumentParse (document: Document) {
 async function queryExistingDocument(documentId: number|undefined, documentText: string|undefined) {
 
     const gremlinInvoke = new gremlinApi.GremlinInvoke()
-    backendAgent.xxxx()
+    backendAgent.queryExistingDocument(documentId, documentText)
 
     if (documentId) {
         // search by document id
