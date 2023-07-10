@@ -1,11 +1,10 @@
 const apigClientFactory = require('aws-api-gateway-client').default;
 
 const config = {
-    invokeUrl: 'https://e0ztjs5kx3.execute-api.ap-southeast-1.amazonaws.com/prod/graph'
-    , region: 'ap-southeast-1'
-    , accessKey: 'AKIA2HKHFIQIKO6UFHUH'
-    , secretKey: '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'
-
+    invokeUrl: 'https://' + process.env.VUE_APP_AWS_API_INVOKE_URL
+    , region: process.env.VUE_APP_AWS_REGION
+    , accessKey: process.env.VUE_APP_AWS_ACCESSKEY
+    , secretKey: process.env.VUE_APP_AWS_SECRETKEY
 }
 const apigClient = apigClientFactory.newClient(config)
 console.log('apigclient', apigClient)
