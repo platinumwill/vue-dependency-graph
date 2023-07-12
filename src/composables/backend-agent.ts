@@ -14,7 +14,7 @@ const pathTemaplte = ''
 const method = 'POST'
 const additionalParams = {}
 // https://jqjs9epd00.execute-api.ap-southeast-1.amazonaws.com/prod
-export function queryExistingDocument(documentId: number|undefined, documentText: string|undefined) {
+export async function queryExistingDocument(documentId: number|undefined, documentText: string|undefined) {
     console.log('function, apigclientFactory', apigClientFactory)
     const document = {
         id: documentId
@@ -23,13 +23,13 @@ export function queryExistingDocument(documentId: number|undefined, documentText
     const body = {
         document: document
     }
-
-    apigClient.invokeApi(pathParams, pathTemaplte, method, additionalParams, body)
-        .then(function(result: string){
-            console.log('api result', result)
-            //This is where you would put a success callback
+    const documentQueryResult = await apigClient.invokeApi(pathParams, pathTemaplte, method, additionalParams, body)
+        .then(function(response: any){
+            return response.data
         }).catch( function(result: string){
             console.log('api exception', result)
-            //This is where you would put an error callback
-        });
+            throw new Error(result)
+        })
+
+    return documentQueryResult
 }

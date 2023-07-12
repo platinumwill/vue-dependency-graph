@@ -9,7 +9,10 @@ export async function retrieveDocument(documentText: string, spacyFormatParsePro
         await queryExistingDocument(undefined, documentText).then( (queryResult) => { // 轉換到 aws 的初期，全文檢索暫時不實做
             document = queryResult
             return document
-        } )
+        } ).catch( (error) => {
+            console.error(error)
+            throw error
+        })
         if (document != undefined) {
             console.log('existing document retrieved: ', document)
             return document
@@ -43,7 +46,6 @@ export async function saveDocumentParse (document: Document) {
 async function queryExistingDocument(documentId: number|undefined, documentText: string|undefined) {
 
     const gremlinInvoke = new gremlinApi.GremlinInvoke()
-    backendAgent.queryExistingDocument(documentId, documentText)
 
     if (documentId) {
         // search by document id
@@ -74,6 +76,10 @@ async function queryExistingDocument(documentId: number|undefined, documentText:
         new gremlinApi.GremlinInvoke(true).__in()
     ).tree()
 
+    await backendAgent.queryExistingDocument(documentId, documentText).then( (resultData: Object[]) => {
+        console.log('document from NEPTUNE', resultData)
+        console.log('document from NEPTUNE length', resultData.length)
+    })
     return await gremlinApi.submitAndParse(gremlinInvoke).then( (resultData: any) => {
         if (resultData.length > 1) throw '查詢文件有多筆結果，程式或資料有問題'
         if (! resultData.length) return undefined
