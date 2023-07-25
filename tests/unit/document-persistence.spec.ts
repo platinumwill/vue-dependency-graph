@@ -13,7 +13,7 @@ jest.mock('@/composables/gremlinManager', () => {
     }
 })
 describe('document persistence test', () => {
-    it('blank', () => {
+    it('integration test', () => {
         (backendAgent.queryExistingDocument as jest.Mock).mockResolvedValue([]);
         const content = "Samuel L. Jackson sent an email to Stanford University. He didn't get a reply."
         documentPersistence.retrieveDocument(content,'some provider', undefined)
