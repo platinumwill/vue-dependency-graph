@@ -5,6 +5,18 @@ import * as backendAgent from "@/composables/backend-agent"
 
 export async function retrieveDocument(documentText: string, spacyFormatParseProviderName: string, spacyFormatParseProvider: any) {
     if (spacyFormatParseProviderName != undefined) { // 有名字，就可以視同解析解果會被儲存
+
+        // return await backendAgent.queryExistingDocument(documentId, documentText).then( (resultData: Object[]) => {
+        await backendAgent.queryExistingDocument(undefined, documentText).then( (resultData: Object[]) => {
+            console.log('document from NEPTUNE', resultData)
+            console.log('document from NEPTUNE length', resultData.length)
+            if (resultData.length == 1) {
+                console.log('AWS DOCUMENT', resultData[0])
+            }
+            if (resultData.length > 1) throw '查詢文件有多筆結果，程式或資料有問題'
+            if (! resultData.length) return undefined
+        })
+
         let document: Document|undefined = undefined
         await queryExistingDocument(undefined, documentText).then( (queryResult) => { // 轉換到 aws 的初期，全文檢索暫時不實做
             document = queryResult
@@ -17,8 +29,11 @@ export async function retrieveDocument(documentText: string, spacyFormatParsePro
             console.log('existing document retrieved: ', document)
             return document
         } else {
+            // 3 種 spacyFormatParseProvider.parse 最後都會回傳有 content 和 parse 屬性的 (document) 物件
+            // TODO convert to aws 要作廢
             return spacyFormatParseProvider.parse(documentText)
-                .then(saveDocumentParse)
+                // .then(saveDocumentParse) // old janusgraph impl
+                .then(backendAgent.saveNewDocument)
                 .then( (newlySavedDocument: Document) => {
                     return newlySavedDocument
                 })
@@ -27,6 +42,7 @@ export async function retrieveDocument(documentText: string, spacyFormatParsePro
     return spacyFormatParseProvider.parse(documentText)
 }
 
+// TODO convert to aws 要作廢
 export async function saveDocumentParse (document: Document) {
     const gremlinInvoke = new gremlinApi.GremlinInvoke()
 
@@ -76,10 +92,6 @@ async function queryExistingDocument(documentId: number|undefined, documentText:
         new gremlinApi.GremlinInvoke(true).__in()
     ).tree()
 
-    await backendAgent.queryExistingDocument(documentId, documentText).then( (resultData: Object[]) => {
-        console.log('document from NEPTUNE', resultData)
-        console.log('document from NEPTUNE length', resultData.length)
-    })
     return await gremlinApi.submitAndParse(gremlinInvoke).then( (resultData: any) => {
         if (resultData.length > 1) throw '查詢文件有多筆結果，程式或資料有問題'
         if (! resultData.length) return undefined
@@ -92,6 +104,7 @@ async function queryExistingDocument(documentId: number|undefined, documentText:
             const sentencesJson = resultDocumentOrMap.values().next().value
             const documentTranslatedSentences: TranslatedSentence[] = []
             const documentEntity: Entity = resultDocumentOrMap.keys().next().value
+            // TODO convert to aws
             document = new Document(documentEntity)
             if (sentencesJson) {
                 sentencesJson.forEach( (segmentMap: any, sentenceNode: any) => { // loop sentences
