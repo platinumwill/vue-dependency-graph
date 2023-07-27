@@ -32,8 +32,8 @@ export async function retrieveDocument(documentText: string, spacyFormatParsePro
             // 3 種 spacyFormatParseProvider.parse 最後都會回傳有 content 和 parse 屬性的 (document) 物件
             // TODO convert to aws 要作廢
             return spacyFormatParseProvider.parse(documentText)
-                // .then(saveDocumentParse) // old janusgraph impl
-                .then(backendAgent.saveNewDocument)
+                // .then(saveDocumentParse) // janusgraph impl
+                .then(backendAgent.saveNewDocument) // aws impl
                 .then( (newlySavedDocument: Document) => {
                     return newlySavedDocument
                 })
@@ -350,6 +350,7 @@ export class TranslatedSentence {
 export class Document {
     content: string = ''
     parse: any
+    gremlinId: string = ''
     private _id: any
     $translatedSentences: TranslatedSentence[] = []
 

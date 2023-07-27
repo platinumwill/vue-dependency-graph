@@ -52,7 +52,8 @@ export async function saveNewDocument(document: documentPersistence.Document) {
     }
     const documentQueryResult = await apigClient.invokeApi(pathParams, pathTemplate, method, additionalParams, body)
         .then(function(response: any){
-            console.log('NEW SAVED DOCUMENT JSON', response)
+            const newlySavedDocument = response.data
+            document.gremlinId = newlySavedDocument.id
             return document
         }).catch( function(result: string){
             console.log('api exception save new document', result)
