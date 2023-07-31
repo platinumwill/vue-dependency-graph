@@ -67,6 +67,7 @@ export default function () {
 
     const generateSentence = (baselineSentence: SpacySentence, sentenceIndex: number) => {
         const filteredArcs = spacyFormatDocumentParse.value.arcs.filter(
+            // 這裡看起來是因為一次處理一個句子，要抓目前這一句的資料
             arc =>
             arc.start >= baselineSentence.start
             && arc.end >= baselineSentence.start
@@ -77,6 +78,7 @@ export default function () {
         const dependencies: sentenceManager.ModifiedSpacyDependency[] = []
         arcsClone.forEach(function (arc, index) {
             const dependency = new sentenceManager.ModifiedSpacyDependency(arc, index)
+            // 這裡看起來是因為一次處理一個句子，要產生獨立看目前句子的(相對)資料
             dependency.start -= (baselineSentence.start)
             dependency.end -= (baselineSentence.start)
             // Chin format property
