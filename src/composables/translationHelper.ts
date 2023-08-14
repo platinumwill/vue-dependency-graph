@@ -52,7 +52,9 @@ export function prepareTranslationHelper (
             // 然後再針對每個 begin token 處理 source pattern
             // 這些要在新的 segment manager 做
         } else { // toggle on
-            word.isBeginning = true // isBeginning 要在這裡控制嗎？要不要做成自動判斷？
+            if (word.outDeps.length) {
+                word.isBeginning = true // isBeginning 要在這裡控制嗎？要不要做成自動判斷？
+            }
             word.markMorphologyInfoAsSelected(morphologyInfo.type)
         }
 

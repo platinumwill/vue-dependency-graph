@@ -1,6 +1,7 @@
 import { ModifiedSpacyDependency, ModifiedSpacyElement, ModifiedSpacyToken } from "@/composables/sentenceManager";
 import { Ref, ref } from 'vue'
 import { GremlinInvoke, aliases, vertexAlias, vertexLabels, propertyNames, connectorAlias, edgeLabels, submit } from "@/composables/gremlinManager";
+import * as backendAgent from "@/composables/backend-agent"
 
 export class SourcePatternOption {
     id: number
@@ -18,6 +19,7 @@ export function prepareSegment(token: ModifiedSpacyToken) {
     
     const processSelectedSourcePatternStoring = (gremlinInvoke: GremlinInvoke) => {
         // 如果 source pattern 下拉選單已經有值（表示資料庫裡已經有目前選取的 source pattern），就不必儲存 source pattern
+        // TODO convert to aws
         if (selectedSourcePattern.value != undefined && selectedSourcePattern.value.id != undefined) {
             gremlinInvoke = gremlinInvoke
             .call("V", selectedSourcePattern.value.id)
@@ -28,16 +30,35 @@ export function prepareSegment(token: ModifiedSpacyToken) {
         elements.push(...token.segmentTokens)
         elements.push(...token.segmentDeps)
         // token 和 dependency 拼在一起是為了要順序的資料
+        // 2023.7.31: 不確定上面這個處理還有沒有需要
         elements.sort( (e1, e2) => { return e1.indexInSentence - e2.indexInSentence})
+        console.log('elements', elements)
+        const sourcePatternArray:any[] = []
         elements.forEach( (ele, index) => {
             if (! (ele instanceof ModifiedSpacyToken)) return
 
+            console.log('token index in sentence', ele.indexInSentence)
+
             const word = ele
+            // TODO convert to aws
             gremlinInvoke.call("addV", vertexLabels.sourcePattern)
             gremlinInvoke.property(propertyNames.seqNo, index + 1)
+
+
+            const morphInfoMap = new Map()
             word.selectedMorphologyInfoTypes.forEach( (morphInfoType) => {
+                morphInfoMap.set(morphInfoType.name, word[morphInfoType.propertyInWord])
                 gremlinInvoke = gremlinInvoke.call("property", morphInfoType.name, word[morphInfoType.propertyInWord])
             })
+            console.log("SELECTED MORPHOLOGY INFO TYPES", word.selectedMorphologyInfoTypes)
+            const sourcePatternPiece:any = {}
+            sourcePatternPiece[propertyNames.seqNo] = index + 1
+            sourcePatternPiece['morphInfoMap'] = Object.fromEntries(morphInfoMap)
+            sourcePatternPiece.isBeginning = word.isBeginning
+            sourcePatternPiece.indexInSentence = word.indexInSentence
+            sourcePatternArray.push(sourcePatternPiece)
+            console.log('SOURCE PATTERN', sourcePatternArray)
+
             gremlinInvoke.as(vertexAlias(word))
             if (word.isBeginning) {
                 gremlinInvoke = gremlinInvoke
@@ -47,10 +68,15 @@ export function prepareSegment(token: ModifiedSpacyToken) {
                 .property("owner", "Chin")
             }
         })
+
+        const sourcePatternDependencyArray:any[] = []
         elements.forEach( (ele, index) => {
             if (! (ele instanceof ModifiedSpacyDependency)) return
+            console.log('depen index in sentence', ele.indexInSentence)
 
             const arc = ele
+            // TODO convert to aws
+            // 目前因為要用最小單位做組合單位，所以 dependency 的 startWord 一定是當下選取的起點 token
             const startWord = token
             if (startWord === undefined
                 || startWord.selectedMorphologyInfoTypes.length === 0
@@ -64,6 +90,7 @@ export function prepareSegment(token: ModifiedSpacyToken) {
             if (arc.isPlaceholder) { // 這個 dependency 後面連著連接處 (=假想的連接對象），也就是沒有連著 token
                 const connectorVName = connectorAlias(arc)
                 endVName = connectorVName
+                // TODO convert to aws
                 gremlinInvoke = gremlinInvoke
                 .addV(vertexLabels.sourcePattern)
                 .property(propertyNames.isConnector, true)
@@ -71,11 +98,22 @@ export function prepareSegment(token: ModifiedSpacyToken) {
             } else { // 不是 placeholder ，也就是連接著 token
                 endVName = vertexAlias(arc.selectedEndToken)
             }
+
+            // TODO convert to aws
             gremlinInvoke = gremlinInvoke
             .call("addE", arc.label)
             .call("from", startVName)
             .call("to", endVName)
             .property(propertyNames.seqNo, index + 1)
+
+            const sourcePatternDependency: any = {}
+            sourcePatternDependency['label'] = arc.label
+            sourcePatternDependency['isPlaceholder'] = arc.isPlaceholder
+            sourcePatternDependencyArray.push(sourcePatternDependency)
+        })
+
+        backendAgent.saveNewPattern(sourcePatternArray, sourcePatternDependencyArray).then( (result:any) => {
+            console.log('saveNewPattern result', result)
         })
         return gremlinInvoke
     }

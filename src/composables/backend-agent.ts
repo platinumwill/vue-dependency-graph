@@ -15,6 +15,9 @@ enum DocumentAction {
     QUERY = 'QUERY'
     , SAVE_NEW = 'SAVE_NEW'
 }
+enum PatternAction {
+    SAVE_NEW = 'SAVE_NEW'
+}
 
 const pathParams = {}
 const pathTemplate = ''
@@ -60,4 +63,29 @@ export async function saveNewDocument(document: documentPersistence.Document) {
             throw new Error(result)
         })
     return document
+}
+
+export async function saveNewPattern(sourcePattern: any[], sourcePatternDependencyArray: any[]) {
+
+    console.log('SOURCE PATTERN', sourcePattern)
+    console.log('SOURCE PATTERN DEPENDENCY ARRAY', sourcePatternDependencyArray)
+    const body = {
+        pattern: {
+            sourcePatternAction: {
+                sourcePatternTokens: sourcePattern
+                , sourcePatternDependencies: sourcePatternDependencyArray
+                , action: PatternAction.SAVE_NEW
+            }
+        }
+    }
+    console.log('BODY BEFORE INVOKE', body)
+    const savedResult = await apigClient.invokeApi(pathParams, pathTemplate, method, additionalParams, body)
+        .then(function(response: any){
+            const savedResult = response.data
+            return savedResult
+        }).catch( function(result: string){
+            console.log('api exception save new document', result)
+            throw new Error(result)
+        })
+    return savedResult
 }
