@@ -50,8 +50,10 @@ export function prepareSegment(token: ModifiedSpacyToken) {
                 morphInfoMap.set(morphInfoType.name, word[morphInfoType.propertyInWord])
                 gremlinInvoke = gremlinInvoke.call("property", morphInfoType.name, word[morphInfoType.propertyInWord])
             })
+            // for aws
             console.log("SELECTED MORPHOLOGY INFO TYPES", word.selectedMorphologyInfoTypes)
             const sourcePatternPiece:any = {}
+            sourcePatternPiece['type'] = backendAgent.MinimalClassName.SourcePatternToken
             sourcePatternPiece[propertyNames.seqNo] = index + 1
             sourcePatternPiece['morphInfoMap'] = Object.fromEntries(morphInfoMap)
             sourcePatternPiece.isBeginning = word.isBeginning
@@ -106,14 +108,27 @@ export function prepareSegment(token: ModifiedSpacyToken) {
             .call("to", endVName)
             .property(propertyNames.seqNo, index + 1)
 
+            // for aws
             const sourcePatternDependency: any = {}
+            sourcePatternDependency['type'] = backendAgent.MinimalClassName.SourcePatternDependency
             sourcePatternDependency['label'] = arc.label
             sourcePatternDependency['isPlaceholder'] = arc.isPlaceholder
+            sourcePatternDependency['trueStart'] = arc.trueStart
+            sourcePatternDependency['trueEnd'] = arc.trueEnd
+            if (arc.selectedEndToken) {
+                sourcePatternDependency['selectedEndToken'] = {
+                    type: backendAgent.MinimalClassName.SourcePatternToken
+                    , indexInSentence: arc.selectedEndToken.indexInSentence
+                }
+            }
+
             sourcePatternDependencyArray.push(sourcePatternDependency)
         })
 
-        backendAgent.saveNewPattern(sourcePatternArray, sourcePatternDependencyArray).then( (result:any) => {
+        backendAgent.setSourcePattern(sourcePatternArray, sourcePatternDependencyArray).then( (result:any) => {
             console.log('saveNewPattern result', result)
+        }).then( () => {
+            backendAgent.triggerPatternSaving()
         })
         return gremlinInvoke
     }

@@ -12,17 +12,23 @@ const apigClient = apigClientFactory.newClient(config)
 console.log('apigclient', apigClient)
 
 enum DocumentAction {
-    QUERY = 'QUERY'
-    , SAVE_NEW = 'SAVE_NEW'
+    QUERY = 'query'
+    , SAVE_NEW = 'save_new'
 }
 enum PatternAction {
-    SAVE_NEW = 'SAVE_NEW'
+    SAVE_NEW = 'save_new'
 }
 
 const pathParams = {}
 const pathTemplate = ''
 const method = 'POST'
 const additionalParams = {}
+export enum MinimalClassName {
+    DocumentActionRequest = '.DocumentActionRequest'
+    , PatternActionRequest = '.PatternActionRequest'
+    , SourcePatternToken = '.SourcePatternToken'
+    , SourcePatternDependency = '.SourcePatternDependency'
+}
 export async function queryExistingDocument(documentId: number|undefined, documentText: string|undefined) {
     console.log('function, apigclientFactory', apigClientFactory)
     const document = {
@@ -30,9 +36,11 @@ export async function queryExistingDocument(documentId: number|undefined, docume
         , content: documentText
     }
     const body = {
-        document: document
+        type: MinimalClassName.DocumentActionRequest
+        , document: document
         , action: DocumentAction.QUERY
     }
+    console.log('BODY BEFORE QUERY_DOCUMENT', body)
     const documentQueryResult = await apigClient.invokeApi(pathParams, pathTemplate, method, additionalParams, body)
         .then(function(response: any){
             return response.data
@@ -50,9 +58,11 @@ export async function saveNewDocument(document: documentPersistence.Document) {
         , content: document.content
     }
     const body = {
-        document: parseStringifiedDocument
+        type: MinimalClassName.DocumentActionRequest
+        , document: parseStringifiedDocument
         , action: DocumentAction.SAVE_NEW
     }
+    console.log('BODY BEFORE SAVE-NEW-DOCUMENT', body)
     const documentQueryResult = await apigClient.invokeApi(pathParams, pathTemplate, method, additionalParams, body)
         .then(function(response: any){
             const newlySavedDocument = response.data
@@ -65,20 +75,32 @@ export async function saveNewDocument(document: documentPersistence.Document) {
     return document
 }
 
-export async function saveNewPattern(sourcePattern: any[], sourcePatternDependencyArray: any[]) {
-
-    console.log('SOURCE PATTERN', sourcePattern)
-    console.log('SOURCE PATTERN DEPENDENCY ARRAY', sourcePatternDependencyArray)
+let sourcePatternTokens: any[]
+let sourcePatternDependencies: any[]
+export async function setSourcePattern(sourcePattern: any[], sourcePatternDependencyArray: any[]) {
+    sourcePatternTokens = sourcePattern
+    sourcePatternDependencies = sourcePatternDependencyArray
+}
+let linearTargetPatternPieces: any[]
+export async function setTargetPattern(linearTargetPatternPieceArray: any[]) {
+    linearTargetPatternPieces = linearTargetPatternPieceArray
+}
+export async function triggerPatternSaving() {
+    console.log('SOURCE PATTERN', sourcePatternTokens)
+    console.log('SOURCE PATTERN DEPENDENCY ARRAY', sourcePatternDependencies)
     const body = {
-        pattern: {
-            sourcePatternAction: {
-                sourcePatternTokens: sourcePattern
-                , sourcePatternDependencies: sourcePatternDependencyArray
-                , action: PatternAction.SAVE_NEW
-            }
+        type: MinimalClassName.PatternActionRequest
+        , sourcePatternAction: {
+            sourcePatternTokens: sourcePatternTokens
+            , sourcePatternDependencies: sourcePatternDependencies
+            , action: PatternAction.SAVE_NEW
+        }
+        , targetPatternAction: {
+            linearTargetPatternPieces: linearTargetPatternPieces
+            , action: PatternAction.SAVE_NEW
         }
     }
-    console.log('BODY BEFORE INVOKE', body)
+    console.log('BODY BEFORE SAVE-PATTERN', body)
     const savedResult = await apigClient.invokeApi(pathParams, pathTemplate, method, additionalParams, body)
         .then(function(response: any){
             const savedResult = response.data

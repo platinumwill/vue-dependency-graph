@@ -168,6 +168,7 @@ const saveSelectedPattern = (
 ) => {
     let gremlinInvoke = new GremlinInvoke()
 
+    // TODO convert to aws
     gremlinInvoke = sourcePattern.process.save(gremlinInvoke)
     gremlinInvoke = targetPattern.process.save(gremlinInvoke)
     gremlinInvoke.call("select", aliases.sourcePatternBeginning)

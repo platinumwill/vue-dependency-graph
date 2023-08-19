@@ -2,6 +2,7 @@ import { ref, watch } from 'vue'
 import { ModifiedSpacyDependency, ModifiedSpacyElement, ModifiedSpacyToken } from "@/composables/sentenceManager"
 import { GremlinInvoke } from '@/composables/gremlinManager'
 import * as gremlinManager from "@/composables/gremlinManager"
+import * as backendAgent from "@/composables/backend-agent"
 
 export type TargetPattern = {
     dialogPieces: {
@@ -381,17 +382,24 @@ function _generateDefaultPieces (
     return segmentPieces
 }
 
+const targetPatternPieceArray:any[] = []
 function _processTargetPatternStoring(segmentPieces: LinearTargetPatternPiece[], gremlinInvoke: GremlinInvoke) {
     console.log('gremlin invoke: ', gremlinInvoke)
+    // TODO convert to aws
     // save target pattern
     let lastAddedPieceAlias: string
     segmentPieces.forEach((piece, pieceIdx) => {
         const currentPieceAlias = 'v' + pieceIdx
+
+        const targetPatternPiece: any = {}
+        targetPatternPiece['isPlaceholder'] = piece.isPlaceholder 
+
         gremlinInvoke = gremlinInvoke
         .call("addV", gremlinManager.vertexLabels.linearTargetPattern)
         .call("property", gremlinManager.propertyNames.isPlaceholder, piece.isPlaceholder)
         // text piece 才需要存文字內容
         if (piece.appliedText != undefined && piece.type == LinearTargetPatternPiece.types.text) {
+            targetPatternPiece['fixedText'] = piece.appliedText 
             gremlinInvoke.property(gremlinManager.propertyNames.appliedText, piece.appliedText)
         }
         gremlinInvoke.as(currentPieceAlias)
@@ -441,7 +449,11 @@ function _processTargetPatternStoring(segmentPieces: LinearTargetPatternPiece[],
         }
         // TODO 處理和 source VERTEX 的關連
         lastAddedPieceAlias = currentPieceAlias
+        // aws
+        targetPatternPieceArray.push(targetPatternPiece)
     })
+    // aws
+    backendAgent.setTargetPattern(targetPatternPieceArray)
     return gremlinInvoke
 }
 

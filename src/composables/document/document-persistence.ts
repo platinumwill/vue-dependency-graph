@@ -25,6 +25,7 @@ export async function retrieveDocument(documentText: string, spacyFormatParsePro
             console.error(error)
             throw error
         })
+        // convert to aws 轉換到 aws 以後，這一段就不用了，因為用 aws 可以直接新增
         if (document != undefined) {
             console.log('existing document retrieved: ', document)
             return document

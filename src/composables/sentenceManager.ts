@@ -220,7 +220,7 @@ export class ModifiedSpacyDependency extends ModifiedSpacyElement {
         if (endToken?.selectedMorphologyInfoTypes.length) {
             return endToken
         }
-        throw 'selectedEndToken() 邏輯有錯'
+        return undefined
     }
 }
 
