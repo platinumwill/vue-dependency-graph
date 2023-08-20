@@ -417,11 +417,18 @@ function _processTargetPatternStoring(segmentPieces: LinearTargetPatternPiece[],
             gremlinInvoke
             .call("addE", gremlinManager.edgeLabels.traceTo)
             .call("from", currentPieceAlias)
+            // aws
         }
         if (piece.source instanceof ModifiedSpacyDependency) {
             // 和 dependency 的關連
+            // 這裡在處理指向 (source pattern) dependency 的 target pattern piece
+            // aws
+            const sourceDependency = backendAgent.generateDependencyForAWS(piece.source)
+            targetPatternPiece['source'] = sourceDependency
             gremlinInvoke.property(gremlinManager.edgePropertyNames.traceToInDep, true)
+            // const sourceDependency = 
             if (piece.source.sourcePatternEdgeId != undefined) { // 如果 source pattern 是既有的的狀況
+
                 gremlinInvoke.call(
                     "to"
                     , new gremlinManager.GremlinInvoke()
@@ -437,6 +444,12 @@ function _processTargetPatternStoring(segmentPieces: LinearTargetPatternPiece[],
             }
         }
         if (piece.source instanceof ModifiedSpacyToken) {
+
+            // 這裡在處理指向 (source pattern) token 的 target pattern piece
+            // aws
+            const sourceToken = backendAgent.generateTokenForAWS(piece.source)
+            targetPatternPiece['source'] = sourceToken
+
             if (piece.source.sourcePatternVertexId != undefined) {
                 gremlinInvoke.call(
                     "to"
@@ -444,6 +457,7 @@ function _processTargetPatternStoring(segmentPieces: LinearTargetPatternPiece[],
                     .call("V", piece.source.sourcePatternVertexId)
                 )
             } else {
+        ///////////////////////////
                 gremlinInvoke.call("to", gremlinManager.vertexAlias(piece.source))
             }
         }

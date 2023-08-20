@@ -1,6 +1,7 @@
 const apigClientFactory = require('aws-api-gateway-client').default;
 
 import * as documentPersistence from '@/composables/document/document-persistence'
+import { ModifiedSpacyDependency, ModifiedSpacyToken } from '@/composables/sentenceManager';
 
 const config = {
     invokeUrl: process.env.VUE_APP_AWS_API_INVOKE_URL
@@ -110,4 +111,30 @@ export async function triggerPatternSaving() {
             throw new Error(result)
         })
     return savedResult
+}
+
+export function generateDependencyForAWS(arc: ModifiedSpacyDependency) {
+    const sourcePatternDependency: any = {};
+    sourcePatternDependency['type'] = MinimalClassName.SourcePatternDependency;
+    sourcePatternDependency['label'] = arc.label;
+    sourcePatternDependency['isPlaceholder'] = arc.isPlaceholder;
+    sourcePatternDependency['trueStart'] = arc.trueStart;
+    sourcePatternDependency['trueEnd'] = arc.trueEnd;
+    sourcePatternDependency['sourcePatternEdgeId'] = arc.sourcePatternEdgeId;
+    if (arc.selectedEndToken) {
+        sourcePatternDependency['selectedEndToken'] = {
+            type: MinimalClassName.SourcePatternToken,
+            indexInSentence: arc.selectedEndToken.indexInSentence
+        };
+    }
+    return sourcePatternDependency;
+}
+export function generateTokenForAWS(token: ModifiedSpacyToken) {
+    const sourcePatternToken: any = {};
+    sourcePatternToken['type'] = MinimalClassName.SourcePatternToken;
+    sourcePatternToken['indexInSentence'] = token.indexInSentence;
+    sourcePatternToken['sourcePatternVertexId'] = token.sourcePatternVertexId
+    // sourcePatternToken['selectedMorphologyInfoTypes'] = token.selectedMorphologyInfoTypes;
+    // sourcePatternToken['selectedMorphologyInfoValues'] = token.selectedMorphologyInfoValues;
+    return sourcePatternToken;
 }

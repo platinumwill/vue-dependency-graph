@@ -197,6 +197,7 @@ export class ModifiedSpacyDependency extends ModifiedSpacyElement {
         this.trueEnd = spacyArc.dir == 'right' ? spacyArc.end : spacyArc.start
     }
 
+    // 如果沒有搞錯的話，這個 getter 如果是 true，那麼 selectedEndToken 一定是 undefined；反之亦然
     get isPlaceholder() {
         let result = true
         this.sentence?.selectedTokens.forEach( (token) => {
@@ -215,6 +216,7 @@ export class ModifiedSpacyDependency extends ModifiedSpacyElement {
         return this.sentence?.words[this.trueEnd]
     }
 
+    // 如果沒有搞錯的話，這個 getter 如果不是 undefined，那麼 isPlaceholder 一定是 false；反之亦然
     get selectedEndToken() {
         const endToken = this.sentence?.words[this.trueEnd]
         if (endToken?.selectedMorphologyInfoTypes.length) {

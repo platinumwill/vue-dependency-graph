@@ -108,20 +108,8 @@ export function prepareSegment(token: ModifiedSpacyToken) {
             .call("to", endVName)
             .property(propertyNames.seqNo, index + 1)
 
-            // for aws
-            const sourcePatternDependency: any = {}
-            sourcePatternDependency['type'] = backendAgent.MinimalClassName.SourcePatternDependency
-            sourcePatternDependency['label'] = arc.label
-            sourcePatternDependency['isPlaceholder'] = arc.isPlaceholder
-            sourcePatternDependency['trueStart'] = arc.trueStart
-            sourcePatternDependency['trueEnd'] = arc.trueEnd
-            if (arc.selectedEndToken) {
-                sourcePatternDependency['selectedEndToken'] = {
-                    type: backendAgent.MinimalClassName.SourcePatternToken
-                    , indexInSentence: arc.selectedEndToken.indexInSentence
-                }
-            }
-
+            // aws
+            const sourcePatternDependency: any = backendAgent.generateDependencyForAWS(arc);
             sourcePatternDependencyArray.push(sourcePatternDependency)
         })
 
