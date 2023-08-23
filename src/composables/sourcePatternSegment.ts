@@ -17,6 +17,7 @@ export function prepareSegment(token: ModifiedSpacyToken) {
     const selectedSourcePattern = ref<SourcePatternOption | undefined>(undefined)
     const sourcePatternOptions = ref<SourcePatternOption[]>([])
     
+    // convert to aws = done
     const processSelectedSourcePatternStoring = (gremlinInvoke: GremlinInvoke) => {
         // 如果 source pattern 下拉選單已經有值（表示資料庫裡已經有目前選取的 source pattern），就不必儲存 source pattern
         // TODO convert to aws
@@ -45,20 +46,12 @@ export function prepareSegment(token: ModifiedSpacyToken) {
             gremlinInvoke.property(propertyNames.seqNo, index + 1)
 
 
-            const morphInfoMap = new Map()
+            // for aws
+            const sourcePatternPiece: any = backendAgent.generateTokenForAWS(word, index);
+            sourcePatternArray.push(sourcePatternPiece)
             word.selectedMorphologyInfoTypes.forEach( (morphInfoType) => {
-                morphInfoMap.set(morphInfoType.name, word[morphInfoType.propertyInWord])
                 gremlinInvoke = gremlinInvoke.call("property", morphInfoType.name, word[morphInfoType.propertyInWord])
             })
-            // for aws
-            console.log("SELECTED MORPHOLOGY INFO TYPES", word.selectedMorphologyInfoTypes)
-            const sourcePatternPiece:any = {}
-            sourcePatternPiece['type'] = backendAgent.MinimalClassName.SourcePatternToken
-            sourcePatternPiece[propertyNames.seqNo] = index + 1
-            sourcePatternPiece['morphInfoMap'] = Object.fromEntries(morphInfoMap)
-            sourcePatternPiece.isBeginning = word.isBeginning
-            sourcePatternPiece.indexInSentence = word.indexInSentence
-            sourcePatternArray.push(sourcePatternPiece)
             console.log('SOURCE PATTERN', sourcePatternArray)
 
             gremlinInvoke.as(vertexAlias(word))
@@ -156,6 +149,7 @@ export function prepareSegment(token: ModifiedSpacyToken) {
     }
 }
 
+// convert to aws
 const _reloadMatchingSourcePatternOptions = (
     sourcePatternOptions: Ref<SourcePatternOption[]>
     , beginWord: ModifiedSpacyToken) => {
@@ -166,15 +160,22 @@ const _reloadMatchingSourcePatternOptions = (
             resolve(undefined)
         })
     }
+    // convert to aws
     let gremlinCommand = new GremlinInvoke().call("V")
+
+    // for aws
+    const awsBeginToken = backendAgent.generateTokenForAWS(beginWord)
+    backendAgent.querySourcePattern(awsBeginToken)
+
     beginWord.selectedMorphologyInfoTypes.forEach( (morphInfoType) => {
         gremlinCommand = gremlinCommand.call("has", morphInfoType.name, beginWord[morphInfoType.propertyInWord])
     })
     gremlinCommand = gremlinCommand.call("inE", edgeLabels.applicable)
     .call("inV")
     .call("dedup")
+    ///////////////////////////////
     return new Promise((resolve, reject) => {
-        submit(gremlinCommand).then( (resultData: any) => {
+        submit(gremlinCommand).then( (resultData: any) => { // 回傳的資料裡面需要用到的是 id 和 label
             resultData['@value'].forEach( (sourcePatternBeginning: any) => {
                 sourcePatternOptions.value.push({
                     id: sourcePatternBeginning['@value'].id['@value']

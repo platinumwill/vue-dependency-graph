@@ -398,7 +398,7 @@ function _processTargetPatternStoring(segmentPieces: LinearTargetPatternPiece[],
         .call("addV", gremlinManager.vertexLabels.linearTargetPattern)
         .call("property", gremlinManager.propertyNames.isPlaceholder, piece.isPlaceholder)
         // text piece 才需要存文字內容
-        if (piece.appliedText != undefined && piece.type == LinearTargetPatternPiece.types.text) {
+        if (piece.appliedText != undefined && piece.type.name == LinearTargetPatternPiece.types.text.name) {
             targetPatternPiece['fixedText'] = piece.appliedText 
             gremlinInvoke.property(gremlinManager.propertyNames.appliedText, piece.appliedText)
         }
@@ -457,7 +457,6 @@ function _processTargetPatternStoring(segmentPieces: LinearTargetPatternPiece[],
                     .call("V", piece.source.sourcePatternVertexId)
                 )
             } else {
-        ///////////////////////////
                 gremlinInvoke.call("to", gremlinManager.vertexAlias(piece.source))
             }
         }
@@ -465,6 +464,7 @@ function _processTargetPatternStoring(segmentPieces: LinearTargetPatternPiece[],
         lastAddedPieceAlias = currentPieceAlias
         // aws
         targetPatternPieceArray.push(targetPatternPiece)
+        backendAgent.setTargetPattern(targetPatternPieceArray);
     })
     // aws
     backendAgent.setTargetPattern(targetPatternPieceArray)
@@ -478,6 +478,8 @@ export function _reloadMatchingTargetPatternOptions (
 
     targetPatternOptions.splice(0, targetPatternOptions.length)
 
+    // convert to aws
+    ///////////////////////////
     const gremlinCommand = new gremlinManager.GremlinInvoke()
     .call("V", sourcePatternBeginningId)
     .call("in", "applicable")

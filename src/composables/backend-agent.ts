@@ -2,6 +2,7 @@ const apigClientFactory = require('aws-api-gateway-client').default;
 
 import * as documentPersistence from '@/composables/document/document-persistence'
 import { ModifiedSpacyDependency, ModifiedSpacyToken } from '@/composables/sentenceManager';
+import { propertyNames } from '@/composables/gremlinManager';
 
 const config = {
     invokeUrl: process.env.VUE_APP_AWS_API_INVOKE_URL
@@ -18,6 +19,11 @@ enum DocumentAction {
 }
 enum PatternAction {
     SAVE_NEW = 'save_new'
+}
+
+enum SourcePatternAction {
+    SAVE_NEW = 'save_new'
+    , query_by_begin_token = 'query_by_begin_token'
 }
 
 const pathParams = {}
@@ -64,16 +70,18 @@ export async function saveNewDocument(document: documentPersistence.Document) {
         , action: DocumentAction.SAVE_NEW
     }
     console.log('BODY BEFORE SAVE-NEW-DOCUMENT', body)
-    const documentQueryResult = await apigClient.invokeApi(pathParams, pathTemplate, method, additionalParams, body)
-        .then(function(response: any){
-            const newlySavedDocument = response.data
-            document.gremlinId = newlySavedDocument.id
-            return document
-        }).catch( function(result: string){
-            console.log('api exception save new document', result)
-            throw new Error(result)
-        })
-    return document
+    return new Promise((resolve, reject) => {
+        apigClient.invokeApi(pathParams, pathTemplate, method, additionalParams, body)
+            .then(function(response: any){
+                const newlySavedDocument = response.data
+                console.log('AWS SAVED DOCUMENT', newlySavedDocument)
+                document.gId = newlySavedDocument.id
+                resolve(document)
+            }).catch( function(result: string){
+                console.log('api exception save new document', result)
+                throw new Error(result)
+            })
+    })
 }
 
 let sourcePatternTokens: any[]
@@ -113,6 +121,27 @@ export async function triggerPatternSaving() {
     return savedResult
 }
 
+export async function querySourcePattern(beginWord: any) {
+    const awsSourcePattern:any[] = []
+    awsSourcePattern.push(beginWord)
+
+    const body = {
+        type: MinimalClassName.PatternActionRequest
+        , sourcePatternAction: {
+            sourcePatternTokens: awsSourcePattern
+            , action: SourcePatternAction.query_by_begin_token
+        }
+    }
+    return await apigClient.invokeApi(pathParams, pathTemplate, method, additionalParams, body)
+        .then(function(response: any){
+            const savedResult = response.data
+            return savedResult
+        }).catch( function(result: string){
+            console.log('api exception save new document', result)
+            throw new Error(result)
+        })
+}
+
 export function generateDependencyForAWS(arc: ModifiedSpacyDependency) {
     const sourcePatternDependency: any = {};
     sourcePatternDependency['type'] = MinimalClassName.SourcePatternDependency;
@@ -129,12 +158,33 @@ export function generateDependencyForAWS(arc: ModifiedSpacyDependency) {
     }
     return sourcePatternDependency;
 }
-export function generateTokenForAWS(token: ModifiedSpacyToken) {
-    const sourcePatternToken: any = {};
-    sourcePatternToken['type'] = MinimalClassName.SourcePatternToken;
-    sourcePatternToken['indexInSentence'] = token.indexInSentence;
-    sourcePatternToken['sourcePatternVertexId'] = token.sourcePatternVertexId
-    // sourcePatternToken['selectedMorphologyInfoTypes'] = token.selectedMorphologyInfoTypes;
-    // sourcePatternToken['selectedMorphologyInfoValues'] = token.selectedMorphologyInfoValues;
-    return sourcePatternToken;
+// export function generateTokenForAWS(token: ModifiedSpacyToken) {
+//     const sourcePatternToken: any = {};
+//     sourcePatternToken['type'] = MinimalClassName.SourcePatternToken;
+//     sourcePatternToken['indexInSentence'] = token.indexInSentence;
+//     sourcePatternToken['sourcePatternVertexId'] = token.sourcePatternVertexId
+//     // sourcePatternToken['selectedMorphologyInfoTypes'] = token.selectedMorphologyInfoTypes;
+//     // sourcePatternToken['selectedMorphologyInfoValues'] = token.selectedMorphologyInfoValues;
+//     return sourcePatternToken;
+// }
+export function generateTokenForAWS(word: ModifiedSpacyToken, index?: number) {
+
+    console.log("SELECTED MORPHOLOGY INFO TYPES", word.selectedMorphologyInfoTypes)
+
+    const sourcePatternPiece: any = {};
+    sourcePatternPiece['type'] = MinimalClassName.SourcePatternToken;
+    sourcePatternPiece['indexInSentence'] = word.indexInSentence
+    sourcePatternPiece['sourcePatternVertexId'] = word.sourcePatternVertexId
+    sourcePatternPiece.isBeginning = word.isBeginning;
+
+    if (index != undefined) {
+        sourcePatternPiece[propertyNames.seqNo] = index + 1;
+    }
+
+    const morphInfoMap = new Map();
+    word.selectedMorphologyInfoTypes.forEach((morphInfoType) => {
+        morphInfoMap.set(morphInfoType.name, word[morphInfoType.propertyInWord]);
+    });
+    sourcePatternPiece['morphInfoMap'] = Object.fromEntries(morphInfoMap);
+    return sourcePatternPiece;
 }

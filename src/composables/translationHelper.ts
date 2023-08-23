@@ -196,7 +196,9 @@ const _findExistingMatchSourcePatternAndSetDropdown = (
     if (! beginWord.isSegmentRoot) return 
 
     const selectedArcsFromBegin = beginWord.segmentDeps
+    // convert to aws
     let gremlinInvoke = new GremlinInvoke()
+    ///////////////////////////////////////////////
     .call("V")
     beginWord.selectedMorphologyInfoTypes.forEach( (morphInfoType) => {
         gremlinInvoke = gremlinInvoke.call("has", morphInfoType.name, beginWord[morphInfoType.propertyInWord])

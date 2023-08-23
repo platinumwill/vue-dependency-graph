@@ -34,7 +34,7 @@ export async function retrieveDocument(documentText: string, spacyFormatParsePro
             // TODO convert to aws 要作廢
             return spacyFormatParseProvider.parse(documentText)
                 .then(saveDocumentParse) // janusgraph impl
-                // .then(backendAgent.saveNewDocument) // aws impl
+                .then(backendAgent.saveNewDocument) // aws impl
                 .then( (newlySavedDocument: Document) => {
                     return newlySavedDocument
                 })
@@ -351,7 +351,7 @@ export class TranslatedSentence {
 export class Document {
     content: string = ''
     parse: any
-    gremlinId: string = ''
+    gId: string = ''
     private _id: any
     $translatedSentences: TranslatedSentence[] = []
 
