@@ -7,25 +7,24 @@ export async function retrieveDocument(documentText: string, spacyFormatParsePro
     if (spacyFormatParseProviderName != undefined) { // 有名字，就可以視同解析解果會被儲存
 
         // return await backendAgent.queryExistingDocument(documentId, documentText).then( (resultData: Object[]) => {
-        await backendAgent.queryExistingDocument(undefined, documentText).then( (resultData) => {
-            console.log('document from REMOTE', resultData)
-            // console.log('document from NEPTUNE length', resultData.length)
-            // if (resultData.length == 1) {
-            //     console.log('AWS DOCUMENT', resultData[0])
-            // }
-            // if (resultData.length > 1) throw '查詢文件有多筆結果，程式或資料有問題'
-            // if (! resultData.length) return undefined
-        })
+        // await backendAgent.queryExistingDocument({content: documentText}).then( (resultData) => {
+        //     console.log('document from REMOTE', resultData)
+        // })
 
         let document: Document|undefined = undefined
-        await queryExistingDocument(undefined, documentText).then( (queryResult) => { // 轉換到 aws 的初期，全文檢索暫時不實做
+        // TODO convert to aws 要拿掉
+        const d = await queryExistingDocument({ content: documentText }).then( (queryResult) => { // 轉換到 aws 的初期，全文檢索暫時不實做
             document = queryResult
+            console.log('document from LOCAL', document)
             return document
-        } ).catch( (error) => {
+        }).then(backendAgent.queryExistingDocument) // for aws
+        .catch( (error) => {
             console.error(error)
             throw error
         })
-        // convert to aws 轉換到 aws 以後，這一段就不用了，因為用 aws 可以直接新增
+        console.log('D', d)
+
+        // TODO convert to aws 轉換到 aws 以後，這一段就不用了，因為用 aws 可以直接新增
         if (document != undefined) {
             console.log('existing document retrieved: ', document)
             return document
@@ -63,19 +62,19 @@ export async function saveDocumentParse (document: Document) {
 }
 
 // TODO convert to aws
-async function queryExistingDocument(documentId: number|undefined, documentText: string|undefined) {
+async function queryExistingDocument(documentParam: {id?: string, content?: string}) {
 
     const gremlinInvoke = new gremlinApi.GremlinInvoke()
 
-    if (documentId) {
+    if (documentParam.id) {
         // search by document id
-        gremlinInvoke.V(documentId)
+        gremlinInvoke.V(documentParam.id)
     // 轉換到 aws 的初期，全文檢索暫時不實做
-    } else if (documentText) {
+    } else if (documentParam.content) {
         // search by document text
         gremlinInvoke
         .V()
-        .has(gremlinApi.propertyNames.content, new gremlinApi.GremlinInvoke(true).call('textFuzzy', documentText))
+        .has(gremlinApi.propertyNames.content, new gremlinApi.GremlinInvoke(true).call('textFuzzy', documentParam.content))
     } else {
         const error = '沒有參數，程式錯誤'
         console.error(error)
@@ -260,7 +259,7 @@ function addInitialSegmentTranslation (
     // TODO 更新 document 的 sentence 和 segement
     // 更新 Document
     // 不知道這裡會不會有 async 的問題
-    queryExistingDocument(document.id, undefined).then( (reloadedDocument) => {
+    queryExistingDocument({id: document.id}).then( (reloadedDocument) => {
         Object.assign(document, reloadedDocument)
         console.log('reloaded document', document)
     } )

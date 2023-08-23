@@ -36,12 +36,18 @@ export enum MinimalClassName {
     , SourcePatternToken = '.SourcePatternToken'
     , SourcePatternDependency = '.SourcePatternDependency'
 }
-export async function queryExistingDocument(documentId: number|undefined, documentText: string|undefined) {
+export async function queryExistingDocument(documentParam?: {id?: string, content?: string}) {
     return new Promise((resolve, reject) => {
-        console.log('function, apigclientFactory', apigClientFactory)
+        console.log('DOCUMENT-PARAM', documentParam)
+
+        if (!documentParam) {
+            resolve(undefined)
+            return
+        }
+
         const document = {
-            id: documentId
-            , content: documentText
+            id: documentParam.id
+            , content: documentParam.content
         }
         const body = {
             type: MinimalClassName.DocumentActionRequest
@@ -51,10 +57,15 @@ export async function queryExistingDocument(documentId: number|undefined, docume
         apigClient.invokeApi(pathParams, pathTemplate, method, additionalParams, body)
             .then(function(response: any){
 
+                if (! response.data.length) {
+                    resolve(undefined)
+                }
+
                 const documentInDb = new documentPersistence.Document()
                 documentInDb.gId = response.data[0]['id']
                 documentInDb.content = response.data[0]['content']
                 documentInDb.parse = JSON.parse(response.data[0]['parse'])
+                documentInDb.id = documentParam.id
                 
                 resolve(documentInDb) 
             }).catch( function(result: string){
