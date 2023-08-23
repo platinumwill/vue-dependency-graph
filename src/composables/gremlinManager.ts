@@ -275,6 +275,7 @@ export const submitAndParse = async (commandOrObject: string | GremlinInvoke)
         })
     })
 }
+// TODO convert to aws
 const parseJson = (json: any) => {
     let result = undefined
     switch (json[keys.type]) {

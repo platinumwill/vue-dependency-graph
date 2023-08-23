@@ -37,26 +37,31 @@ export enum MinimalClassName {
     , SourcePatternDependency = '.SourcePatternDependency'
 }
 export async function queryExistingDocument(documentId: number|undefined, documentText: string|undefined) {
-    console.log('function, apigclientFactory', apigClientFactory)
-    const document = {
-        id: documentId
-        , content: documentText
-    }
-    const body = {
-        type: MinimalClassName.DocumentActionRequest
-        , document: document
-        , action: DocumentAction.QUERY
-    }
-    console.log('BODY BEFORE QUERY_DOCUMENT', body)
-    const documentQueryResult = await apigClient.invokeApi(pathParams, pathTemplate, method, additionalParams, body)
-        .then(function(response: any){
-            return response.data
-        }).catch( function(result: string){
-            console.log('api exception query existing document', result)
-            throw new Error(result)
-        })
+    return new Promise((resolve, reject) => {
+        console.log('function, apigclientFactory', apigClientFactory)
+        const document = {
+            id: documentId
+            , content: documentText
+        }
+        const body = {
+            type: MinimalClassName.DocumentActionRequest
+            , document: document
+            , action: DocumentAction.QUERY
+        }
+        apigClient.invokeApi(pathParams, pathTemplate, method, additionalParams, body)
+            .then(function(response: any){
 
-    return documentQueryResult
+                const documentInDb = new documentPersistence.Document()
+                documentInDb.gId = response.data[0]['id']
+                documentInDb.content = response.data[0]['content']
+                documentInDb.parse = JSON.parse(response.data[0]['parse'])
+                
+                resolve(documentInDb) 
+            }).catch( function(result: string){
+                console.log('api exception query existing document', result)
+                throw new Error(result)
+            })
+    })
 }
 
 export async function saveNewDocument(document: documentPersistence.Document) {

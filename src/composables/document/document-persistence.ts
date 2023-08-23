@@ -7,15 +7,15 @@ export async function retrieveDocument(documentText: string, spacyFormatParsePro
     if (spacyFormatParseProviderName != undefined) { // 有名字，就可以視同解析解果會被儲存
 
         // return await backendAgent.queryExistingDocument(documentId, documentText).then( (resultData: Object[]) => {
-        // await backendAgent.queryExistingDocument(undefined, documentText).then( (resultData: Object[]) => {
-        //     console.log('document from NEPTUNE', resultData)
-        //     console.log('document from NEPTUNE length', resultData.length)
-        //     if (resultData.length == 1) {
-        //         console.log('AWS DOCUMENT', resultData[0])
-        //     }
-        //     if (resultData.length > 1) throw '查詢文件有多筆結果，程式或資料有問題'
-        //     if (! resultData.length) return undefined
-        // })
+        await backendAgent.queryExistingDocument(undefined, documentText).then( (resultData) => {
+            console.log('document from REMOTE', resultData)
+            // console.log('document from NEPTUNE length', resultData.length)
+            // if (resultData.length == 1) {
+            //     console.log('AWS DOCUMENT', resultData[0])
+            // }
+            // if (resultData.length > 1) throw '查詢文件有多筆結果，程式或資料有問題'
+            // if (! resultData.length) return undefined
+        })
 
         let document: Document|undefined = undefined
         await queryExistingDocument(undefined, documentText).then( (queryResult) => { // 轉換到 aws 的初期，全文檢索暫時不實做
@@ -58,8 +58,11 @@ export async function saveDocumentParse (document: Document) {
         document.id = id
     })
 
+    console.log('SAVED JANUSGRAPH document', document)
     return document
 }
+
+// TODO convert to aws
 async function queryExistingDocument(documentId: number|undefined, documentText: string|undefined) {
 
     const gremlinInvoke = new gremlinApi.GremlinInvoke()
@@ -79,6 +82,7 @@ async function queryExistingDocument(documentId: number|undefined, documentText:
         throw error
     }
 
+    // TODO convert to aws
     // 查詢 document 的內容
     gremlinInvoke.until(
         new gremlinApi.GremlinInvoke(true)
@@ -93,6 +97,7 @@ async function queryExistingDocument(documentId: number|undefined, documentText:
         new gremlinApi.GremlinInvoke(true).__in()
     ).tree()
 
+    ////////////////////////////////////////////
     return await gremlinApi.submitAndParse(gremlinInvoke).then( (resultData: any) => {
         if (resultData.length > 1) throw '查詢文件有多筆結果，程式或資料有問題'
         if (! resultData.length) return undefined
@@ -102,10 +107,10 @@ async function queryExistingDocument(documentId: number|undefined, documentText:
         if ((resultDocumentOrMap instanceof Map)) {
             if (! resultDocumentOrMap.size) return undefined // 裡面可能沒東西
 
+            // TODO convert to aws
             const sentencesJson = resultDocumentOrMap.values().next().value
             const documentTranslatedSentences: TranslatedSentence[] = []
             const documentEntity: Entity = resultDocumentOrMap.keys().next().value
-            // TODO convert to aws
             document = new Document(documentEntity)
             if (sentencesJson) {
                 sentencesJson.forEach( (segmentMap: any, sentenceNode: any) => { // loop sentences
