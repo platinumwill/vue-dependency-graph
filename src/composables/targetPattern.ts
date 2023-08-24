@@ -383,7 +383,7 @@ function _generateDefaultPieces (
 }
 
 const targetPatternPieceArray:any[] = []
-function _processTargetPatternStoring(segmentPieces: LinearTargetPatternPiece[], gremlinInvoke: GremlinInvoke) {
+async function _processTargetPatternStoring(segmentPieces: LinearTargetPatternPiece[], gremlinInvoke: GremlinInvoke) {
     console.log('gremlin invoke: ', gremlinInvoke)
     // TODO convert to aws
     // save target pattern

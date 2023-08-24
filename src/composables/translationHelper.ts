@@ -162,27 +162,29 @@ export function prepareTranslationHelper (
 }
 
 
-const saveSelectedPattern = (
+const saveSelectedPattern = async (
     sourcePattern: SourcePatternManager
     , targetPattern: TargetPattern
 ) => {
     let gremlinInvoke = new GremlinInvoke()
 
     // TODO convert to aws
-    gremlinInvoke = sourcePattern.process.save(gremlinInvoke)
-    gremlinInvoke = targetPattern.process.save(gremlinInvoke)
-    gremlinInvoke.call("select", aliases.sourcePatternBeginning)
-
-    console.log(gremlinInvoke.command())
-    submit(gremlinInvoke.command())
+    gremlinInvoke = await sourcePattern.process.save(gremlinInvoke)
+    .then(targetPattern.process.save)
+    .then((gremlinInvoke: GremlinInvoke) => {return gremlinInvoke.call("select", aliases.sourcePatternBeginning)})
+    .then((gremlinInvoke: GremlinInvoke) => {return submit(gremlinInvoke.command())})
+    // console.log(gremlinInvoke.command())
+    // await 
     .then((resultData: any) => {
         const sourcePatternBeginningVertexId = resultData['@value'][0]['@value'].id['@value']
         console.log('Source Pattern Begin Vertex Id: ', sourcePatternBeginningVertexId)
         sourcePattern.selection.reloadOptions().then(() => {
             sourcePattern.selection.setAsSelected(sourcePatternBeginningVertexId)
+            // return sourcePatternBeginningVertexId
         })
         return sourcePatternBeginningVertexId
-    }).catch(function(error) {
+    // }).then(sourcePattern.selection.setAsSelected)
+    }).catch(function(error: any) {
         console.error(error)
     })
 }
