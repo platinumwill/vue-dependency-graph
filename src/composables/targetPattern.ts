@@ -139,8 +139,8 @@ export function prepareTargetPattern (token: ModifiedSpacyToken) {
         return selectedTargetPattern.value == undefined
     }
 
-    function save(gremlinInvoke: GremlinInvoke) {
-        return _processTargetPatternStoring(dialogPieces.value, gremlinInvoke)
+    async function save(gremlinInvoke: GremlinInvoke) {
+        return await _processTargetPatternStoring(dialogPieces.value, gremlinInvoke)
     }
 
     return {
@@ -382,9 +382,10 @@ function _generateDefaultPieces (
     return segmentPieces
 }
 
-const targetPatternPieceArray:any[] = []
 async function _processTargetPatternStoring(segmentPieces: LinearTargetPatternPiece[], gremlinInvoke: GremlinInvoke) {
-    console.log('gremlin invoke: ', gremlinInvoke)
+
+    const targetPatternPieceArray:any[] = []
+
     // TODO convert to aws
     // save target pattern
     let lastAddedPieceAlias: string
@@ -423,7 +424,8 @@ async function _processTargetPatternStoring(segmentPieces: LinearTargetPatternPi
             // 和 dependency 的關連
             // 這裡在處理指向 (source pattern) dependency 的 target pattern piece
             // aws
-            const sourceDependency = backendAgent.generateDependencyForAWS(piece.source)
+            const seqNo = pieceIdx + 1
+            const sourceDependency = backendAgent.generateDependencyForAWS(piece.source, seqNo)
             targetPatternPiece['source'] = sourceDependency
             gremlinInvoke.property(gremlinManager.edgePropertyNames.traceToInDep, true)
             // const sourceDependency = 
@@ -464,10 +466,11 @@ async function _processTargetPatternStoring(segmentPieces: LinearTargetPatternPi
         lastAddedPieceAlias = currentPieceAlias
         // aws
         targetPatternPieceArray.push(targetPatternPiece)
-        backendAgent.setTargetPattern(targetPatternPieceArray);
     })
     // aws
-    backendAgent.setTargetPattern(targetPatternPieceArray)
+    await backendAgent.setTargetPattern(targetPatternPieceArray)
+    .then(backendAgent.triggerPatternSaving)
+    
     return gremlinInvoke
 }
 

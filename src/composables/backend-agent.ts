@@ -157,10 +157,11 @@ export async function querySourcePattern(beginWord: any) {
         })
 }
 
-export function generateDependencyForAWS(arc: ModifiedSpacyDependency) {
+export function generateDependencyForAWS(arc: ModifiedSpacyDependency, seqNo: number) {
     const sourcePatternDependency: any = {};
     sourcePatternDependency['type'] = MinimalClassName.SourcePatternDependency;
     sourcePatternDependency['label'] = arc.label;
+    sourcePatternDependency['seqNo'] = seqNo
     sourcePatternDependency['isPlaceholder'] = arc.isPlaceholder;
     sourcePatternDependency['trueStart'] = arc.trueStart;
     sourcePatternDependency['trueEnd'] = arc.trueEnd;

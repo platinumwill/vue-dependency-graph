@@ -101,15 +101,15 @@ export function prepareSegment(token: ModifiedSpacyToken) {
             .call("to", endVName)
             .property(propertyNames.seqNo, index + 1)
 
+            const seqNo: number = index + 1
+
             // aws
-            const sourcePatternDependency: any = backendAgent.generateDependencyForAWS(arc);
+            const sourcePatternDependency: any = backendAgent.generateDependencyForAWS(arc, seqNo);
             sourcePatternDependencyArray.push(sourcePatternDependency)
         })
 
         await backendAgent.setSourcePattern(sourcePatternArray, sourcePatternDependencyArray).then( async (result:any) => {
             console.log('saveNewPattern result', result)
-        }).then( async () => {
-            await backendAgent.triggerPatternSaving()
         })
         return gremlinInvoke
     }

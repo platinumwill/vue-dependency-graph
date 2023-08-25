@@ -10,6 +10,7 @@ import {
 import { ModifiedSpacyDependency, ModifiedSpacyToken } from "@/composables/sentenceManager";
 import { SourcePatternOption } from "@/composables/sourcePatternSegment";
 import * as documentPersistence from '@/composables/document/document-persistence'
+import * as backendAgent from "@/composables/backend-agent"
 
 import { computed, ComputedRef, ref, watch } from "vue";
 
@@ -171,11 +172,12 @@ const saveSelectedPattern = async (
     // TODO convert to aws
     gremlinInvoke = await sourcePattern.process.save(gremlinInvoke)
     .then(targetPattern.process.save)
-    .then((gremlinInvoke: GremlinInvoke) => {return gremlinInvoke.call("select", aliases.sourcePatternBeginning)})
-    .then((gremlinInvoke: GremlinInvoke) => {return submit(gremlinInvoke.command())})
+    // .then(backendAgent.triggerPatternSaving)
+    .then(async (gremlinInvoke: GremlinInvoke) => {return gremlinInvoke.call("select", aliases.sourcePatternBeginning)})
+    .then(async (gremlinInvoke: GremlinInvoke) => {return submit(gremlinInvoke.command())})
     // console.log(gremlinInvoke.command())
     // await 
-    .then((resultData: any) => {
+    .then(async (resultData: any) => {
         const sourcePatternBeginningVertexId = resultData['@value'][0]['@value'].id['@value']
         console.log('Source Pattern Begin Vertex Id: ', sourcePatternBeginningVertexId)
         sourcePattern.selection.reloadOptions().then(() => {
@@ -183,8 +185,8 @@ const saveSelectedPattern = async (
             // return sourcePatternBeginningVertexId
         })
         return sourcePatternBeginningVertexId
-    // }).then(sourcePattern.selection.setAsSelected)
-    }).catch(function(error: any) {
+    })
+    .catch(function(error: any) {
         console.error(error)
     })
 }
