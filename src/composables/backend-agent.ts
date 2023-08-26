@@ -33,7 +33,7 @@ const additionalParams = {}
 export enum MinimalClassName {
     DocumentActionRequest = '.DocumentActionRequest'
     , PatternActionRequest = '.PatternActionRequest'
-    , SourcePatternToken = '.SourcePatternToken'
+    , SourcePatternPiece = '.SourcePatternPiece'
     , SourcePatternDependency = '.SourcePatternDependency'
 }
 export async function queryExistingDocument(documentParam?: {id?: string, content?: string}) {
@@ -168,7 +168,7 @@ export function generateDependencyForAWS(arc: ModifiedSpacyDependency, seqNo: nu
     sourcePatternDependency['sourcePatternEdgeId'] = arc.sourcePatternEdgeId;
     if (arc.selectedEndToken) {
         sourcePatternDependency['selectedEndToken'] = {
-            type: MinimalClassName.SourcePatternToken,
+            type: MinimalClassName.SourcePatternPiece,
             indexInSentence: arc.selectedEndToken.indexInSentence
         };
     }
@@ -176,7 +176,7 @@ export function generateDependencyForAWS(arc: ModifiedSpacyDependency, seqNo: nu
 }
 // export function generateTokenForAWS(token: ModifiedSpacyToken) {
 //     const sourcePatternToken: any = {};
-//     sourcePatternToken['type'] = MinimalClassName.SourcePatternToken;
+//     sourcePatternToken['type'] = MinimalClassName.SourcePatternPiece;
 //     sourcePatternToken['indexInSentence'] = token.indexInSentence;
 //     sourcePatternToken['sourcePatternVertexId'] = token.sourcePatternVertexId
 //     // sourcePatternToken['selectedMorphologyInfoTypes'] = token.selectedMorphologyInfoTypes;
@@ -188,7 +188,7 @@ export function generateTokenForAWS(word: ModifiedSpacyToken, index?: number) {
     console.log("SELECTED MORPHOLOGY INFO TYPES", word.selectedMorphologyInfoTypes)
 
     const sourcePatternPiece: any = {};
-    sourcePatternPiece['type'] = MinimalClassName.SourcePatternToken;
+    sourcePatternPiece['type'] = MinimalClassName.SourcePatternPiece
     sourcePatternPiece['indexInSentence'] = word.indexInSentence
     sourcePatternPiece['sourcePatternVertexId'] = word.sourcePatternVertexId
     sourcePatternPiece.isBeginning = word.isBeginning;
