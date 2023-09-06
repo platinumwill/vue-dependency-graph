@@ -31,7 +31,7 @@ export default {
         }
     }
     , methods: {
-        posClicked: function() {
+        posClicked: async function() {
             // this.morphologyInfo.token.translationHelper.toggleMorphologyInfoSelection(this.morphologyInfo)
             if (!this.morphologyInfo.token.translationHelper) {
                 const targetPatternHelper = targetPattern.prepareTargetPattern(this.morphologyInfo.token)
@@ -40,10 +40,10 @@ export default {
                 const segmentHelper = sourcePattern.prepareSegment(this.morphologyInfo.token)
                 this.morphologyInfo.token.setSegmentHelper(segmentHelper)
 
-                const helper = translationHelper.prepareTranslationHelper(segmentHelper, targetPatternHelper)
+                const helper = await translationHelper.prepareTranslationHelper(segmentHelper, targetPatternHelper)
                 this.morphologyInfo.token.setTranslationHelper(helper)
             }
-            this.morphologyInfo.token.translationHelper.toggleMorphologyInfoSelection(this.morphologyInfo)
+            await this.morphologyInfo.token.translationHelper.toggleMorphologyInfoSelection(this.morphologyInfo)
         }
     }
     , computed: {

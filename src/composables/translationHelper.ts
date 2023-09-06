@@ -20,7 +20,7 @@ export type TranslationHelper = {
     , isTargetPatternConfirmed: boolean
 }
 
-export function prepareTranslationHelper (
+export async function prepareTranslationHelper (
     sourcePattern: SourcePatternManager
     , targetPattern: TargetPattern
 ) {
@@ -29,7 +29,7 @@ export function prepareTranslationHelper (
     const $targetPattern: TargetPattern|undefined = targetPattern
     let $toggling = false
 
-    const _toggleMorphologyInfoSelection = (morphologyInfo: MorphologyInfo) => {
+    const _toggleMorphologyInfoSelection = async (morphologyInfo: MorphologyInfo) => {
         const word = morphologyInfo.token
         // 如果 morphology info 是 UNKNOWN，就不繼續動作
         if (word[morphologyInfo.type.propertyInWord].endsWith(morphologyInfoUnknownValuePostfix)) return
@@ -61,8 +61,8 @@ export function prepareTranslationHelper (
 
         const selection = $sourcePattern?.selection
         if (!selection) throw 'selection 為空，有誤'
-        selection.reloadOptions().then( () => {
-            _findExistingMatchSourcePatternAndSetDropdown(word, selection)
+        await selection.reloadOptions().then( async () => {
+            return await _findExistingMatchSourcePatternAndSetDropdown(word, selection)
         })
     }
 
@@ -191,7 +191,7 @@ const saveSelectedPattern = async (
     })
 }
 
-const _findExistingMatchSourcePatternAndSetDropdown = (
+const _findExistingMatchSourcePatternAndSetDropdown = async (
     beginWord: ModifiedSpacyToken
     , selection: SourcePatternSegmentSelection
     ) => {
@@ -200,9 +200,8 @@ const _findExistingMatchSourcePatternAndSetDropdown = (
     if (! beginWord.isSegmentRoot) return 
 
     const selectedArcsFromBegin = beginWord.segmentDeps
-    // convert to aws
+    // TODO convert to aws
     let gremlinInvoke = new GremlinInvoke()
-    ///////////////////////////////////////////////
     .call("V")
     beginWord.selectedMorphologyInfoTypes.forEach( (morphInfoType) => {
         gremlinInvoke = gremlinInvoke.call("has", morphInfoType.name, beginWord[morphInfoType.propertyInWord])
@@ -227,6 +226,8 @@ const _findExistingMatchSourcePatternAndSetDropdown = (
             // 非 connector 的狀況
             const endToken = selectedArc.endToken
             const endTokenCriteria = new GremlinInvoke(true).out(selectedArc.label)
+
+            // 因為除了有的 morph info 要下 has，還要針對要沒有的 morph info 要下 hasNot 排除掉，所以要轉整個 morphologyInfoTypeEnum
             Object.values(morphologyInfoTypeEnum).forEach( (morphInfoType, index) => {
                 const endTokenPropertyCriteria = new GremlinInvoke(true)
                 if (endToken.selectedMorphologyInfoTypes.includes(morphInfoType)) {
@@ -243,6 +244,7 @@ const _findExistingMatchSourcePatternAndSetDropdown = (
             gremlinInvoke.where(
                 new GremlinInvoke(true)
                 .out(selectedArc.label)
+    ///////////////////////////////////////////////
                 .where(new GremlinInvoke(true).has(propertyNames.isConnector, true))
                 .count()
                 .is(new GremlinInvoke(true).eq(1))
@@ -258,6 +260,25 @@ const _findExistingMatchSourcePatternAndSetDropdown = (
             .call("is", new GremlinInvoke(true).gte(value))
         )
     })
+
+    // for aws
+    let seq = 0
+    const depArray: any[] = []
+    const beginWordForRemote = backendAgent.generateTokenForAWS(beginWord)
+    beginWord.segmentDeps.forEach((dep => {
+        seq++
+        depArray.push(backendAgent.generateDependencyForAWS(dep, seq))
+    }))
+    await backendAgent.querySourcePattern(beginWordForRemote, depArray, arcSum).then((queryResult: any[]) => {
+        if (queryResult.length === 0) {
+            selection.setAsSelected(undefined)
+            return
+        }
+        selection.setAsSelected(queryResult[0].id)
+    })
+    
+    return
+
     submit(gremlinInvoke).then( (resultData: any) => {
         if (resultData['@value'].length === 0) {
             selection.setAsSelected(undefined)

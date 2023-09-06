@@ -149,7 +149,7 @@ export function prepareSegment(token: ModifiedSpacyToken) {
     }
 }
 
-// convert to aws
+// TODO convert to aws
 const _reloadMatchingSourcePatternOptions = async (
     sourcePatternOptions: Ref<SourcePatternOption[]>
     , beginWord: ModifiedSpacyToken) => {
@@ -160,32 +160,43 @@ const _reloadMatchingSourcePatternOptions = async (
             resolve(undefined)
         })
     }
-    // convert to aws
+
+    ///////////////////////////////
+
+    // TODO convert to aws
     let gremlinCommand = new GremlinInvoke().call("V")
-
-    // for aws
-    const awsBeginToken = backendAgent.generateTokenForAWS(beginWord)
-    await backendAgent.querySourcePattern(awsBeginToken)
-
     beginWord.selectedMorphologyInfoTypes.forEach( (morphInfoType) => {
         gremlinCommand = gremlinCommand.call("has", morphInfoType.name, beginWord[morphInfoType.propertyInWord])
     })
     gremlinCommand = gremlinCommand.call("inE", edgeLabels.applicable)
     .call("inV")
     .call("dedup")
-    ///////////////////////////////
-    return new Promise((resolve, reject) => {
-        submit(gremlinCommand).then( (resultData: any) => { // 回傳的資料裡面需要用到的是 id 和 label
+    // return new Promise((resolve, reject) => {
+        const awsBeginToken = backendAgent.generateTokenForAWS(beginWord)
+        return await backendAgent.querySourcePattern(awsBeginToken).then( async (result:any) => {
+            console.log('AWS source pattern result', result)
+            await result.forEach( async (sourcePattern:any) => {
+                sourcePatternOptions.value.push({
+                    id: sourcePattern.id
+                    , dropdownOptionLabel: sourcePattern.label + '-' + sourcePattern.id
+                })
+            })
+            return result
+        })
+        return await submit(gremlinCommand).then( (resultData: any) => { // 回傳的資料裡面需要用到的是 id 和 label
             resultData['@value'].forEach( (sourcePatternBeginning: any) => {
                 sourcePatternOptions.value.push({
                     id: sourcePatternBeginning['@value'].id['@value']
                     , dropdownOptionLabel: sourcePatternBeginning['@value'].label + '-' + sourcePatternBeginning['@value'].id['@value']
                 })
             })
-            resolve(resultData)
-        }).catch ( function(error) {
-            console.error(error)
-            reject(error)
+
+            return resultData
+            // resolve(resultData)
         })
-    })
+        // }).catch ( function(error) {
+        //     console.error(error)
+        //     reject(error)
+        // })
+    // })
 }

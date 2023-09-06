@@ -136,7 +136,7 @@ export async function triggerPatternSaving() {
         })
 }
 
-export async function querySourcePattern(beginWord: any) {
+export function querySourcePattern(beginWord: any, deps?: any[], depSums?: Map<String, number>) {
     const awsSourcePattern:any[] = []
     awsSourcePattern.push(beginWord)
 
@@ -144,10 +144,22 @@ export async function querySourcePattern(beginWord: any) {
         type: MinimalClassName.PatternActionRequest
         , sourcePatternAction: {
             sourcePatternTokens: awsSourcePattern
+            , sourcePatternDependencies: deps
             , action: SourcePatternAction.query_by_begin_token
         }
     }
-    return await apigClient.invokeApi(pathParams, pathTemplate, method, additionalParams, body)
+    console.log('BODY BEFORE QUERY-SOURCE-PATTERN', body)
+
+    return new Promise( (resolve) => {
+        apigClient.invokeApi(pathParams, pathTemplate, method, additionalParams, body)
+            .then(function(response: any){
+                resolve(response.data)
+            }).catch( function(result: string){
+                console.log('api exception save new document', result)
+                throw new Error(result)
+            })
+    })
+    return apigClient.invokeApi(pathParams, pathTemplate, method, additionalParams, body)
         .then(function(response: any){
             const savedResult = response.data
             return savedResult
@@ -167,22 +179,10 @@ export function generateDependencyForAWS(arc: ModifiedSpacyDependency, seqNo: nu
     sourcePatternDependency['trueEnd'] = arc.trueEnd;
     sourcePatternDependency['sourcePatternEdgeId'] = arc.sourcePatternEdgeId;
     if (arc.selectedEndToken) {
-        sourcePatternDependency['selectedEndToken'] = {
-            type: MinimalClassName.SourcePatternPiece,
-            indexInSentence: arc.selectedEndToken.indexInSentence
-        };
+        sourcePatternDependency['selectedEndToken'] = generateTokenForAWS(arc.selectedEndToken)
     }
     return sourcePatternDependency;
 }
-// export function generateTokenForAWS(token: ModifiedSpacyToken) {
-//     const sourcePatternToken: any = {};
-//     sourcePatternToken['type'] = MinimalClassName.SourcePatternPiece;
-//     sourcePatternToken['indexInSentence'] = token.indexInSentence;
-//     sourcePatternToken['sourcePatternVertexId'] = token.sourcePatternVertexId
-//     // sourcePatternToken['selectedMorphologyInfoTypes'] = token.selectedMorphologyInfoTypes;
-//     // sourcePatternToken['selectedMorphologyInfoValues'] = token.selectedMorphologyInfoValues;
-//     return sourcePatternToken;
-// }
 export function generateTokenForAWS(word: ModifiedSpacyToken, index?: number) {
 
     console.log("SELECTED MORPHOLOGY INFO TYPES", word.selectedMorphologyInfoTypes)
