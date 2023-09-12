@@ -173,12 +173,12 @@ const saveSelectedPattern = async (
     gremlinInvoke = await sourcePattern.process.save(gremlinInvoke)
     .then(targetPattern.process.save)
     // .then(backendAgent.triggerPatternSaving)
-    .then(async (gremlinInvoke: GremlinInvoke) => {return gremlinInvoke.call("select", aliases.sourcePatternBeginning)})
-    .then(async (gremlinInvoke: GremlinInvoke) => {return submit(gremlinInvoke.command())})
+    // .then(async (gremlinInvoke: GremlinInvoke) => {return gremlinInvoke.call("select", aliases.sourcePatternBeginning)})
+    // .then(async (gremlinInvoke: GremlinInvoke) => {return submit(gremlinInvoke.command())})
     // console.log(gremlinInvoke.command())
     // await 
     .then(async (resultData: any) => {
-        const sourcePatternBeginningVertexId = resultData['@value'][0]['@value'].id['@value']
+        const sourcePatternBeginningVertexId = resultData.sourcePatternBeginningVertexId
         console.log('Source Pattern Begin Vertex Id: ', sourcePatternBeginningVertexId)
         sourcePattern.selection.reloadOptions().then(() => {
             sourcePattern.selection.setAsSelected(sourcePatternBeginningVertexId)
@@ -301,7 +301,6 @@ const autoMarkMatchingSourcePattern = async (sourcePatternBeginningId: number, t
     .call("until", new GremlinInvoke(true).call("outE").call("count").call("is", 0))
     .call("limit", 20)
     .call("path")
-    // .call("by", new GremlinInvoke(true).call("elementMap"))
     .command()
 
         // 下面這行不加開頭的 await 會有問題

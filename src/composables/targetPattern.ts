@@ -468,10 +468,11 @@ async function _processTargetPatternStoring(segmentPieces: LinearTargetPatternPi
         targetPatternPieceArray.push(targetPatternPiece)
     })
     // aws
-    await backendAgent.setTargetPattern(targetPatternPieceArray)
+    return await backendAgent.setTargetPattern(targetPatternPieceArray)
     .then(backendAgent.triggerPatternSaving)
-    
-    return gremlinInvoke
+    .then((response) => {
+        return response
+    })
 }
 
 export function _reloadMatchingTargetPatternOptions (

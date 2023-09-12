@@ -131,8 +131,7 @@ export async function triggerPatternSaving() {
     console.log('BODY BEFORE SAVE-PATTERN', body)
     return await apigClient.invokeApi(pathParams, pathTemplate, method, additionalParams, body)
         .then(function(response: any){
-            const savedResult = response.data
-            return savedResult
+            return response.data
         }).catch( function(result: string){
             console.log('api exception save new document', result)
             throw new Error(result)
