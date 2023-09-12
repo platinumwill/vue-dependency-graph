@@ -294,7 +294,7 @@ const autoMarkMatchingSourcePattern = async (sourcePatternBeginningId: number, t
     token.clearSourcePatternInfo()
 
     // 下面的邏輯也許應該切到 setence manager
-
+    // TODO convert to aws
     const gremlinCommand = new GremlinInvoke()
     .call("V", sourcePatternBeginningId)
     .call("repeat", new GremlinInvoke(true).call("outE").call("inV"))
@@ -308,22 +308,24 @@ const autoMarkMatchingSourcePattern = async (sourcePatternBeginningId: number, t
         // 問題可能出在這裡，不知道下面的 await 的邏輯是不是要搬到外面
         await submit(gremlinCommand).then( async (resultData: any) => {
             if (token == undefined) return
+        })
+
+        // for aws
+        await backendAgent.querySourcePatternById(sourcePatternBeginningId.toString()).then(async (sourcePatterns: {from: any, edge: any, to: any}[]) => {
             token.sourcePatternVertexId = sourcePatternBeginningId
 
-            // TODO 這 2 個動作可能會造成以後的錯誤
-            token.selectedMorphologyInfoTypes.splice(0, token.selectedMorphologyInfoTypes.length)
-            token.selectedMorphologyInfoTypes.push(minimalMorphologyInfo)
+            sourcePatterns.forEach(async (sourcePattern: any) => {
 
-            await resultData['@value'].forEach( async (path: any) => {
                 // 因為這裡是以 v -e-> v 的模式在處理，所以 source pattern 註定不能是單一個 token
-                const outVId = path['@value'].objects['@value'][0]['@value'].id['@value']
-                const outELabel = path['@value'].objects['@value'][1]['@value'].label
-                const outEId = path['@value'].objects['@value'][1]['@value'].id['@value'].relationId
-                const inVId = path['@value'].objects['@value'][2]['@value'].id['@value']
+                const outVId = sourcePattern.from.id
+                const outELabel = sourcePattern.edge.label
+                const outEId = sourcePattern.edge.id.relationId
+                const inVId = sourcePattern.to.id
                 const matchingArc = token.outDeps.find( (arc) => {
                     return (
                         token.sentence?.words[arc.trueStart].sourcePatternVertexId === outVId
                         && arc.label === outELabel
+                        // TODO 這裡可能還要再加上是否已經選取/是否已經有對應的 source pattern edge id 的判斷（為了要處理同個 label 有多個 edge 的狀況）
                     )
                 })
                 if (! matchingArc) return
@@ -331,8 +333,7 @@ const autoMarkMatchingSourcePattern = async (sourcePatternBeginningId: number, t
                 // 有了 sourcePatternEdgeId，視同被選取。應該要考慮用 getter 邏輯來處理
                 matchingArc.selected = true
                 
-                isConnector(inVId).then( (isConnector) => {
-                    if (! isConnector) {
+                    if (! sourcePattern.to.isConnector) {
                         const tokenAtEndOfDependency = token.sentence?.words.find( (word) => {
                             return word.indexInSentence === matchingArc.trueEnd
                         })
@@ -344,19 +345,18 @@ const autoMarkMatchingSourcePattern = async (sourcePatternBeginningId: number, t
                         // token 的 source pattern vertex id 在這裡設定，這一行很重要
                         tokenAtEndOfDependency.sourcePatternVertexId = inVId
                     }
-                })
 
                 const tokenMatchingInV = token.sentence?.words.find( (token) => {
                     return token.sourcePatternVertexId === inVId
                 })
+                //// ########################################
                 if (tokenMatchingInV != undefined) {
-                    await loadValueMap(inVId).then( (outVValueMap: any) => {
-                        const morphTypeInfoTokenPropertyNames = Object.values(morphologyInfoTypeEnum).map(infoType => infoType.name)
-                        outVValueMap[valueKey][0][valueKey].forEach( (valueMapArrayElement: any, index: number) => {
-                            const matchingMorphologyInfo = Object.values(morphologyInfoTypeEnum).find(infoType => infoType.name === valueMapArrayElement)
-                            if (matchingMorphologyInfo == undefined) return
-                            tokenMatchingInV.markMorphologyInfoAsSelected(matchingMorphologyInfo)
-                        })
+                    Object.values(morphologyInfoTypeEnum).forEach(infoType => {
+                        console.log('INO TYPE', infoType.name)
+                        console.log('INO TYPE VALUE', sourcePattern.from[infoType.name])
+                        if (sourcePattern.from[infoType.name] != undefined) {
+                            tokenMatchingInV.markMorphologyInfoAsSelected(infoType)
+                        }
                     })
                 }
 
