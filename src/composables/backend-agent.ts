@@ -38,44 +38,42 @@ export enum MinimalClassName {
     , SourcePatternDependency = '.SourcePatternDependency'
 }
 export async function queryExistingDocument(documentParam?: {id?: string, content?: string}) {
-    return new Promise((resolve, reject) => {
         console.log('DOCUMENT-PARAM', documentParam)
 
         if (!documentParam) {
-            resolve(undefined)
-            return
+            return undefined
         }
 
         const document = {
-            id: documentParam.id
-            , content: documentParam.content
+            content: documentParam.content
         }
         const body = {
             type: MinimalClassName.DocumentActionRequest
             , document: document
             , action: DocumentAction.QUERY
         }
-        apigClient.invokeApi(pathParams, pathTemplate, method, additionalParams, body)
+        return await apigClient.invokeApi(pathParams, pathTemplate, method, additionalParams, body)
             .then(function(response: any){
 
+                console.log('BACKAGENT QUERY DOCUMENT RESPONSE BODY', response.data)
+
                 if (! response.data.length) {
-                    console.log('no data found: ', response.data)
-                    resolve(undefined)
-                    return
+                    return undefined
                 }
 
                 const documentInDb = new documentPersistence.Document()
                 documentInDb.gId = response.data[0]['id']
                 documentInDb.content = response.data[0]['content']
                 documentInDb.parse = JSON.parse(response.data[0]['parse'])
-                documentInDb.id = documentParam.id
+                if (documentParam) {
+                    documentInDb.id = documentParam.id
+                }
                 
-                resolve(documentInDb) 
+                return documentInDb 
             }).catch( function(result: string){
                 console.log('api exception query existing document', result)
                 throw new Error(result)
             })
-    })
 }
 
 export async function saveNewDocument(document: documentPersistence.Document) {

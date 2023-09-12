@@ -13,30 +13,32 @@ export async function retrieveDocument(documentText: string, spacyFormatParsePro
 
         let document: Document|undefined = undefined
         // TODO convert to aws 要拿掉
-        const d = await queryExistingDocument({ content: documentText }).then( (queryResult) => { // 轉換到 aws 的初期，全文檢索暫時不實做
+        return await queryExistingDocument({ content: documentText }).then( (queryResult) => { // 轉換到 aws 的初期，全文檢索暫時不實做
             document = queryResult
             console.log('document from LOCAL', document)
             return document
         }).then(backendAgent.queryExistingDocument) // for aws
+        .then( (document) => {
+            if (document.id) {
+                console.log('existing document retrieved: ', document)
+                return document
+            } else {
+                // 3 種 spacyFormatParseProvider.parse 最後都會回傳有 content 和 parse 屬性的 (document) 物件
+                // TODO convert to aws 要作廢
+                return spacyFormatParseProvider.parse(documentText)
+                    .then(saveDocumentParse) // janusgraph impl
+                    .then(backendAgent.saveNewDocument) // aws impl
+                    .then( (newlySavedDocument: Document) => {
+                        return newlySavedDocument
+                    })
+            }
+        })
         .catch( (error) => {
             console.error(error)
             throw error
         })
 
         // TODO convert to aws 轉換到 aws 以後，這一段就不用了，因為用 aws 可以直接新增
-        if (document != undefined) {
-            console.log('existing document retrieved: ', document)
-            return document
-        } else {
-            // 3 種 spacyFormatParseProvider.parse 最後都會回傳有 content 和 parse 屬性的 (document) 物件
-            // TODO convert to aws 要作廢
-            return spacyFormatParseProvider.parse(documentText)
-                .then(saveDocumentParse) // janusgraph impl
-                .then(backendAgent.saveNewDocument) // aws impl
-                .then( (newlySavedDocument: Document) => {
-                    return newlySavedDocument
-                })
-        }
     }
     return spacyFormatParseProvider.parse(documentText)
 }
