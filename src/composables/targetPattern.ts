@@ -386,7 +386,7 @@ async function _processTargetPatternStoring(segmentPieces: LinearTargetPatternPi
 
     const targetPatternPieceArray:any[] = []
 
-    // TODO convert to aws
+    // TODO convert to aws: done
     // save target pattern
     let lastAddedPieceAlias: string
     segmentPieces.forEach((piece, pieceIdx) => {
@@ -482,8 +482,7 @@ export function _reloadMatchingTargetPatternOptions (
 
     targetPatternOptions.splice(0, targetPatternOptions.length)
 
-    // convert to aws
-    ///////////////////////////
+    // TODO convert to aws
     const gremlinCommand = new gremlinManager.GremlinInvoke()
     .call("V", sourcePatternBeginningId)
     .call("in", "applicable")
@@ -494,6 +493,8 @@ export function _reloadMatchingTargetPatternOptions (
     .call("by"
         , new gremlinManager.GremlinInvoke(true)
             .call(
+    ///////////////////////////
+    // ##################################################
                 "project"
                 , gremlinManager.projectKeys.traceToEdge
                 , gremlinManager.projectKeys.traceToInV
@@ -573,8 +574,8 @@ export function _reloadMatchingTargetPatternOptions (
                     }
 
                     // 取得 source pattern vertex id
-                    let sourcePatternVId = undefined
-                    let isPlaceholder = undefined
+                    // let sourcePatternVId = undefined
+                    // let isPlaceholder = undefined
                     let tracerVertexId = undefined
                     let tracedVertexId = undefined
                     let traceToDep = false
@@ -583,22 +584,22 @@ export function _reloadMatchingTargetPatternOptions (
                             traceToDep = foldedTraceToEdgeElementMapArray[index + 1]
                         }
                     })
-                    foldedTraceToInVElementMapArray.forEach( (element: any, index: number) => {
-                        if (element['@value'] != undefined) {
-                            if (element['@value'] == 'id') {
-                                sourcePatternVId = foldedTraceToInVElementMapArray[index + 1]['@value']
-                            }
-                        }
-                    })
+                    // foldedTraceToInVElementMapArray.forEach( (element: any, index: number) => { // 跟 605 行重覆了
+                    //     if (element['@value'] != undefined) {
+                    //         if (element['@value'] == 'id') {
+                    //             sourcePatternVId = foldedTraceToInVElementMapArray[index + 1]['@value']
+                    //         }
+                    //     }
+                    // })
                     foldedTracerElementMapArray.forEach( (element: any, index: number) => {
                         if (element['@value'] != undefined) {
                             if (element['@value'] == 'id') {
                                 tracerVertexId = foldedTracerElementMapArray[index + 1]['@value']
                             }
-                        } else {
-                            if (element == gremlinManager.propertyNames.isPlaceholder) {
-                                isPlaceholder = foldedTracerElementMapArray[index + 1]
-                            }
+                        // } else {
+                        //     if (element == gremlinManager.propertyNames.isPlaceholder) {
+                        //         isPlaceholder = foldedTracerElementMapArray[index + 1]
+                        //     }
                         }
                     })
                     foldedTraceToInVElementMapArray.forEach( (element: any, index: number) => {
@@ -632,10 +633,10 @@ export function _reloadMatchingTargetPatternOptions (
                     }
                     if (targetPatternPiece != undefined) {
                         targetPatternPiece.mappedGraphVertexId = tracerVertexId
-                        targetPattern.addPieces(targetPatternPiece)
+                        targetPattern.addPieces(targetPatternPiece) // 一個 target pattern 裡是多個 piece
                     }
                 })
-                targetPatternOptions.push(targetPattern)
+                targetPatternOptions.push(targetPattern) // options 裡是多個 target pattern
             })
             resolve(targetPatternOptions)
         }).catch( (error) => {
