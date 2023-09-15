@@ -11,7 +11,7 @@ export async function retrieveDocument(documentText: string, spacyFormatParsePro
         //     console.log('document from REMOTE', resultData)
         // })
 
-        let document: Document|undefined = undefined
+        let document: {id?: string, content?: string}|undefined = undefined
         // TODO convert to aws 要拿掉
         return await queryExistingDocument({ content: documentText }).then( (queryResult) => { // 轉換到 aws 的初期，全文檢索暫時不實做
             document = queryResult
@@ -37,8 +37,6 @@ export async function retrieveDocument(documentText: string, spacyFormatParsePro
             console.error(error)
             throw error
         })
-
-        // TODO convert to aws 轉換到 aws 以後，這一段就不用了，因為用 aws 可以直接新增
     }
     return spacyFormatParseProvider.parse(documentText)
 }
@@ -100,12 +98,12 @@ async function queryExistingDocument(documentParam: {id?: string, content?: stri
     ////////////////////////////////////////////
     return await gremlinApi.submitAndParse(gremlinInvoke).then( (resultData: any) => {
         if (resultData.length > 1) throw '查詢文件有多筆結果，程式或資料有問題'
-        if (! resultData.length) return undefined
+        if (! resultData.length) return documentParam
 
         const resultDocumentOrMap = resultData[0]
         let document = undefined
         if ((resultDocumentOrMap instanceof Map)) {
-            if (! resultDocumentOrMap.size) return undefined // 裡面可能沒東西
+            if (! resultDocumentOrMap.size) return documentParam // 裡面可能沒東西；沒東西就把原來的 document 再傳回去
 
             // TODO convert to aws
             const sentencesJson = resultDocumentOrMap.values().next().value

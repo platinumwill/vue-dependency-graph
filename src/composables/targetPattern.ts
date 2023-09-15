@@ -475,12 +475,28 @@ async function _processTargetPatternStoring(segmentPieces: LinearTargetPatternPi
     })
 }
 
-export function _reloadMatchingTargetPatternOptions (
+enum propertyNames {
+    targetPatternVertex,
+    tracedSourcePatternVertex,
+    tracedSourcePatternEdge
+}
+
+export async function _reloadMatchingTargetPatternOptions (
     sourcePatternBeginningId: number
     , token: ModifiedSpacyToken
     , targetPatternOptions: LinearTargetPattern[]) {
 
     targetPatternOptions.splice(0, targetPatternOptions.length)
+
+    await backendAgent.queryTargetPattern(sourcePatternBeginningId.toString())
+    .then((targetPatternList: any[][]) => {
+        console.log('queryTargetPattern responseData', targetPatternList)
+        targetPatternList.forEach((targetPattern: any[]) => {
+            targetPattern.forEach((targetPatternPiece: any) => {
+                console.log('targetPatternPiece', targetPatternPiece)
+            })
+        })
+    })
 
     // TODO convert to aws
     const gremlinCommand = new gremlinManager.GremlinInvoke()
@@ -493,8 +509,6 @@ export function _reloadMatchingTargetPatternOptions (
     .call("by"
         , new gremlinManager.GremlinInvoke(true)
             .call(
-    ///////////////////////////
-    // ##################################################
                 "project"
                 , gremlinManager.projectKeys.traceToEdge
                 , gremlinManager.projectKeys.traceToInV
@@ -544,8 +558,7 @@ export function _reloadMatchingTargetPatternOptions (
                     )
             )
         )
-    return new Promise<LinearTargetPattern[]>( (resolve, reject) => {
-        gremlinManager.submit(gremlinCommand).then( (resultData: any) => {
+        return await gremlinManager.submit(gremlinCommand).then( (resultData: any) => {
             resultData['@value'].forEach( (targetPatternPath: any) => {
                 const targetPattern = new LinearTargetPattern()
                 const path: any[] = targetPatternPath['@value'].objects['@value'] // pathArray[0] 是 source pattern beginning
@@ -554,7 +567,9 @@ export function _reloadMatchingTargetPatternOptions (
                     if (index === 0) return // 第一個是 source pattern 的頭
                     let targetPatternPiece = undefined
 
+    // ##################################################
                     const projectedMapArray = projected['@value']
+                    // ##### tracedSourcePatternEdge
                     const projectedTraceToEdge = projectedMapArray[1]['@value']
                     if (projectedTraceToEdge.length <= 0) {
                         // text piece
@@ -638,11 +653,8 @@ export function _reloadMatchingTargetPatternOptions (
                 })
                 targetPatternOptions.push(targetPattern) // options 裡是多個 target pattern
             })
-            resolve(targetPatternOptions)
-        }).catch( (error) => {
-            reject(error)
+            return targetPatternOptions
         })
-    })
 }
 
 export const findDependencyByPatternEdgeId = (sourceEdgeId: string, token: ModifiedSpacyToken): ModifiedSpacyDependency => {

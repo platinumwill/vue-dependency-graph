@@ -20,6 +20,9 @@ enum DocumentAction {
 enum PatternAction {
     SAVE_NEW = 'save_new'
 }
+enum TargetPatternAction {
+    query_by_sourcePatternBeginningId = 'query_by_sourcePatternBeginningId'
+}
 
 enum SourcePatternAction {
     SAVE_NEW = 'save_new'
@@ -58,7 +61,7 @@ export async function queryExistingDocument(documentParam?: {id?: string, conten
                 console.log('BACKAGENT QUERY DOCUMENT RESPONSE BODY', response.data)
 
                 if (! response.data.length) {
-                    return undefined
+                    return documentParam
                 }
 
                 const documentInDb = new documentPersistence.Document()
@@ -186,7 +189,24 @@ export async function querySourcePatternById(sourcePatternBeginningId: string) {
             console.log('api exception save new document', result)
             throw new Error(result)
         })
+}
 
+export async function queryTargetPattern(sourcePatternBeginningId: string) {
+    const body = {
+        type: MinimalClassName.PatternActionRequest
+        , targetPatternAction: {
+            sourcePatternBeginningId: sourcePatternBeginningId
+            , action: TargetPatternAction.query_by_sourcePatternBeginningId
+        }
+    }
+
+    return await apigClient.invokeApi(pathParams, pathTemplate, method, additionalParams, body)
+        .then(function(response: any){
+            return response.data
+        }).catch( function(result: string){
+            console.log('api exception querying target pattern', result)
+            throw new Error(result)
+        })
 }
 
 export function generateDependencyForAWS(arc: ModifiedSpacyDependency, seqNo: number) {
