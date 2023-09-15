@@ -139,6 +139,7 @@ export function prepareTargetPattern (token: ModifiedSpacyToken) {
         return selectedTargetPattern.value == undefined
     }
 
+// TODO convert to aws: done
     async function save(gremlinInvoke: GremlinInvoke) {
         return await _processTargetPatternStoring(dialogPieces.value, gremlinInvoke)
     }
@@ -382,11 +383,11 @@ function _generateDefaultPieces (
     return segmentPieces
 }
 
+// TODO convert to aws: done
 async function _processTargetPatternStoring(segmentPieces: LinearTargetPatternPiece[], gremlinInvoke: GremlinInvoke) {
 
     const targetPatternPieceArray:any[] = []
 
-    // TODO convert to aws: done
     // save target pattern
     let lastAddedPieceAlias: string
     segmentPieces.forEach((piece, pieceIdx) => {
@@ -433,6 +434,7 @@ async function _processTargetPatternStoring(segmentPieces: LinearTargetPatternPi
 
                 gremlinInvoke.call(
                     "to"
+// TODO convert to aws = done
                     , new gremlinManager.GremlinInvoke()
                     .call("E", piece.source.sourcePatternEdgeId)
                     .call("inV")
@@ -455,6 +457,7 @@ async function _processTargetPatternStoring(segmentPieces: LinearTargetPatternPi
             if (piece.source.sourcePatternVertexId != undefined) {
                 gremlinInvoke.call(
                     "to"
+// TODO convert to aws = done
                     , new gremlinManager.GremlinInvoke(true)
                     .call("V", piece.source.sourcePatternVertexId)
                 )

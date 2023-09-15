@@ -86,6 +86,7 @@ const reloadMatchingSourcePatternOptions = (
             resolve(undefined)
         })
     }
+// TODO convert to aws = done
     let gremlinCommand = new gremlinUtils.GremlinInvoke().call("V")
     beginWord.selectedMorphologyInfoTypes.forEach( (morphInfoType) => {
         gremlinCommand = gremlinCommand.call("has", morphInfoType.name, beginWord[morphInfoType.propertyInWord])

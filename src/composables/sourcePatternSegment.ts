@@ -17,10 +17,9 @@ export function prepareSegment(token: ModifiedSpacyToken) {
     const selectedSourcePattern = ref<SourcePatternOption | undefined>(undefined)
     const sourcePatternOptions = ref<SourcePatternOption[]>([])
     
-    // convert to aws = done
+// TODO convert to aws = done
     const processSelectedSourcePatternStoring = async (gremlinInvoke: GremlinInvoke) => {
         // 如果 source pattern 下拉選單已經有值（表示資料庫裡已經有目前選取的 source pattern），就不必儲存 source pattern
-        // TODO convert to aws
         if (selectedSourcePattern.value != undefined && selectedSourcePattern.value.id != undefined) {
             gremlinInvoke = gremlinInvoke
             .call("V", selectedSourcePattern.value.id)
@@ -149,7 +148,7 @@ export function prepareSegment(token: ModifiedSpacyToken) {
     }
 }
 
-// TODO convert to aws
+// TODO convert to aws = done
 const _reloadMatchingSourcePatternOptions = async (
     sourcePatternOptions: Ref<SourcePatternOption[]>
     , beginWord: ModifiedSpacyToken) => {
@@ -161,9 +160,7 @@ const _reloadMatchingSourcePatternOptions = async (
         })
     }
 
-    ///////////////////////////////
-
-    // TODO convert to aws
+// TODO convert to aws = done
     let gremlinCommand = new GremlinInvoke().call("V")
     beginWord.selectedMorphologyInfoTypes.forEach( (morphInfoType) => {
         gremlinCommand = gremlinCommand.call("has", morphInfoType.name, beginWord[morphInfoType.propertyInWord])

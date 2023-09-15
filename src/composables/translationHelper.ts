@@ -167,9 +167,9 @@ const saveSelectedPattern = async (
     sourcePattern: SourcePatternManager
     , targetPattern: TargetPattern
 ) => {
+// TODO convert to aws = done
     let gremlinInvoke = new GremlinInvoke()
 
-    // TODO convert to aws
     gremlinInvoke = await sourcePattern.process.save(gremlinInvoke)
     .then(targetPattern.process.save)
     // .then(backendAgent.triggerPatternSaving)
@@ -200,7 +200,7 @@ const _findExistingMatchSourcePatternAndSetDropdown = async (
     if (! beginWord.isSegmentRoot) return 
 
     const selectedArcsFromBegin = beginWord.segmentDeps
-    // TODO convert to aws
+// TODO convert to aws = done
     let gremlinInvoke = new GremlinInvoke()
     .call("V")
     beginWord.selectedMorphologyInfoTypes.forEach( (morphInfoType) => {
@@ -208,9 +208,11 @@ const _findExistingMatchSourcePatternAndSetDropdown = async (
     })
     if (selectedArcsFromBegin.length) {
         gremlinInvoke.where(
+// TODO convert to aws = done
             new GremlinInvoke(true)
             .outE()
             .count()
+// TODO convert to aws = done
             .is(new GremlinInvoke(true).eq(selectedArcsFromBegin.length))
         )
     }
@@ -225,10 +227,12 @@ const _findExistingMatchSourcePatternAndSetDropdown = async (
         if (selectedArc.endToken && selectedArc.endToken?.selectedMorphologyInfoTypes.length > 0) {
             // 非 connector 的狀況
             const endToken = selectedArc.endToken
+// TODO convert to aws = done
             const endTokenCriteria = new GremlinInvoke(true).out(selectedArc.label)
 
             // 因為除了有的 morph info 要下 has，還要針對要沒有的 morph info 要下 hasNot 排除掉，所以要轉整個 morphologyInfoTypeEnum
             Object.values(morphologyInfoTypeEnum).forEach( (morphInfoType, index) => {
+// TODO convert to aws = done
                 const endTokenPropertyCriteria = new GremlinInvoke(true)
                 if (endToken.selectedMorphologyInfoTypes.includes(morphInfoType)) {
                     endTokenPropertyCriteria.has(morphInfoType.name, endToken[morphInfoType.propertyInWord])
@@ -242,9 +246,9 @@ const _findExistingMatchSourcePatternAndSetDropdown = async (
         } else {
             // connector 的狀況
             gremlinInvoke.where(
+// TODO convert to aws = done
                 new GremlinInvoke(true)
                 .out(selectedArc.label)
-    ///////////////////////////////////////////////
                 .where(new GremlinInvoke(true).has(propertyNames.isConnector, true))
                 .count()
                 .is(new GremlinInvoke(true).eq(1))
@@ -254,9 +258,11 @@ const _findExistingMatchSourcePatternAndSetDropdown = async (
     arcSum.forEach( (value, key) => {
         gremlinInvoke.call(
             "and"
+// TODO convert to aws = done
             , new GremlinInvoke(true)
             .call("outE", key)
             .call("count")
+// TODO convert to aws = done
             .call("is", new GremlinInvoke(true).gte(value))
         )
     })
@@ -294,10 +300,12 @@ const autoMarkMatchingSourcePattern = async (sourcePatternBeginningId: number, t
     token.clearSourcePatternInfo()
 
     // 下面的邏輯也許應該切到 setence manager
-    // TODO convert to aws
+// TODO convert to aws = done
     const gremlinCommand = new GremlinInvoke()
     .call("V", sourcePatternBeginningId)
+// TODO convert to aws = done
     .call("repeat", new GremlinInvoke(true).call("outE").call("inV"))
+// TODO convert to aws = done
     .call("until", new GremlinInvoke(true).call("outE").call("count").call("is", 0))
     .call("limit", 20)
     .call("path")

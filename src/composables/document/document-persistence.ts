@@ -43,6 +43,7 @@ export async function retrieveDocument(documentText: string, spacyFormatParsePro
 
 // TODO convert to aws 要作廢
 export async function saveDocumentParse (document: Document) {
+    // TODO convert to aws
     const gremlinInvoke = new gremlinApi.GremlinInvoke()
 
     gremlinInvoke
@@ -63,6 +64,7 @@ export async function saveDocumentParse (document: Document) {
 // TODO convert to aws
 async function queryExistingDocument(documentParam: {id?: string, content?: string}) {
 
+// TODO convert to aws = done
     const gremlinInvoke = new gremlinApi.GremlinInvoke()
 
     if (documentParam.id) {
@@ -73,6 +75,7 @@ async function queryExistingDocument(documentParam: {id?: string, content?: stri
         // search by document text
         gremlinInvoke
         .V()
+// TODO convert to aws = done
         .has(gremlinApi.propertyNames.content, new gremlinApi.GremlinInvoke(true).call('textFuzzy', documentParam.content))
     } else {
         const error = '沒有參數，程式錯誤'
@@ -85,13 +88,18 @@ async function queryExistingDocument(documentParam: {id?: string, content?: stri
     gremlinInvoke.until(
         new gremlinApi.GremlinInvoke(true)
         .and(
+// TODO convert to aws = done
             new gremlinApi.GremlinInvoke(true)
+// TODO convert to aws = done
             .__not(new gremlinApi.GremlinInvoke(true).__in(gremlinApi.translatedEdgeLabels.isPartOf))
+// TODO convert to aws = done
             , new gremlinApi.GremlinInvoke(true)
+// TODO convert to aws = done
             .__not(new gremlinApi.GremlinInvoke(true).out(gremlinApi.translatedEdgeLabels.translateWith))
         )
     )
     .repeat(
+// TODO convert to aws = done
         new gremlinApi.GremlinInvoke(true).__in()
     ).tree()
 
@@ -146,6 +154,8 @@ export function saveInitialSegmentTranslation (
     let existingSegment = undefined
     if (existingSentence) {
         // 更新 sentence
+        // 這裡好像是轉 aws 前，最後正在開發的功能，還沒開發完，所以就要直接用 lambda 繼續開發完成功能
+        // TODO convert to aws
         const gremlinInvoke = new gremlinApi.GremlinInvoke()
         gremlinInvoke.V(existingSentence.id)
 
@@ -165,6 +175,7 @@ function addInitialSegmentTranslation (
 
     const sentenceIndex: number = targetPattern.token.sentence?.index
     const selectedTargetPatternId: bigint = targetPattern.selection.selected.pieces[0].mappedGraphVertexId
+        // TODO convert to aws
     const gremlinInvoke = new gremlinApi.GremlinInvoke()
 
     const sentenceVertexAlias = 'translatedSentence'
@@ -258,6 +269,7 @@ function addInitialSegmentTranslation (
     // TODO 更新 document 的 sentence 和 segement
     // 更新 Document
     // 不知道這裡會不會有 async 的問題
+        // TODO convert to aws
     queryExistingDocument({id: document.id}).then( (reloadedDocument) => {
         Object.assign(document, reloadedDocument)
         console.log('reloaded document', document)
