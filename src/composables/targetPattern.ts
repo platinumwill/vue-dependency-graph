@@ -488,45 +488,47 @@ export async function _reloadMatchingTargetPatternOptions (
 
     targetPatternOptions.splice(0, targetPatternOptions.length)
 
-    await backendAgent.queryTargetPattern(sourcePatternBeginningId.toString())
+    return await backendAgent.queryTargetPattern(sourcePatternBeginningId.toString())
     .then((targetPatternList: any[][]) => {
         console.log('queryTargetPattern responseData', targetPatternList)
         targetPatternList.forEach((targetPattern_path: any[]) => { // each target pattern
-                const targetPattern = new LinearTargetPattern() //xxxxxxxxxx_010 
+                const targetPattern = new LinearTargetPattern()
                 // 一個 path 就是一條 LinearTargetPattern
             targetPattern_path.forEach((targetPatternPiece_remote: any) => { // 一個元素內含一個 target pattern piece 的相關資料，例如 source pattern 和之間的 edge
                     let targetPatternPiece = undefined
                 const targetPatternVertex = targetPatternPiece_remote[TargetPatternTripletPropertyNames.targetPatternVertex]
                 const tracedSourcePatternVertex = targetPatternPiece_remote[TargetPatternTripletPropertyNames.tracedSourcePatternVertex]
                 const tracedSourcePatternEdge = targetPatternPiece_remote[TargetPatternTripletPropertyNames.tracedSourcePatternEdge]
-                    if (!tracedSourcePatternEdge && !tracedSourcePatternVertex) {//xxxxxxxxxx_020 
-                        // text piece
-                        targetPatternPiece = _createTargetPatternPiece(undefined, targetPattern.$pieces, targetPatternVertex.fixedText)
-                        targetPattern.addPieces(targetPatternPiece)
-                        return
-                    }
-                    if (tracedSourcePatternEdge) { //xxxxxxxxxx_030  //xxxxxxxxxx_070
-                        // target pattern piece 的 source 是 dependency 的處理邏輯
-                                    const depEdgeId = tracedSourcePatternEdge.id.relationId
-                                    const depEdgeLabel = tracedSourcePatternEdge.label
-                        const tracedDependency = findDependencyByPatternEdgeId(depEdgeId, token)
-                        targetPatternPiece = new LinearTargetPatternPiece(tracedDependency)
-                    } else {
-                            const tracedToken = findTokenByPatternVertexId(tracedSourcePatternVertex.id, token)
-                            targetPatternPiece = new LinearTargetPatternPiece(tracedToken)
-                    }
-                    if (targetPatternPiece == undefined) {
-                        const error = 'targetPatternPiece == null，程式邏輯有誤'
-                        throw error
-                    }
-                        targetPatternPiece.mappedGraphVertexId = targetPatternVertex.id
-                        targetPattern.addPieces(targetPatternPiece) // 一個 target pattern 裡是多個 piece
+
+                if (!tracedSourcePatternEdge && !tracedSourcePatternVertex) {
+                    // text piece
+                    targetPatternPiece = _createTargetPatternPiece(undefined, targetPattern.$pieces, targetPatternVertex.fixedText)
+                    targetPattern.addPieces(targetPatternPiece)
+                    return
+                }
+                if (tracedSourcePatternEdge) {
+                    // target pattern piece 的 source 是 dependency 的處理邏輯
+                                const depEdgeId = tracedSourcePatternEdge.id.relationId
+                                const depEdgeLabel = tracedSourcePatternEdge.label
+                    const tracedDependency = findDependencyByPatternEdgeId(depEdgeId, token)
+                    targetPatternPiece = new LinearTargetPatternPiece(tracedDependency)
+                } else {
+                        const tracedToken = findTokenByPatternVertexId(tracedSourcePatternVertex.id, token)
+                        targetPatternPiece = new LinearTargetPatternPiece(tracedToken)
+                }
+                if (targetPatternPiece == undefined) {
+                    const error = 'targetPatternPiece == null，程式邏輯有誤'
+                    throw error
+                }
+                targetPatternPiece.mappedGraphVertexId = targetPatternVertex.id
+                targetPattern.addPieces(targetPatternPiece) // 一個 target pattern 裡是多個 piece
+
                 console.log('targetPatternPiece', targetPatternPiece_remote)
             })
-                targetPatternOptions.push(targetPattern) // options 裡是多個 target pattern
+            targetPatternOptions.push(targetPattern) // options 裡是多個 target pattern
         })
+        return targetPatternOptions
     })
-    return targetPatternOptions
 }
 
 export const findDependencyByPatternEdgeId = (sourceEdgeId: string, token: ModifiedSpacyToken): ModifiedSpacyDependency => {
