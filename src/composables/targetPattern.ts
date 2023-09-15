@@ -511,7 +511,7 @@ export async function _reloadMatchingTargetPatternOptions (
                                     const depEdgeLabel = tracedSourcePatternEdge.label
                         const tracedDependency = findDependencyByPatternEdgeId(depEdgeId, token)
                         targetPatternPiece = new LinearTargetPatternPiece(tracedDependency)
-                    } else { //xxxxxxxxxx_071
+                    } else {
                             const tracedToken = findTokenByPatternVertexId(tracedSourcePatternVertex.id, token)
                             targetPatternPiece = new LinearTargetPatternPiece(tracedToken)
                     }
@@ -525,10 +525,8 @@ export async function _reloadMatchingTargetPatternOptions (
             })
                 targetPatternOptions.push(targetPattern) // options 裡是多個 target pattern
         })
-    }) // then
-            return targetPatternOptions
-
-    // TODO convert to aws
+    })
+    return targetPatternOptions
 }
 
 export const findDependencyByPatternEdgeId = (sourceEdgeId: string, token: ModifiedSpacyToken): ModifiedSpacyDependency => {
