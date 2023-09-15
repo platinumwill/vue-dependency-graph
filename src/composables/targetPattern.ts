@@ -475,7 +475,7 @@ async function _processTargetPatternStoring(segmentPieces: LinearTargetPatternPi
     })
 }
 
-enum propertyNames {
+enum TargetPatternTripletPropertyNames {
     targetPatternVertex,
     tracedSourcePatternVertex,
     tracedSourcePatternEdge
@@ -490,12 +490,44 @@ export async function _reloadMatchingTargetPatternOptions (
 
     await backendAgent.queryTargetPattern(sourcePatternBeginningId.toString())
     .then((targetPatternList: any[][]) => {
+
         console.log('queryTargetPattern responseData', targetPatternList)
-        targetPatternList.forEach((targetPattern: any[]) => {
-            targetPattern.forEach((targetPatternPiece: any) => {
-                console.log('targetPatternPiece', targetPatternPiece)
+        targetPatternList.forEach((targetPattern_remote: any[]) => { // each target pattern
+                const targetPattern = new LinearTargetPattern() //xxxxxxxxxx_010 
+                // 一個 path 就是一條 LinearTargetPattern
+            targetPattern_remote.forEach((targetPatternPiece_remote: any) => { // 一個元素內含一個 target pattern piece 的相關資料，例如 source pattern 和之間的 edge
+                    let targetPatternPiece = undefined
+                const targetPatternVertex = targetPatternPiece_remote[TargetPatternTripletPropertyNames.targetPatternVertex]
+                const tracedSourcePatternVertex = targetPatternPiece_remote[TargetPatternTripletPropertyNames.tracedSourcePatternVertex]
+                const tracedSourcePatternEdge = targetPatternPiece_remote[TargetPatternTripletPropertyNames.tracedSourcePatternEdge]
+                    if (!tracedSourcePatternEdge && !tracedSourcePatternVertex) {//xxxxxxxxxx_020 
+                        // text piece
+                        targetPatternPiece = _createTargetPatternPiece(undefined, targetPattern.$pieces, targetPatternVertex.fixedText)
+                        targetPattern.addPieces(targetPatternPiece)
+                        return
+                    }
+                    if (tracedSourcePatternEdge) { //xxxxxxxxxx_030  //xxxxxxxxxx_070
+                        // target pattern piece 的 source 是 dependency 的處理邏輯
+                                    const depEdgeId = tracedSourcePatternEdge.id.relationId
+                                    const depEdgeLabel = tracedSourcePatternEdge.label
+                        const tracedDependency = findDependencyByPatternEdgeId(depEdgeId, token)
+                        targetPatternPiece = new LinearTargetPatternPiece(tracedDependency)
+                    } else { //xxxxxxxxxx_071
+                            const tracedToken = findTokenByPatternVertexId(tracedSourcePatternVertex.id, token)
+                            targetPatternPiece = new LinearTargetPatternPiece(tracedToken)
+                    }
+                    if (targetPatternPiece == undefined) {
+                        const error = 'targetPatternPiece == null，程式邏輯有誤'
+                        throw error
+                    }
+                        targetPatternPiece.mappedGraphVertexId = targetPatternVertex.id
+                        targetPattern.addPieces(targetPatternPiece) // 一個 target pattern 裡是多個 piece
+    // ##################################################
+                console.log('targetPatternPiece', targetPatternPiece_remote)
             })
+                targetPatternOptions.push(targetPattern) // options 裡是多個 target pattern
         })
+            return targetPatternOptions
     })
 
     // TODO convert to aws
@@ -559,19 +591,17 @@ export async function _reloadMatchingTargetPatternOptions (
             )
         )
         return await gremlinManager.submit(gremlinCommand).then( (resultData: any) => {
-            resultData['@value'].forEach( (targetPatternPath: any) => {
-                const targetPattern = new LinearTargetPattern()
+            resultData['@value'].forEach( (targetPatternPath: any) => { // each target pattern
+                const targetPattern = new LinearTargetPattern() //xxxxxxxxxx_010 
                 const path: any[] = targetPatternPath['@value'].objects['@value'] // pathArray[0] 是 source pattern beginning
                 // 一個 path 就是一條 LinearTargetPattern
                 path.forEach( (projected, index) => { // 一個元素內含一個 target pattern piece 的相關資料，例如 source pattern 和之間的 edge
                     if (index === 0) return // 第一個是 source pattern 的頭
                     let targetPatternPiece = undefined
-
-    // ##################################################
                     const projectedMapArray = projected['@value']
                     // ##### tracedSourcePatternEdge
                     const projectedTraceToEdge = projectedMapArray[1]['@value']
-                    if (projectedTraceToEdge.length <= 0) {
+                    if (projectedTraceToEdge.length <= 0) {//xxxxxxxxxx_020 
                         // text piece
                         targetPatternPiece = _createTargetPatternPiece(undefined, targetPattern.$pieces, projectedMapArray[9])
                         // TODO 這裡還要再抓 text 選項 (？)
@@ -593,7 +623,8 @@ export async function _reloadMatchingTargetPatternOptions (
                     // let isPlaceholder = undefined
                     let tracerVertexId = undefined
                     let tracedVertexId = undefined
-                    let traceToDep = false
+                    let traceToDep = false //xxxxxxxxxx_030 
+    ////////////////////////////////////////////////////////////
                     foldedTraceToEdgeElementMapArray.forEach( (element: any, index: number) => {
                         if (element != undefined && element == gremlinManager.edgePropertyNames.traceToInDep) {
                             traceToDep = foldedTraceToEdgeElementMapArray[index + 1]
@@ -624,23 +655,23 @@ export async function _reloadMatchingTargetPatternOptions (
                             }
                         }
                     })
-                    if (traceToDep) {
+                    if (traceToDep) { //xxxxxxxxxx_070
                         // target pattern piece 的 source 是 dependency 的處理邏輯
                         let depEdgeId: string = ''
-                        let depEdgeLabel = undefined
+                        // let depEdgeLabel = undefined
                         foldedTraceToInVInDependencyElementMapArray.forEach( (element: any, index: number) => {
                             if (element['@value'] != undefined) {
                                 if (element['@value'] == 'id') {
                                     depEdgeId = foldedTraceToInVInDependencyElementMapArray[index + 1]['@value'].relationId
                                 }
-                                if (element['@value'] == 'label') {
-                                    depEdgeLabel = foldedTraceToInVInDependencyElementMapArray[index + 1]
-                                }
+                                // if (element['@value'] == 'label') {
+                                //     depEdgeLabel = foldedTraceToInVInDependencyElementMapArray[index + 1]
+                                // }
                             }
                         })
                         const tracedDependency = findDependencyByPatternEdgeId(depEdgeId, token)
                         targetPatternPiece = new LinearTargetPatternPiece(tracedDependency)
-                    } else {
+                    } else { //xxxxxxxxxx_071
                         if (tracedVertexId != undefined) {
                             const tracedToken = findTokenByPatternVertexId(tracedVertexId, token)
                             targetPatternPiece = new LinearTargetPatternPiece(tracedToken)
