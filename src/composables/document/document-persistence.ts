@@ -147,29 +147,7 @@ export function saveInitialSegmentTranslation (
     targetPattern: TargetPattern
     , document: Document
     ) {
-
-    if (targetPattern.token.sentence?.index == undefined) throw '資料有問題'
-    const sentenceIndex: number = targetPattern.token.sentence?.index
-    const existingSentence = document.translatedSentence(sentenceIndex)
     let existingSegment = undefined
-    if (existingSentence) {
-        // 更新 sentence
-        // TODO convert to aws
-    //################################################## 
-        // 這裡好像是轉 aws 前，最後正在開發的功能，還沒開發完，所以就要直接用 lambda 繼續開發完成功能
-        const gremlinInvoke = new gremlinApi.GremlinInvoke()
-        gremlinInvoke.V(existingSentence.id)
-
-        existingSegment = existingSentence.translatedSegment(targetPattern.token.indexInSentence)
-    }
-    addInitialSegmentTranslation(targetPattern, document, existingSegment)
-}
-
-function addInitialSegmentTranslation (
-    targetPattern: TargetPattern
-    , document: Document
-    , existingSegment: TranslatedSegment | undefined
-    ) {
 
     if (targetPattern.token.sentence?.index == undefined) throw '資料有問題'
 
