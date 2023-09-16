@@ -41,9 +41,9 @@ export async function retrieveDocument(documentText: string, spacyFormatParsePro
     return spacyFormatParseProvider.parse(documentText)
 }
 
-// TODO convert to aws 要作廢
+// convert to aws 直接整個方法作廢，不用改寫
 export async function saveDocumentParse (document: Document) {
-    // TODO convert to aws
+    // convert to aws
     const gremlinInvoke = new gremlinApi.GremlinInvoke()
 
     gremlinInvoke
@@ -64,7 +64,7 @@ export async function saveDocumentParse (document: Document) {
 // TODO convert to aws
 async function queryExistingDocument(documentParam: {id?: string, content?: string}) {
 
-// TODO convert to aws = done
+// convert to aws
     const gremlinInvoke = new gremlinApi.GremlinInvoke()
 
     if (documentParam.id) {
@@ -75,7 +75,7 @@ async function queryExistingDocument(documentParam: {id?: string, content?: stri
         // search by document text
         gremlinInvoke
         .V()
-// TODO convert to aws = done
+// convert to aws
         .has(gremlinApi.propertyNames.content, new gremlinApi.GremlinInvoke(true).call('textFuzzy', documentParam.content))
     } else {
         const error = '沒有參數，程式錯誤'
@@ -88,22 +88,21 @@ async function queryExistingDocument(documentParam: {id?: string, content?: stri
     gremlinInvoke.until(
         new gremlinApi.GremlinInvoke(true)
         .and(
-// TODO convert to aws = done
+// convert to aws
             new gremlinApi.GremlinInvoke(true)
-// TODO convert to aws = done
+// convert to aws
             .__not(new gremlinApi.GremlinInvoke(true).__in(gremlinApi.translatedEdgeLabels.isPartOf))
-// TODO convert to aws = done
+// convert to aws
             , new gremlinApi.GremlinInvoke(true)
-// TODO convert to aws = done
+// convert to aws
             .__not(new gremlinApi.GremlinInvoke(true).out(gremlinApi.translatedEdgeLabels.translateWith))
         )
     )
     .repeat(
-// TODO convert to aws = done
+// convert to aws
         new gremlinApi.GremlinInvoke(true).__in()
     ).tree()
 
-    ////////////////////////////////////////////
     return await gremlinApi.submitAndParse(gremlinInvoke).then( (resultData: any) => {
         if (resultData.length > 1) throw '查詢文件有多筆結果，程式或資料有問題'
         if (! resultData.length) return documentParam
@@ -143,6 +142,7 @@ async function queryExistingDocument(documentParam: {id?: string, content?: stri
 }
 
 // translationHelper.toggleSegmentTranslationConfirmed 會來呼叫
+// 儲存 segment 初步翻譯
 export function saveInitialSegmentTranslation (
     targetPattern: TargetPattern
     , document: Document
@@ -154,8 +154,9 @@ export function saveInitialSegmentTranslation (
     let existingSegment = undefined
     if (existingSentence) {
         // 更新 sentence
-        // 這裡好像是轉 aws 前，最後正在開發的功能，還沒開發完，所以就要直接用 lambda 繼續開發完成功能
         // TODO convert to aws
+    //################################################## 
+        // 這裡好像是轉 aws 前，最後正在開發的功能，還沒開發完，所以就要直接用 lambda 繼續開發完成功能
         const gremlinInvoke = new gremlinApi.GremlinInvoke()
         gremlinInvoke.V(existingSentence.id)
 
@@ -164,7 +165,6 @@ export function saveInitialSegmentTranslation (
     addInitialSegmentTranslation(targetPattern, document, existingSegment)
 }
 
-// 儲存 segment 初步翻譯
 function addInitialSegmentTranslation (
     targetPattern: TargetPattern
     , document: Document
@@ -270,10 +270,14 @@ function addInitialSegmentTranslation (
     // 更新 Document
     // 不知道這裡會不會有 async 的問題
         // TODO convert to aws
+    //################################################## 
+    backendAgent.queryExistingDocument()
     queryExistingDocument({id: document.id}).then( (reloadedDocument) => {
-        Object.assign(document, reloadedDocument)
+        return document
+    } ).then(backendAgent.queryExistingDocument).then( (awsUpdatedReloadedDocument) => {
+        Object.assign(document, awsUpdatedReloadedDocument)
         console.log('reloaded document', document)
-    } )
+    })
 }
 
 class TranslatedText {

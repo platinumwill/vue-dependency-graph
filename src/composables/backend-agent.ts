@@ -40,7 +40,7 @@ export enum MinimalClassName {
     , SourcePatternPiece = '.SourcePatternPiece'
     , SourcePatternDependency = '.SourcePatternDependency'
 }
-export async function queryExistingDocument(documentParam?: {id?: string, content?: string}) {
+export async function queryExistingDocument(documentParam?: {id?: string, content?: string, gId?: string}) {
         console.log('DOCUMENT-PARAM', documentParam)
 
         if (!documentParam) {
