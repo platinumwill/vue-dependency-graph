@@ -143,7 +143,7 @@ async function queryExistingDocument(documentParam: {id?: string, content?: stri
 
 // translationHelper.toggleSegmentTranslationConfirmed 會來呼叫
 // 儲存 segment 初步翻譯
-export function saveInitialSegmentTranslation (
+export async function saveInitialSegmentTranslation (
     targetPattern: TargetPattern
     , document: Document
     ) {
@@ -249,8 +249,7 @@ export function saveInitialSegmentTranslation (
     // 不知道這裡會不會有 async 的問題
         // TODO convert to aws
     //################################################## 
-    backendAgent.queryExistingDocument()
-    queryExistingDocument({id: document.id}).then( (reloadedDocument) => {
+    await queryExistingDocument({id: document.id}).then( (reloadedDocument) => {
         return document
     } ).then(backendAgent.queryExistingDocument).then( (awsUpdatedReloadedDocument) => {
         Object.assign(document, awsUpdatedReloadedDocument)

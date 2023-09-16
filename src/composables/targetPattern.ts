@@ -525,8 +525,6 @@ export async function _reloadMatchingTargetPatternOptions (
                 }
                 targetPatternPiece.mappedGraphVertexId = targetPatternVertex.id
                 targetPattern.addPieces(targetPatternPiece) // 一個 target pattern 裡是多個 piece
-
-                console.log('targetPatternPiece', targetPatternPiece_remote)
             })
             targetPatternOptions.push(targetPattern) // options 裡是多個 target pattern
         })
