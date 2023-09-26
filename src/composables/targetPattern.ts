@@ -394,7 +394,6 @@ async function _processTargetPatternStoring(segmentPieces: LinearTargetPatternPi
         const currentPieceAlias = 'v' + pieceIdx
 
         const targetPatternPiece: any = {}
-        targetPatternPiece['isPlaceholder'] = piece.isPlaceholder 
 
         gremlinInvoke = gremlinInvoke
         .call("addV", gremlinManager.vertexLabels.linearTargetPattern)

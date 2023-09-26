@@ -151,10 +151,16 @@ export async function saveInitialSegmentTranslation (
 
     if (targetPattern.token.sentence?.index == undefined) throw '資料有問題'
 
+    const awsRequest = new backendAgent.SaveTranslatedSegmentRequest()
+    awsRequest.documentId = document.gId
+    awsRequest.sentenceIndex = targetPattern.token.sentence.index
+    // awsRequest.segmentIndex = targetPattern.token.indexInSentence
+    awsRequest.targetPatternBeginningVId = targetPattern.selection.selected.pieces[0].mappedGraphVertexId
+
     const sentenceIndex: number = targetPattern.token.sentence?.index
     const selectedTargetPatternId: bigint = targetPattern.selection.selected.pieces[0].mappedGraphVertexId
         // TODO convert to aws
-    const gremlinInvoke = new gremlinApi.GremlinInvoke()
+    // const gremlinInvoke = new gremlinApi.GremlinInvoke()
 
     const sentenceVertexAlias = 'translatedSentence'
 
@@ -162,66 +168,79 @@ export async function saveInitialSegmentTranslation (
     const existingSentence = document.translatedSentence(sentenceIndex)
     if (existingSentence) {
         // 更新 sentence
-        gremlinInvoke.V(existingSentence.id)
-        .as(sentenceVertexAlias)
+        // gremlinInvoke.V(existingSentence.id)
+        // .as(sentenceVertexAlias)
 
         existingSegment = existingSentence.translatedSegment(targetPattern.token.indexInSentence)
+
+        awsRequest.existingTranslatedSentence = existingSentence
+        
     } else {
         // 新建 TranslatedSentence
         if (!document || !document.id) {
             throw '必須有 Document，而且 Document 必須有 Id'
         }
 
-        gremlinInvoke
         // setence
-        .addV(gremlinApi.translatedVertexLabels.translatedSentence) // sentence
-        .property(TranslatedSentence.propertyNames.index, sentenceIndex)
-        .as(sentenceVertexAlias)
-        .addE(gremlinApi.translatedEdgeLabels.isPartOf)
-        .to(new gremlinApi.GremlinInvoke(true).V(document.id)) // sentence -> document
+        // gremlinInvoke
+        // .addV(gremlinApi.translatedVertexLabels.translatedSentence) // sentence
+        // .property(TranslatedSentence.propertyNames.index, sentenceIndex)
+        // .as(sentenceVertexAlias)
+        // .addE(gremlinApi.translatedEdgeLabels.isPartOf)
+        // .to(new gremlinApi.GremlinInvoke(true).V(document.id)) // sentence -> document
     }
     
+    const awsResponse = await backendAgent.saveTranslatedSegment(awsRequest).catch( (error) => {
+        console.error(error)
+        throw error
+    })
+
     // segment
     const segmentAlias = 'segmentAlias'
     const oldPiecesAlias = 'oldPiecesAlias'
     if (existingSegment) {
-        gremlinInvoke
-        .V(existingSegment.id)
-        .as(segmentAlias)
-        .choose(
-            new gremlinApi.GremlinInvoke(true).inE().hasLabel(gremlinApi.translatedEdgeLabels.isPartOf)
-            , new gremlinApi.GremlinInvoke(true).inE().hasLabel(gremlinApi.translatedEdgeLabels.isPartOf).outV().as(oldPiecesAlias) // 舊的 pieces 先選起來，最後才能刪
-        )
-    // PROGRESS 要先刪 TranslatedPiece 再建？
-        .select(segmentAlias)
-        .dedup()
+        // gremlinInvoke
+        // .V(existingSegment.id)
+        // .as(segmentAlias)
+        // .choose( // 這裡的邏輯好像是要從 segment 抓到 translated vertex/piece，準備要刪掉重建
+        //     new gremlinApi.GremlinInvoke(true).inE().hasLabel(gremlinApi.translatedEdgeLabels.isPartOf)
+        //     , new gremlinApi.GremlinInvoke(true).inE().hasLabel(gremlinApi.translatedEdgeLabels.isPartOf).outV().as(oldPiecesAlias) // 舊的 pieces 先選起來，最後才能刪
+        // )
+        // .select(segmentAlias)
+        // .dedup()
+
+        awsRequest.existingTranslatedSegment = existingSegment
     } else {
-        gremlinInvoke
-        .addV(gremlinApi.translatedVertexLabels.translatedSegment) // segement
-        .as(segmentAlias)
-        .property(TranslatedSegment.propertyNames.rootTokenIndex, targetPattern.token.indexInSentence)
-        .addE(gremlinApi.translatedEdgeLabels.isPartOf)
-        .to(sentenceVertexAlias) // segment -> sentence
-        .outV() // segment
-        .addE(gremlinApi.translatedEdgeLabels.translateWith)
-        .to(new gremlinApi.GremlinInvoke(true).V(selectedTargetPatternId)) // segment -> target pattern
-        .outV()
+        // gremlinInvoke
+        // .addV(gremlinApi.translatedVertexLabels.translatedSegment) // segement
+        // .as(segmentAlias)
+        // .property(TranslatedSegment.propertyNames.rootTokenIndex, targetPattern.token.indexInSentence)
+        // .addE(gremlinApi.translatedEdgeLabels.isPartOf)
+        // .to(sentenceVertexAlias) // segment -> sentence
+        // .outV() // segment
+        // .addE(gremlinApi.translatedEdgeLabels.translateWith)
+        // .to(new gremlinApi.GremlinInvoke(true).V(selectedTargetPatternId)) // segment -> target pattern
+        // .outV()
     }
     // 存 text pieces 和 token pieces
     targetPattern.dialogPieces.pieces.forEach( (piece: LinearTargetPatternPiece) => {
-        if (piece.type.name == LinearTargetPatternPiece.types.dependency.name) return // type 是 text 或 token 才要處理
+        if (piece.type.name == LinearTargetPatternPiece.types.dependency.name) return // 目前的邏輯是，type 是 text 或 token 才要處理，但以後可能會修改
+        const translatedPiece: backendAgent.TranslatedElement = new backendAgent.TranslatedElement();
 
         let text = ''
         if (piece.appliedText) {
+            translatedPiece.appliedText = piece.appliedText
             text = piece.appliedText
         }
         let tokenLabel = undefined
         let property = undefined
 
         if (piece.type.name == LinearTargetPatternPiece.types.token.name) {
+            translatedPiece.type = backendAgent.MinimalClassName.TranslatedToken
             tokenLabel = gremlinApi.translatedVertexLabels.translatedToken
             property = TranslatedToken.propertyNames.translatedText
         } else if (piece.type.name == LinearTargetPatternPiece.types.text.name) {
+            translatedPiece.type = backendAgent.MinimalClassName.TranslatedPureText
             tokenLabel = gremlinApi.translatedVertexLabels.translatedText
             property = TranslatedText.propertyNames.text
         } else {
@@ -229,20 +248,22 @@ export async function saveInitialSegmentTranslation (
             console.log(error)
             throw error
         }
-        gremlinInvoke
-        .addV(tokenLabel)
-        .property(property, text)
-        .addE(gremlinApi.translatedEdgeLabels.isPartOf)
-        .to(segmentAlias)
+        // gremlinInvoke
+        // .addV(tokenLabel)
+        // .property(property, text)
+        // .addE(gremlinApi.translatedEdgeLabels.isPartOf)
+        // .to(segmentAlias)
         // .outV() // 回到 segment
+
+        awsRequest.translatedPieces.push(translatedPiece)
     })
-    gremlinInvoke.select(oldPiecesAlias).dedup().drop()
+    // gremlinInvoke.select(oldPiecesAlias).dedup().drop()
 
     // TODO targetPattern.selection.selected.pieces
-    gremlinApi.submitAndParse(gremlinInvoke.command()).then((objects) => {
-        console.log('sentence saved', objects)
         // 回傳的是新建的 vertex
-    })
+    // gremlinApi.submitAndParse(gremlinInvoke.command()).then((objects) => {
+    //     console.log('sentence saved', objects)
+    // })
 
     // TODO 更新 document 的 sentence 和 segement
     // 更新 Document
@@ -285,7 +306,7 @@ class TranslatedToken {
         translatedText: 'translatedText'
     })
 }
-class TranslatedSegment {
+export class TranslatedSegment {
     $rootTokenIndex: number
     $id: number
 

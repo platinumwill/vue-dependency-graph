@@ -30,6 +30,11 @@ enum SourcePatternAction {
     , query_by_id = 'query_by_id'
 }
 
+
+enum SegmentAction {
+    SAVE_TRANSLATION = 'save_translation'
+}
+
 const pathParams = {}
 const pathTemplate = ''
 const method = 'POST'
@@ -39,6 +44,9 @@ export enum MinimalClassName {
     , PatternActionRequest = '.PatternActionRequest'
     , SourcePatternPiece = '.SourcePatternPiece'
     , SourcePatternDependency = '.SourcePatternDependency'
+    , TranslatedToken = '.TranslatedToken'
+    , TranslatedPureText = '.TranslatedPureText'
+    , SaveTranslatedSegmentRequest = '.SaveTranslatedSegmentRequest'
 }
 export async function queryExistingDocument(documentParam?: {id?: string, content?: string, gId?: string}) {
         console.log('DOCUMENT-PARAM', documentParam)
@@ -138,6 +146,49 @@ export async function triggerPatternSaving() {
             throw new Error(result)
         })
 }
+
+export class TranslatedElement {
+    type? : string
+    appliedText? : string
+}
+export class SaveTranslatedSegmentRequest {
+
+  type: string = MinimalClassName.SaveTranslatedSegmentRequest
+  action?: string
+
+  existingTranslatedSentence?: documentPersistence.TranslatedSentence
+  sentenceId?: string
+
+  existingTranslatedSegment?: documentPersistence.TranslatedSegment
+
+  selectedTargetPatternBeginningVId?: string
+  documentId?: string
+
+  sentenceIndex?: number
+
+  targetPatternBeginningVId?: string
+
+  translatedPieces : TranslatedElement[] = [];
+}
+export async function saveTranslatedSegment(request: SaveTranslatedSegmentRequest) {
+    
+    const body: any = {}
+    request.action = SegmentAction.SAVE_TRANSLATION
+    Object.assign(body, request)
+    console.log('SAVE TRANSLATED SEGMENT REQUEST', request)
+    body.id = body.gId
+
+    console.log('BODY BEFORE SAVE-TRANSLATION', body)
+    return await apigClient.invokeApi(pathParams, pathTemplate, method, additionalParams, body)
+        .then(function(response: any){
+            return response.data
+        }).catch( function(result: string){
+            console.log('api exception save new document', result)
+            throw new Error(result)
+        })
+} 
+
+
 
 export function querySourcePattern(beginWord: any, deps?: any[], depSums?: Map<String, number>) {
     const awsSourcePattern:any[] = []
