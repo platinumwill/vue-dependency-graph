@@ -152,6 +152,7 @@ export async function saveInitialSegmentTranslation (
     if (targetPattern.token.sentence?.index == undefined) throw '資料有問題'
 
     const awsRequest = new backendAgent.SaveTranslatedSegmentRequest()
+    console.log('DOCUMENT GID', document.gId)
     awsRequest.documentId = document.gId
     awsRequest.sentenceIndex = targetPattern.token.sentence.index
     // awsRequest.segmentIndex = targetPattern.token.indexInSentence
@@ -190,11 +191,6 @@ export async function saveInitialSegmentTranslation (
         // .to(new gremlinApi.GremlinInvoke(true).V(document.id)) // sentence -> document
     }
     
-    const awsResponse = await backendAgent.saveTranslatedSegment(awsRequest).catch( (error) => {
-        console.error(error)
-        throw error
-    })
-
     // segment
     const segmentAlias = 'segmentAlias'
     const oldPiecesAlias = 'oldPiecesAlias'
@@ -257,6 +253,15 @@ export async function saveInitialSegmentTranslation (
 
         awsRequest.translatedPieces.push(translatedPiece)
     })
+    const awsResponse = await backendAgent.saveTranslatedSegment(awsRequest)
+    .then( (responseData) => {
+        console.log('SAVE TRANSLATED SEGMENT RESPONSE DATA', responseData)
+    })
+    .catch( (error) => {
+        console.error(error)
+        throw error
+    })
+
     // gremlinInvoke.select(oldPiecesAlias).dedup().drop()
 
     // TODO targetPattern.selection.selected.pieces

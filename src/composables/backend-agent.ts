@@ -175,8 +175,6 @@ export async function saveTranslatedSegment(request: SaveTranslatedSegmentReques
     const body: any = {}
     request.action = SegmentAction.SAVE_TRANSLATION
     Object.assign(body, request)
-    console.log('SAVE TRANSLATED SEGMENT REQUEST', request)
-    body.id = body.gId
 
     console.log('BODY BEFORE SAVE-TRANSLATION', body)
     return await apigClient.invokeApi(pathParams, pathTemplate, method, additionalParams, body)
