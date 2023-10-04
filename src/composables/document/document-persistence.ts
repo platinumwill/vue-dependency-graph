@@ -2,6 +2,7 @@ import * as gremlinApi from '@/composables/gremlinManager'
 import { Entity } from '@/composables/gremlinManager'
 import { LinearTargetPatternPiece, TargetPattern } from '@/composables/targetPattern'
 import * as backendAgent from "@/composables/backend-agent"
+import * as documentPersistence from '@/composables/document/document-persistence'
 
 export async function retrieveDocument(documentText: string, spacyFormatParseProviderName: string, spacyFormatParseProvider: any) {
     if (spacyFormatParseProviderName != undefined) { // 有名字，就可以視同解析解果會被儲存
@@ -13,13 +14,14 @@ export async function retrieveDocument(documentText: string, spacyFormatParsePro
 
         let document: {id?: string, content?: string}|undefined = undefined
         // TODO convert to aws 要拿掉
-        return await queryExistingDocument({ content: documentText }).then( (queryResult) => { // 轉換到 aws 的初期，全文檢索暫時不實做
+        return await backendAgent.queryExistingDocument({ content: documentText }).then( (queryResult) => { // 轉換到 aws 的初期，全文檢索暫時不實做
             document = queryResult
             console.log('document from LOCAL', document)
             return document
-        }).then(backendAgent.queryExistingDocument) // for aws
+        })
+        // .then(backendAgent.queryExistingDocument) // for aws
         .then( (document) => {
-            if (document.id) {
+            if (document && document.id) {
                 console.log('existing document retrieved: ', document)
                 return document
             } else {
@@ -103,6 +105,7 @@ async function queryExistingDocument(documentParam: {id?: string, content?: stri
         new gremlinApi.GremlinInvoke(true).__in()
     ).tree()
 
+    // TODO convert to aws
     return await gremlinApi.submitAndParse(gremlinInvoke).then( (resultData: any) => {
         if (resultData.length > 1) throw '查詢文件有多筆結果，程式或資料有問題'
         if (! resultData.length) return documentParam
@@ -206,6 +209,8 @@ export async function saveInitialSegmentTranslation (
         // .dedup()
 
         awsRequest.existingTranslatedSegment = existingSegment
+        Object.assign(awsRequest.translatedSegment, existingSegment)
+    
     } else {
         // gremlinInvoke
         // .addV(gremlinApi.translatedVertexLabels.translatedSegment) // segement
@@ -217,6 +222,7 @@ export async function saveInitialSegmentTranslation (
         // .addE(gremlinApi.translatedEdgeLabels.translateWith)
         // .to(new gremlinApi.GremlinInvoke(true).V(selectedTargetPatternId)) // segment -> target pattern
         // .outV()
+        awsRequest.translatedSegment.rootTokenIndex = targetPattern.token.indexInSentence
     }
     // 存 text pieces 和 token pieces
     targetPattern.dialogPieces.pieces.forEach( (piece: LinearTargetPatternPiece) => {
@@ -275,11 +281,11 @@ export async function saveInitialSegmentTranslation (
     // 不知道這裡會不會有 async 的問題
         // TODO convert to aws
     //################################################## 
-    await queryExistingDocument({id: document.id}).then( (reloadedDocument) => {
+    await backendAgent.queryExistingDocument({id: document.id}).then( (reloadedDocument) => {
         return document
-    } ).then(backendAgent.queryExistingDocument).then( (awsUpdatedReloadedDocument) => {
-        Object.assign(document, awsUpdatedReloadedDocument)
-        console.log('reloaded document', document)
+    // } ).then(backendAgent.queryExistingDocument).then( (awsUpdatedReloadedDocument) => {
+    //     Object.assign(document, awsUpdatedReloadedDocument)
+    //     console.log('reloaded document', document)
     })
 }
 

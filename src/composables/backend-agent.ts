@@ -63,6 +63,8 @@ export async function queryExistingDocument(documentParam?: {id?: string, conten
             , document: document
             , action: DocumentAction.QUERY
         }
+        console.log('BODY BEFORE QUERY-EXISTING-DOCUMENT', body)
+
         return await apigClient.invokeApi(pathParams, pathTemplate, method, additionalParams, body)
             .then(function(response: any){
 
@@ -72,15 +74,11 @@ export async function queryExistingDocument(documentParam?: {id?: string, conten
                     return documentParam
                 }
 
-                const documentInDb = new documentPersistence.Document()
-                documentInDb.gId = response.data[0]['id']
-                documentInDb.content = response.data[0]['content']
-                documentInDb.parse = JSON.parse(response.data[0]['parse'])
-                if (documentParam) {
-                    documentInDb.id = documentParam.id
-                }
-                
-                return documentInDb 
+                const documentInDb = response.data[0]
+                documentInDb.parse = JSON.parse(documentInDb.parse) // 這裡常忘記導致出錯
+
+                console.log('AWS QUERY DOCUMENT', documentInDb)
+                return documentInDb
             }).catch( function(result: string){
                 console.log('api exception query existing document', result)
                 throw new Error(result)
@@ -147,6 +145,16 @@ export async function triggerPatternSaving() {
         })
 }
 
+
+export class TranslatedSegment {
+    rootTokenIndex?: number
+    id?: number
+
+    static propertyNames = Object.freeze({
+        rootTokenIndex: 'rootTokenIndex'
+        , id: 'id'
+    })
+}
 export class TranslatedElement {
     type? : string
     appliedText? : string
@@ -160,6 +168,7 @@ export class SaveTranslatedSegmentRequest {
   sentenceId?: string
 
   existingTranslatedSegment?: documentPersistence.TranslatedSegment
+  translatedSegment: TranslatedSegment = new TranslatedSegment()
 
   selectedTargetPatternBeginningVId?: string
   documentId?: string
