@@ -175,6 +175,8 @@ export async function saveInitialSegmentTranslation (
         // gremlinInvoke.V(existingSentence.id)
         // .as(sentenceVertexAlias)
 
+        console.log('existingSentence', existingSentence)
+        console.log('existingSentence..translatedSegment', existingSentence.translatedSegment)
         existingSegment = existingSentence.translatedSegment(targetPattern.token.indexInSentence)
 
         awsRequest.existingTranslatedSentence = existingSentence
@@ -230,6 +232,8 @@ export async function saveInitialSegmentTranslation (
         const translatedPiece: backendAgent.TranslatedElement = new backendAgent.TranslatedElement();
 
         let text = ''
+        translatedPiece.mappedTargetPatternPieceVid = piece.mappedGraphVertexId
+        
         if (piece.appliedText) {
             translatedPiece.appliedText = piece.appliedText
             text = piece.appliedText

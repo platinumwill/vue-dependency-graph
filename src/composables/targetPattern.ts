@@ -392,8 +392,10 @@ async function _processTargetPatternStoring(segmentPieces: LinearTargetPatternPi
     let lastAddedPieceAlias: string
     segmentPieces.forEach((piece, pieceIdx) => {
         const currentPieceAlias = 'v' + pieceIdx
+        const seqNo = pieceIdx + 1
 
         const targetPatternPiece: any = {}
+        targetPatternPiece['seq'] = seqNo
 
         gremlinInvoke = gremlinInvoke
         .call("addV", gremlinManager.vertexLabels.linearTargetPattern)
@@ -424,7 +426,6 @@ async function _processTargetPatternStoring(segmentPieces: LinearTargetPatternPi
             // 和 dependency 的關連
             // 這裡在處理指向 (source pattern) dependency 的 target pattern piece
             // aws
-            const seqNo = pieceIdx + 1
             const sourceDependency = backendAgent.generateDependencyForAWS(piece.source, seqNo)
             targetPatternPiece['source'] = sourceDependency
             gremlinInvoke.property(gremlinManager.edgePropertyNames.traceToInDep, true)

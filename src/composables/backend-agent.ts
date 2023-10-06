@@ -48,19 +48,16 @@ export enum MinimalClassName {
     , TranslatedPureText = '.TranslatedPureText'
     , SaveTranslatedSegmentRequest = '.SaveTranslatedSegmentRequest'
 }
-export async function queryExistingDocument(documentParam?: {id?: string, content?: string, gId?: string}) {
+export async function queryExistingDocument(documentParam?: {id?: string, content?: string}) {
         console.log('DOCUMENT-PARAM', documentParam)
 
         if (!documentParam) {
             return undefined
         }
 
-        const document = {
-            content: documentParam.content
-        }
         const body = {
             type: MinimalClassName.DocumentActionRequest
-            , document: document
+            , document: documentParam
             , action: DocumentAction.QUERY
         }
         console.log('BODY BEFORE QUERY-EXISTING-DOCUMENT', body)
@@ -158,6 +155,8 @@ export class TranslatedSegment {
 export class TranslatedElement {
     type? : string
     appliedText? : string
+    seq?: number
+    mappedTargetPatternPieceVid? :string
 }
 export class SaveTranslatedSegmentRequest {
 
