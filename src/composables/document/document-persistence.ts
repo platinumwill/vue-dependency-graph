@@ -124,12 +124,12 @@ async function queryExistingDocument(documentParam: {id?: string, content?: stri
                 sentencesJson.forEach( (segmentMap: any, sentenceNode: any) => { // loop sentences
                     const sentenceTranslatedSegments: TranslatedSegment[] = []
                     segmentMap.forEach( (emptyMap: any, segmentNode:any ) => { // loop segments
-                        const segment = new TranslatedSegment(segmentNode) // load segment
-                        sentenceTranslatedSegments.push(segment)
+                        // const segment = new TranslatedSegment(segmentNode) // load segment
+                        // sentenceTranslatedSegments.push(segment)
                     })
-                    const sentence = new TranslatedSentence(sentenceNode) // load sentence
-                    sentence.translatedSegments = sentenceTranslatedSegments
-                    documentTranslatedSentences.push(sentence)
+                    // const sentence = new TranslatedSentence(sentenceNode) // load sentence
+                    // sentence.translatedSegments = sentenceTranslatedSegments
+                    // documentTranslatedSentences.push(sentence)
                 })
                 document.translatedSentences = documentTranslatedSentences
             }
@@ -155,9 +155,8 @@ export async function saveInitialSegmentTranslation (
     if (targetPattern.token.sentence?.index == undefined) throw '資料有問題'
 
     const awsRequest = new backendAgent.SaveTranslatedSegmentRequest()
-    console.log('DOCUMENT GID', document.gId)
-    awsRequest.documentId = document.gId
-    awsRequest.sentenceIndex = targetPattern.token.sentence.index
+    console.log('DOCUMENT ID', document.id)
+    awsRequest.documentId = document.id
     // awsRequest.segmentIndex = targetPattern.token.indexInSentence
     awsRequest.targetPatternBeginningVId = targetPattern.selection.selected.pieces[0].mappedGraphVertexId
 
@@ -175,18 +174,16 @@ export async function saveInitialSegmentTranslation (
         // gremlinInvoke.V(existingSentence.id)
         // .as(sentenceVertexAlias)
 
-        console.log('existingSentence', existingSentence)
-        console.log('existingSentence..translatedSegment', existingSentence.translatedSegment)
         existingSegment = existingSentence.translatedSegment(targetPattern.token.indexInSentence)
 
-        awsRequest.existingTranslatedSentence = existingSentence
+        awsRequest.translatedSentence = existingSentence
         
     } else {
         // 新建 TranslatedSentence
         if (!document || !document.id) {
             throw '必須有 Document，而且 Document 必須有 Id'
         }
-
+        awsRequest.translatedSentence.index = sentenceIndex
         // setence
         // gremlinInvoke
         // .addV(gremlinApi.translatedVertexLabels.translatedSentence) // sentence
@@ -210,10 +207,10 @@ export async function saveInitialSegmentTranslation (
         // .select(segmentAlias)
         // .dedup()
 
-        awsRequest.existingTranslatedSegment = existingSegment
-        Object.assign(awsRequest.translatedSegment, existingSegment)
+        awsRequest.translatedSegment = existingSegment
     
     } else {
+        awsRequest.translatedSegment.rootTokenIndex = targetPattern.token.indexInSentence
         // gremlinInvoke
         // .addV(gremlinApi.translatedVertexLabels.translatedSegment) // segement
         // .as(segmentAlias)
@@ -224,12 +221,12 @@ export async function saveInitialSegmentTranslation (
         // .addE(gremlinApi.translatedEdgeLabels.translateWith)
         // .to(new gremlinApi.GremlinInvoke(true).V(selectedTargetPatternId)) // segment -> target pattern
         // .outV()
-        awsRequest.translatedSegment.rootTokenIndex = targetPattern.token.indexInSentence
     }
     // 存 text pieces 和 token pieces
-    targetPattern.dialogPieces.pieces.forEach( (piece: LinearTargetPatternPiece) => {
+    targetPattern.dialogPieces.pieces.forEach( (piece: LinearTargetPatternPiece, index: number) => {
         if (piece.type.name == LinearTargetPatternPiece.types.dependency.name) return // 目前的邏輯是，type 是 text 或 token 才要處理，但以後可能會修改
         const translatedPiece: backendAgent.TranslatedElement = new backendAgent.TranslatedElement();
+        translatedPiece.seq = index + 1
 
         let text = ''
         translatedPiece.mappedTargetPatternPieceVid = piece.mappedGraphVertexId
@@ -286,6 +283,9 @@ export async function saveInitialSegmentTranslation (
         // TODO convert to aws
     //################################################## 
     await backendAgent.queryExistingDocument({id: document.id}).then( (reloadedDocument) => {
+        Object.assign(document, reloadedDocument)
+        console.log('reloaded document from remote', reloadedDocument)
+        console.log('reloaded document', document)
         return document
     // } ).then(backendAgent.queryExistingDocument).then( (awsUpdatedReloadedDocument) => {
     //     Object.assign(document, awsUpdatedReloadedDocument)
@@ -322,21 +322,8 @@ class TranslatedToken {
     })
 }
 export class TranslatedSegment {
-    $rootTokenIndex: number
-    $id: number
-
-    constructor(entity: Entity) {
-        this.$rootTokenIndex = 
-        entity.propertyJson[TranslatedSegment.propertyNames.rootTokenIndex][0][gremlinApi.keys.value][gremlinApi.keys.propertyValue][gremlinApi.keys.value]
-        this.$id = entity.id
-    }
-
-    get rootTokenIndex() {
-        return this.$rootTokenIndex
-    }
-    get id() {
-        return this.$id
-    }
+    rootTokenIndex?: number
+    id?: number
 
     static propertyNames = Object.freeze({
         rootTokenIndex: 'rootTokenIndex'
@@ -345,34 +332,14 @@ export class TranslatedSegment {
     static className = 'TranslatedSegment'
 }
 export class TranslatedSentence {
-    $index: number
-    $id: number
-    $translatedSegments: TranslatedSegment[] = []
-
-    constructor(entity: Entity) {
-        this.$id = entity.id
-        this.$index = 
-        entity.propertyJson[TranslatedSentence.propertyNames.index][0][gremlinApi.keys.value][gremlinApi.keys.propertyValue][gremlinApi.keys.value]
-    }
+    index?: number
+    id?: number
+    translatedSegments: TranslatedSegment[] = []
 
     translatedSegment(index: number): TranslatedSegment {
         // 測試發現如果沒有資料，會回傳空陣列
-        const matchingSentenceArray = this.$translatedSegments.filter(segment => {return segment.rootTokenIndex == index})
+        const matchingSentenceArray = this.translatedSegments.filter(segment => {return segment.rootTokenIndex == index})
         return (undefined || matchingSentenceArray[0])
-    }
-
-    get index() {
-        return this.$index
-    }
-    get id() {
-        return this.$id
-    }
-
-    get translatedSegments() {
-        return this.$translatedSegments
-    }
-    set translatedSegments(translatedSegments) {
-        this.$translatedSegments = translatedSegments
     }
 
     static propertyNames = Object.freeze({

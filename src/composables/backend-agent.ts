@@ -74,11 +74,30 @@ export async function queryExistingDocument(documentParam?: {id?: string, conten
                 const documentInDb = response.data[0]
                 documentInDb.parse = JSON.parse(documentInDb.parse) // 這裡常忘記導致出錯
 
+                if (documentInDb.translatedSentences) {
+                    const convertedTranslatedSentences: documentPersistence.TranslatedSentence[] = []
+                    documentInDb.translatedSentences.forEach( (remoteSentence: any) => {
+                        const convertedTranslatedSentence: documentPersistence.TranslatedSentence = new documentPersistence.TranslatedSentence()
+                        Object.assign(convertedTranslatedSentence, remoteSentence)
+                        if (remoteSentence.translatedSegments) {
+                            const convertdTranslatedSegments: documentPersistence.TranslatedSegment[] = []
+                            remoteSentence.translatedSegments.forEach( (remoteSegment: any) => {
+                                const convertedTranslatedSegment: documentPersistence.TranslatedSegment = new documentPersistence.TranslatedSegment()
+                                Object.assign(convertedTranslatedSegment, remoteSegment)
+                                convertdTranslatedSegments.push(convertedTranslatedSegment)
+                            })
+                            remoteSentence.translatedSegments = convertdTranslatedSegments
+                        }
+                        convertedTranslatedSentences.push(convertedTranslatedSentence)
+                    })
+                    documentInDb.translatedSentences = convertedTranslatedSentences
+                }
+
                 console.log('AWS QUERY DOCUMENT', documentInDb)
                 return documentInDb
-            }).catch( function(result: string){
-                console.log('api exception query existing document', result)
-                throw new Error(result)
+            }).catch( (error:any) => {
+                console.error(error)
+                throw error
             })
 }
 
@@ -98,7 +117,7 @@ export async function saveNewDocument(document: documentPersistence.Document) {
             .then(function(response: any){
                 const newlySavedDocument = response.data
                 console.log('AWS SAVED DOCUMENT', newlySavedDocument)
-                document.gId = newlySavedDocument.id
+                document.id = newlySavedDocument.id
                 resolve(document)
             }).catch( function(result: string){
                 console.log('api exception save new document', result)
@@ -143,15 +162,6 @@ export async function triggerPatternSaving() {
 }
 
 
-export class TranslatedSegment {
-    rootTokenIndex?: number
-    id?: number
-
-    static propertyNames = Object.freeze({
-        rootTokenIndex: 'rootTokenIndex'
-        , id: 'id'
-    })
-}
 export class TranslatedElement {
     type? : string
     appliedText? : string
@@ -163,16 +173,11 @@ export class SaveTranslatedSegmentRequest {
   type: string = MinimalClassName.SaveTranslatedSegmentRequest
   action?: string
 
-  existingTranslatedSentence?: documentPersistence.TranslatedSentence
-  sentenceId?: string
-
-  existingTranslatedSegment?: documentPersistence.TranslatedSegment
-  translatedSegment: TranslatedSegment = new TranslatedSegment()
+  translatedSentence: documentPersistence.TranslatedSentence = new documentPersistence.TranslatedSentence()
+  translatedSegment: documentPersistence.TranslatedSegment = new documentPersistence.TranslatedSegment()
 
   selectedTargetPatternBeginningVId?: string
   documentId?: string
-
-  sentenceIndex?: number
 
   targetPatternBeginningVId?: string
 
