@@ -1,308 +1,318 @@
-const apigClientFactory = require('aws-api-gateway-client').default;
+const apigClientFactory = require("aws-api-gateway-client").default;
 
-import * as documentPersistence from '@/composables/document/document-persistence'
-import { ModifiedSpacyDependency, ModifiedSpacyToken } from '@/composables/sentenceManager';
-import { propertyNames } from '@/composables/gremlinManager';
+import * as documentPersistence from "@/composables/document/document-persistence";
+import { ModifiedSpacyDependency, ModifiedSpacyToken } from "@/composables/sentenceManager";
+import { propertyNames } from "@/composables/gremlinManager";
 
 const config = {
-    invokeUrl: process.env.VUE_APP_AWS_API_INVOKE_URL
-    , region: process.env.VUE_APP_AWS_REGION
-    , accessKey: process.env.VUE_APP_AWS_ACCESSKEY
-    , secretKey: process.env.VUE_APP_AWS_SECRETKEY
-}
-const apigClient = apigClientFactory.newClient(config)
-console.log('apigclient', apigClient)
+  invokeUrl: process.env.VUE_APP_AWS_API_INVOKE_URL,
+  region: process.env.VUE_APP_AWS_REGION,
+  accessKey: process.env.VUE_APP_AWS_ACCESSKEY,
+  secretKey: process.env.VUE_APP_AWS_SECRETKEY,
+};
+const apigClient = apigClientFactory.newClient(config);
+console.log("apigclient", apigClient);
 
 enum DocumentAction {
-    QUERY = 'query'
-    , SAVE_NEW = 'save_new'
+  QUERY = "query",
+  SAVE_NEW = "save_new",
 }
 enum PatternAction {
-    SAVE_NEW = 'save_new'
+  SAVE_NEW = "save_new",
 }
 enum TargetPatternAction {
-    query_by_sourcePatternBeginningId = 'query_by_sourcePatternBeginningId'
+  query_by_sourcePatternBeginningId = "query_by_sourcePatternBeginningId",
 }
 
 enum SourcePatternAction {
-    SAVE_NEW = 'save_new'
-    , query_by_begin_token = 'query_by_begin_token'
-    , query_by_id = 'query_by_id'
+  SAVE_NEW = "save_new",
+  query_by_begin_token = "query_by_begin_token",
+  query_by_id = "query_by_id",
 }
-
 
 enum SegmentAction {
-    SAVE_TRANSLATION = 'save_translation'
+  SAVE_TRANSLATION = "save_translation",
 }
 
-const pathParams = {}
-const pathTemplate = ''
-const method = 'POST'
-const additionalParams = {}
+const pathParams = {};
+const pathTemplate = "";
+const method = "POST";
+const additionalParams = {};
 export enum MinimalClassName {
-    DocumentActionRequest = '.DocumentActionRequest'
-    , PatternActionRequest = '.PatternActionRequest'
-    , SourcePatternPiece = '.SourcePatternPiece'
-    , SourcePatternDependency = '.SourcePatternDependency'
-    , TranslatedToken = '.TranslatedToken'
-    , TranslatedPureText = '.TranslatedPureText'
-    , SaveTranslatedSegmentRequest = '.SaveTranslatedSegmentRequest'
+  DocumentActionRequest = ".DocumentActionRequest",
+  PatternActionRequest = ".PatternActionRequest",
+  SourcePatternPiece = ".SourcePatternPiece",
+  SourcePatternDependency = ".SourcePatternDependency",
+  TranslatedToken = ".TranslatedToken",
+  TranslatedPureText = ".TranslatedPureText",
+  SaveTranslatedSegmentRequest = ".SaveTranslatedSegmentRequest",
 }
-export async function queryExistingDocument(documentParam?: {id?: string, content?: string}) {
-        console.log('DOCUMENT-PARAM', documentParam)
+export async function queryExistingDocument(documentParam?: { id?: string; content?: string }) {
+  return documentParam;
 
-        if (!documentParam) {
-            return undefined
-        }
+  console.log("DOCUMENT-PARAM", documentParam);
 
-        const body = {
-            type: MinimalClassName.DocumentActionRequest
-            , document: documentParam
-            , action: DocumentAction.QUERY
-        }
-        console.log('BODY BEFORE QUERY-EXISTING-DOCUMENT', body)
+  if (!documentParam) {
+    return undefined;
+  }
 
-        return await apigClient.invokeApi(pathParams, pathTemplate, method, additionalParams, body)
-            .then(function(response: any){
+  const body = {
+    type: MinimalClassName.DocumentActionRequest,
+    document: documentParam,
+    action: DocumentAction.QUERY,
+  };
+  console.log("BODY BEFORE QUERY-EXISTING-DOCUMENT", body);
 
-                console.log('BACKAGENT QUERY DOCUMENT RESPONSE BODY', response.data)
+  return await apigClient
+    .invokeApi(pathParams, pathTemplate, method, additionalParams, body)
+    .then(function (response: any) {
+      console.log("BACKAGENT QUERY DOCUMENT RESPONSE BODY", response.data);
 
-                if (! response.data.length) {
-                    return documentParam
-                }
+      if (!response.data.length) {
+        return documentParam;
+      }
 
-                const documentInDb = response.data[0]
-                documentInDb.parse = JSON.parse(documentInDb.parse) // 這裡常忘記導致出錯
+      const documentInDb = response.data[0];
+      documentInDb.parse = JSON.parse(documentInDb.parse); // 這裡常忘記導致出錯
 
-                if (documentInDb.translatedSentences) {
-                    const convertedTranslatedSentences: documentPersistence.TranslatedSentence[] = []
-                    documentInDb.translatedSentences.forEach( (remoteSentence: any) => {
-                        const convertedTranslatedSentence: documentPersistence.TranslatedSentence = new documentPersistence.TranslatedSentence()
-                        Object.assign(convertedTranslatedSentence, remoteSentence)
-                        if (remoteSentence.translatedSegments) {
-                            const convertdTranslatedSegments: documentPersistence.TranslatedSegment[] = []
-                            remoteSentence.translatedSegments.forEach( (remoteSegment: any) => {
-                                const convertedTranslatedSegment: documentPersistence.TranslatedSegment = new documentPersistence.TranslatedSegment()
-                                Object.assign(convertedTranslatedSegment, remoteSegment)
-                                convertdTranslatedSegments.push(convertedTranslatedSegment)
-                            })
-                            remoteSentence.translatedSegments = convertdTranslatedSegments
-                        }
-                        convertedTranslatedSentences.push(convertedTranslatedSentence)
-                    })
-                    documentInDb.translatedSentences = convertedTranslatedSentences
-                }
+      if (documentInDb.translatedSentences) {
+        const convertedTranslatedSentences: documentPersistence.TranslatedSentence[] = [];
+        documentInDb.translatedSentences.forEach((remoteSentence: any) => {
+          const convertedTranslatedSentence: documentPersistence.TranslatedSentence = new documentPersistence.TranslatedSentence();
+          Object.assign(convertedTranslatedSentence, remoteSentence);
+          if (remoteSentence.translatedSegments) {
+            const convertdTranslatedSegments: documentPersistence.TranslatedSegment[] = [];
+            remoteSentence.translatedSegments.forEach((remoteSegment: any) => {
+              const convertedTranslatedSegment: documentPersistence.TranslatedSegment = new documentPersistence.TranslatedSegment();
+              Object.assign(convertedTranslatedSegment, remoteSegment);
+              convertdTranslatedSegments.push(convertedTranslatedSegment);
+            });
+            remoteSentence.translatedSegments = convertdTranslatedSegments;
+          }
+          convertedTranslatedSentences.push(convertedTranslatedSentence);
+        });
+        documentInDb.translatedSentences = convertedTranslatedSentences;
+      }
 
-                console.log('AWS QUERY DOCUMENT', documentInDb)
-                return documentInDb
-            }).catch( (error:any) => {
-                console.error(error)
-                throw error
-            })
+      console.log("AWS QUERY DOCUMENT", documentInDb);
+      return documentInDb;
+    })
+    .catch((error: any) => {
+      console.error(error);
+      throw error;
+    });
 }
 
 export async function saveNewDocument(document: documentPersistence.Document) {
-    const parseStringifiedDocument = {
-        parse: JSON.stringify(document.parse)
-        , content: document.content
-    }
-    const body = {
-        type: MinimalClassName.DocumentActionRequest
-        , document: parseStringifiedDocument
-        , action: DocumentAction.SAVE_NEW
-    }
-    console.log('BODY BEFORE SAVE-NEW-DOCUMENT', body)
-    return new Promise((resolve, reject) => {
-        apigClient.invokeApi(pathParams, pathTemplate, method, additionalParams, body)
-            .then(function(response: any){
-                const newlySavedDocument = response.data
-                console.log('AWS SAVED DOCUMENT', newlySavedDocument)
-                document.id = newlySavedDocument.id
-                resolve(document)
-            }).catch( function(result: string){
-                console.log('api exception save new document', result)
-                throw new Error(result)
-            })
-    })
+  const parseStringifiedDocument = {
+    parse: JSON.stringify(document.parse),
+    content: document.content,
+  };
+  const body = {
+    type: MinimalClassName.DocumentActionRequest,
+    document: parseStringifiedDocument,
+    action: DocumentAction.SAVE_NEW,
+  };
+  console.log("BODY BEFORE SAVE-NEW-DOCUMENT", body);
+  return new Promise((resolve, reject) => {
+    apigClient
+      .invokeApi(pathParams, pathTemplate, method, additionalParams, body)
+      .then(function (response: any) {
+        const newlySavedDocument = response.data;
+        console.log("AWS SAVED DOCUMENT", newlySavedDocument);
+        document.id = newlySavedDocument.id;
+        resolve(document);
+      })
+      .catch(function (result: string) {
+        console.log("api exception save new document", result);
+        throw new Error(result);
+      });
+  });
 }
 
-let sourcePatternTokens: any[]
-let sourcePatternDependencies: any[]
+let sourcePatternTokens: any[];
+let sourcePatternDependencies: any[];
 export async function setSourcePattern(sourcePattern: any[], sourcePatternDependencyArray: any[]) {
-    sourcePatternTokens = sourcePattern
-    sourcePatternDependencies = sourcePatternDependencyArray
+  sourcePatternTokens = sourcePattern;
+  sourcePatternDependencies = sourcePatternDependencyArray;
 }
-let linearTargetPatternPieces: any[]
+let linearTargetPatternPieces: any[];
 export async function setTargetPattern(linearTargetPatternPieceArray: any[]) {
-    linearTargetPatternPieces = linearTargetPatternPieceArray
+  linearTargetPatternPieces = linearTargetPatternPieceArray;
 }
 export async function triggerPatternSaving() {
-    console.log('SOURCE PATTERN', sourcePatternTokens)
-    console.log('SOURCE PATTERN DEPENDENCY ARRAY', sourcePatternDependencies)
-    const body = {
-        type: MinimalClassName.PatternActionRequest
-        , sourcePatternAction: {
-            sourcePatternTokens: sourcePatternTokens
-            , sourcePatternDependencies: sourcePatternDependencies
-            , action: PatternAction.SAVE_NEW
-        }
-        , targetPatternAction: {
-            linearTargetPatternPieces: linearTargetPatternPieces
-            , action: PatternAction.SAVE_NEW
-        }
-    }
-    console.log('BODY BEFORE SAVE-PATTERN', body)
-    return await apigClient.invokeApi(pathParams, pathTemplate, method, additionalParams, body)
-        .then(function(response: any){
-            return response.data
-        }).catch( function(result: string){
-            console.log('api exception save new document', result)
-            throw new Error(result)
-        })
+  console.log("SOURCE PATTERN", sourcePatternTokens);
+  console.log("SOURCE PATTERN DEPENDENCY ARRAY", sourcePatternDependencies);
+  const body = {
+    type: MinimalClassName.PatternActionRequest,
+    sourcePatternAction: {
+      sourcePatternTokens: sourcePatternTokens,
+      sourcePatternDependencies: sourcePatternDependencies,
+      action: PatternAction.SAVE_NEW,
+    },
+    targetPatternAction: {
+      linearTargetPatternPieces: linearTargetPatternPieces,
+      action: PatternAction.SAVE_NEW,
+    },
+  };
+  console.log("BODY BEFORE SAVE-PATTERN", body);
+  return await apigClient
+    .invokeApi(pathParams, pathTemplate, method, additionalParams, body)
+    .then(function (response: any) {
+      return response.data;
+    })
+    .catch(function (result: string) {
+      console.log("api exception save new document", result);
+      throw new Error(result);
+    });
 }
-
 
 export class TranslatedElement {
-    type? : string
-    appliedText? : string
-    seq?: number
-    mappedTargetPatternPieceVid? :string
+  type?: string;
+  appliedText?: string;
+  seq?: number;
+  mappedTargetPatternPieceVid?: string;
 }
 export class SaveTranslatedSegmentRequest {
+  type: string = MinimalClassName.SaveTranslatedSegmentRequest;
+  action?: string;
 
-  type: string = MinimalClassName.SaveTranslatedSegmentRequest
-  action?: string
+  translatedSentence: documentPersistence.TranslatedSentence = new documentPersistence.TranslatedSentence();
+  translatedSegment: documentPersistence.TranslatedSegment = new documentPersistence.TranslatedSegment();
 
-  translatedSentence: documentPersistence.TranslatedSentence = new documentPersistence.TranslatedSentence()
-  translatedSegment: documentPersistence.TranslatedSegment = new documentPersistence.TranslatedSegment()
+  selectedTargetPatternBeginningVId?: string;
+  documentId?: string;
 
-  selectedTargetPatternBeginningVId?: string
-  documentId?: string
+  targetPatternBeginningVId?: string;
 
-  targetPatternBeginningVId?: string
-
-  translatedPieces : TranslatedElement[] = [];
+  translatedPieces: TranslatedElement[] = [];
 }
 export async function saveTranslatedSegment(request: SaveTranslatedSegmentRequest) {
-    
-    const body: any = {}
-    request.action = SegmentAction.SAVE_TRANSLATION
-    Object.assign(body, request)
+  const body: any = {};
+  request.action = SegmentAction.SAVE_TRANSLATION;
+  Object.assign(body, request);
 
-    console.log('BODY BEFORE SAVE-TRANSLATION', body)
-    return await apigClient.invokeApi(pathParams, pathTemplate, method, additionalParams, body)
-        .then(function(response: any){
-            return response.data
-        }).catch( function(result: string){
-            console.log('api exception save new document', result)
-            throw new Error(result)
-        })
-} 
-
-
+  console.log("BODY BEFORE SAVE-TRANSLATION", body);
+  return await apigClient
+    .invokeApi(pathParams, pathTemplate, method, additionalParams, body)
+    .then(function (response: any) {
+      return response.data;
+    })
+    .catch(function (result: string) {
+      console.log("api exception save new document", result);
+      throw new Error(result);
+    });
+}
 
 export function querySourcePattern(beginWord: any, deps?: any[], depSums?: Map<String, number>) {
-    const awsSourcePattern:any[] = []
-    awsSourcePattern.push(beginWord)
+  const awsSourcePattern: any[] = [];
+  awsSourcePattern.push(beginWord);
 
-    const body = {
-        type: MinimalClassName.PatternActionRequest
-        , sourcePatternAction: {
-            sourcePatternTokens: awsSourcePattern
-            , sourcePatternDependencies: deps
-            , action: SourcePatternAction.query_by_begin_token
-        }
-    }
-    console.log('BODY BEFORE QUERY-SOURCE-PATTERN', body)
+  const body = {
+    type: MinimalClassName.PatternActionRequest,
+    sourcePatternAction: {
+      sourcePatternTokens: awsSourcePattern,
+      sourcePatternDependencies: deps,
+      action: SourcePatternAction.query_by_begin_token,
+    },
+  };
+  console.log("BODY BEFORE QUERY-SOURCE-PATTERN", body);
 
-    return new Promise( (resolve) => {
-        apigClient.invokeApi(pathParams, pathTemplate, method, additionalParams, body)
-            .then(function(response: any){
-                resolve(response.data)
-            }).catch( function(result: string){
-                console.log('api exception save new document', result)
-                throw new Error(result)
-            })
+  return new Promise((resolve) => {
+    apigClient
+      .invokeApi(pathParams, pathTemplate, method, additionalParams, body)
+      .then(function (response: any) {
+        resolve(response.data);
+      })
+      .catch(function (result: string) {
+        console.log("api exception save new document", result);
+        throw new Error(result);
+      });
+  });
+  return apigClient
+    .invokeApi(pathParams, pathTemplate, method, additionalParams, body)
+    .then(function (response: any) {
+      const savedResult = response.data;
+      return savedResult;
     })
-    return apigClient.invokeApi(pathParams, pathTemplate, method, additionalParams, body)
-        .then(function(response: any){
-            const savedResult = response.data
-            return savedResult
-        }).catch( function(result: string){
-            console.log('api exception save new document', result)
-            throw new Error(result)
-        })
+    .catch(function (result: string) {
+      console.log("api exception save new document", result);
+      throw new Error(result);
+    });
 }
 
 export async function querySourcePatternById(sourcePatternBeginningId: string) {
-    const body = {
-        type: MinimalClassName.PatternActionRequest
-        , sourcePatternAction: {
-            sourcePatternBeginningId: sourcePatternBeginningId
-            , action: SourcePatternAction.query_by_id
-        }
-    }
-    console.log('BODY BEFORE QUERY-SOURCE-PATTERN-BY-ID', body)
+  const body = {
+    type: MinimalClassName.PatternActionRequest,
+    sourcePatternAction: {
+      sourcePatternBeginningId: sourcePatternBeginningId,
+      action: SourcePatternAction.query_by_id,
+    },
+  };
+  console.log("BODY BEFORE QUERY-SOURCE-PATTERN-BY-ID", body);
 
-    return apigClient.invokeApi(pathParams, pathTemplate, method, additionalParams, body)
-        .then(function(response: any){
-            return response.data
-        }).catch( function(result: string){
-            console.log('api exception save new document', result)
-            throw new Error(result)
-        })
+  return apigClient
+    .invokeApi(pathParams, pathTemplate, method, additionalParams, body)
+    .then(function (response: any) {
+      return response.data;
+    })
+    .catch(function (result: string) {
+      console.log("api exception save new document", result);
+      throw new Error(result);
+    });
 }
 
 export async function queryTargetPattern(sourcePatternBeginningId: string) {
-    const body = {
-        type: MinimalClassName.PatternActionRequest
-        , targetPatternAction: {
-            sourcePatternBeginningId: sourcePatternBeginningId
-            , action: TargetPatternAction.query_by_sourcePatternBeginningId
-        }
-    }
+  const body = {
+    type: MinimalClassName.PatternActionRequest,
+    targetPatternAction: {
+      sourcePatternBeginningId: sourcePatternBeginningId,
+      action: TargetPatternAction.query_by_sourcePatternBeginningId,
+    },
+  };
 
-    return await apigClient.invokeApi(pathParams, pathTemplate, method, additionalParams, body)
-        .then(function(response: any){
-            return response.data
-        }).catch( function(result: string){
-            console.log('api exception querying target pattern', result)
-            throw new Error(result)
-        })
+  return await apigClient
+    .invokeApi(pathParams, pathTemplate, method, additionalParams, body)
+    .then(function (response: any) {
+      return response.data;
+    })
+    .catch(function (result: string) {
+      console.log("api exception querying target pattern", result);
+      throw new Error(result);
+    });
 }
 
 export function generateDependencyForAWS(arc: ModifiedSpacyDependency, seqNo: number) {
-    const sourcePatternDependency: any = {};
-    sourcePatternDependency['type'] = MinimalClassName.SourcePatternDependency;
-    sourcePatternDependency['label'] = arc.label;
-    sourcePatternDependency['seqNo'] = seqNo
-    sourcePatternDependency['isPlaceholder'] = arc.isPlaceholder;
-    sourcePatternDependency['trueStart'] = arc.trueStart;
-    sourcePatternDependency['trueEnd'] = arc.trueEnd;
-    sourcePatternDependency['sourcePatternEdgeId'] = arc.sourcePatternEdgeId;
-    if (arc.selectedEndToken) {
-        sourcePatternDependency['selectedEndToken'] = generateTokenForAWS(arc.selectedEndToken)
-    }
-    return sourcePatternDependency;
+  const sourcePatternDependency: any = {};
+  sourcePatternDependency["type"] = MinimalClassName.SourcePatternDependency;
+  sourcePatternDependency["label"] = arc.label;
+  sourcePatternDependency["seqNo"] = seqNo;
+  sourcePatternDependency["isPlaceholder"] = arc.isPlaceholder;
+  sourcePatternDependency["trueStart"] = arc.trueStart;
+  sourcePatternDependency["trueEnd"] = arc.trueEnd;
+  sourcePatternDependency["sourcePatternEdgeId"] = arc.sourcePatternEdgeId;
+  if (arc.selectedEndToken) {
+    sourcePatternDependency["selectedEndToken"] = generateTokenForAWS(arc.selectedEndToken);
+  }
+  return sourcePatternDependency;
 }
 export function generateTokenForAWS(word: ModifiedSpacyToken, index?: number) {
+  console.log("SELECTED MORPHOLOGY INFO TYPES", word.selectedMorphologyInfoTypes);
 
-    console.log("SELECTED MORPHOLOGY INFO TYPES", word.selectedMorphologyInfoTypes)
+  const sourcePatternPiece: any = {};
+  sourcePatternPiece["type"] = MinimalClassName.SourcePatternPiece;
+  sourcePatternPiece["indexInSentence"] = word.indexInSentence;
+  sourcePatternPiece["sourcePatternVertexId"] = word.sourcePatternVertexId;
+  sourcePatternPiece.isBeginning = word.isBeginning;
 
-    const sourcePatternPiece: any = {};
-    sourcePatternPiece['type'] = MinimalClassName.SourcePatternPiece
-    sourcePatternPiece['indexInSentence'] = word.indexInSentence
-    sourcePatternPiece['sourcePatternVertexId'] = word.sourcePatternVertexId
-    sourcePatternPiece.isBeginning = word.isBeginning;
+  if (index != undefined) {
+    sourcePatternPiece[propertyNames.seqNo] = index + 1;
+  }
 
-    if (index != undefined) {
-        sourcePatternPiece[propertyNames.seqNo] = index + 1;
-    }
-
-    const morphInfoMap = new Map();
-    word.selectedMorphologyInfoTypes.forEach((morphInfoType) => {
-        morphInfoMap.set(morphInfoType.name, word[morphInfoType.propertyInWord]);
-    });
-    sourcePatternPiece['morphInfoMap'] = Object.fromEntries(morphInfoMap);
-    return sourcePatternPiece;
+  const morphInfoMap = new Map();
+  word.selectedMorphologyInfoTypes.forEach((morphInfoType) => {
+    morphInfoMap.set(morphInfoType.name, word[morphInfoType.propertyInWord]);
+  });
+  sourcePatternPiece["morphInfoMap"] = Object.fromEntries(morphInfoMap);
+  return sourcePatternPiece;
 }

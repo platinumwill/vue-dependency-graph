@@ -1,394 +1,402 @@
-import * as gremlinApi from '@/composables/gremlinManager'
-import { Entity } from '@/composables/gremlinManager'
-import { LinearTargetPatternPiece, TargetPattern } from '@/composables/targetPattern'
-import * as backendAgent from "@/composables/backend-agent"
-import * as documentPersistence from '@/composables/document/document-persistence'
+import * as gremlinApi from "@/composables/gremlinManager";
+import { Entity } from "@/composables/gremlinManager";
+import { LinearTargetPatternPiece, TargetPattern } from "@/composables/targetPattern";
+import * as backendAgent from "@/composables/backend-agent";
+import * as documentPersistence from "@/composables/document/document-persistence";
 
 export async function retrieveDocument(documentText: string, spacyFormatParseProviderName: string, spacyFormatParseProvider: any) {
-    if (spacyFormatParseProviderName != undefined) { // 有名字，就可以視同解析解果會被儲存
+  if (spacyFormatParseProviderName != undefined) {
+    // 有名字，就可以視同解析解果會被儲存
 
-        // return await backendAgent.queryExistingDocument(documentId, documentText).then( (resultData: Object[]) => {
-        // await backendAgent.queryExistingDocument({content: documentText}).then( (resultData) => {
-        //     console.log('document from REMOTE', resultData)
-        // })
+    // return await backendAgent.queryExistingDocument(documentId, documentText).then( (resultData: Object[]) => {
+    // await backendAgent.queryExistingDocument({content: documentText}).then( (resultData) => {
+    //     console.log('document from REMOTE', resultData)
+    // })
 
-        let document: {id?: string, content?: string}|undefined = undefined
-        // TODO convert to aws 要拿掉
-        return await backendAgent.queryExistingDocument({ content: documentText }).then( (queryResult) => { // 轉換到 aws 的初期，全文檢索暫時不實做
-            document = queryResult
-            console.log('document from LOCAL', document)
-            return document
-        })
-        // .then(backendAgent.queryExistingDocument) // for aws
-        .then( (document) => {
-            if (document && document.id) {
-                console.log('existing document retrieved: ', document)
-                return document
-            } else {
-                // 3 種 spacyFormatParseProvider.parse 最後都會回傳有 content 和 parse 屬性的 (document) 物件
-                // TODO convert to aws 要作廢
-                return spacyFormatParseProvider.parse(documentText)
-                    .then(saveDocumentParse) // janusgraph impl
-                    .then(backendAgent.saveNewDocument) // aws impl
-                    .then( (newlySavedDocument: Document) => {
-                        return newlySavedDocument
-                    })
-            }
-        })
-        .catch( (error) => {
-            console.error(error)
-            throw error
-        })
-    }
-    return spacyFormatParseProvider.parse(documentText)
+    let document: { id?: string; content?: string } | undefined = undefined;
+    // TODO convert to aws 要拿掉
+    return await backendAgent
+      .queryExistingDocument({ content: documentText })
+      .then((queryResult) => {
+        // 轉換到 aws 的初期，全文檢索暫時不實做
+        document = queryResult;
+        console.log("document from LOCAL", document);
+        return document;
+      })
+      // .then(backendAgent.queryExistingDocument) // for aws
+      .then((document) => {
+        if (document && document.id) {
+          console.log("existing document retrieved: ", document);
+          return document;
+        } else {
+          // 3 種 spacyFormatParseProvider.parse 最後都會回傳有 content 和 parse 屬性的 (document) 物件
+          // TODO convert to aws 要作廢
+          return (
+            spacyFormatParseProvider
+              .parse(documentText)
+              // .then(saveDocumentParse) // janusgraph impl
+              // .then(backendAgent.saveNewDocument) // aws impl
+              .then((newlySavedDocument: Document) => {
+                return newlySavedDocument;
+              })
+          );
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+        throw error;
+      });
+  }
+  return spacyFormatParseProvider.parse(documentText);
 }
 
 // convert to aws 直接整個方法作廢，不用改寫
-export async function saveDocumentParse (document: Document) {
-    // convert to aws
-    const gremlinInvoke = new gremlinApi.GremlinInvoke()
+export async function saveDocumentParse(document: Document) {
+  // convert to aws
+  const gremlinInvoke = new gremlinApi.GremlinInvoke();
 
-    gremlinInvoke
-    .addV(gremlinApi.vertexLabels.document)
-    .property(gremlinApi.propertyNames.content, document.content)
-    .property(gremlinApi.propertyNames.parse, JSON.stringify(document.parse))
+  gremlinInvoke.addV(gremlinApi.vertexLabels.document).property(gremlinApi.propertyNames.content, document.content).property(gremlinApi.propertyNames.parse, JSON.stringify(document.parse));
 
-    await gremlinApi.submit(gremlinInvoke).then( (gremlinResult: any) => {
-        console.log('document persist result: ', gremlinResult)
-        const id = gremlinResult[gremlinApi.keys.value][0][gremlinApi.keys.value][gremlinApi.keys.id][gremlinApi.keys.value]
-        document.id = id
-    })
+  await gremlinApi.submit(gremlinInvoke).then((gremlinResult: any) => {
+    console.log("document persist result: ", gremlinResult);
+    const id = gremlinResult[gremlinApi.keys.value][0][gremlinApi.keys.value][gremlinApi.keys.id][gremlinApi.keys.value];
+    document.id = id;
+  });
 
-    console.log('SAVED JANUSGRAPH document', document)
-    return document
+  console.log("SAVED JANUSGRAPH document", document);
+  return document;
 }
 
 // TODO convert to aws
-async function queryExistingDocument(documentParam: {id?: string, content?: string}) {
+async function queryExistingDocument(documentParam: { id?: string; content?: string }) {
+  // convert to aws
+  const gremlinInvoke = new gremlinApi.GremlinInvoke();
 
-// convert to aws
-    const gremlinInvoke = new gremlinApi.GremlinInvoke()
-
-    if (documentParam.id) {
-        // search by document id
-        gremlinInvoke.V(documentParam.id)
+  if (documentParam.id) {
+    // search by document id
+    gremlinInvoke.V(documentParam.id);
     // 轉換到 aws 的初期，全文檢索暫時不實做
-    } else if (documentParam.content) {
-        // search by document text
-        gremlinInvoke
-        .V()
-// convert to aws
-        .has(gremlinApi.propertyNames.content, new gremlinApi.GremlinInvoke(true).call('textFuzzy', documentParam.content))
-    } else {
-        const error = '沒有參數，程式錯誤'
-        console.error(error)
-        throw error
-    }
+  } else if (documentParam.content) {
+    // search by document text
+    gremlinInvoke
+      .V()
+      // convert to aws
+      .has(gremlinApi.propertyNames.content, new gremlinApi.GremlinInvoke(true).call("textFuzzy", documentParam.content));
+  } else {
+    const error = "沒有參數，程式錯誤";
+    console.error(error);
+    throw error;
+  }
 
-    // TODO convert to aws
-    // 查詢 document 的內容
-    gremlinInvoke.until(
+  // TODO convert to aws
+  // 查詢 document 的內容
+  gremlinInvoke
+    .until(
+      new gremlinApi.GremlinInvoke(true).and(
+        // convert to aws
         new gremlinApi.GremlinInvoke(true)
-        .and(
-// convert to aws
-            new gremlinApi.GremlinInvoke(true)
-// convert to aws
-            .__not(new gremlinApi.GremlinInvoke(true).__in(gremlinApi.translatedEdgeLabels.isPartOf))
-// convert to aws
-            , new gremlinApi.GremlinInvoke(true)
-// convert to aws
-            .__not(new gremlinApi.GremlinInvoke(true).out(gremlinApi.translatedEdgeLabels.translateWith))
-        )
+          // convert to aws
+          .__not(new gremlinApi.GremlinInvoke(true).__in(gremlinApi.translatedEdgeLabels.isPartOf)),
+        // convert to aws
+        new gremlinApi.GremlinInvoke(true)
+          // convert to aws
+          .__not(new gremlinApi.GremlinInvoke(true).out(gremlinApi.translatedEdgeLabels.translateWith))
+      )
     )
     .repeat(
-// convert to aws
-        new gremlinApi.GremlinInvoke(true).__in()
-    ).tree()
+      // convert to aws
+      new gremlinApi.GremlinInvoke(true).__in()
+    )
+    .tree();
 
-    // TODO convert to aws
-    return await gremlinApi.submitAndParse(gremlinInvoke).then( (resultData: any) => {
-        if (resultData.length > 1) throw '查詢文件有多筆結果，程式或資料有問題'
-        if (! resultData.length) return documentParam
+  // TODO convert to aws
+  return await gremlinApi
+    .submitAndParse(gremlinInvoke)
+    .then((resultData: any) => {
+      if (resultData.length > 1) throw "查詢文件有多筆結果，程式或資料有問題";
+      if (!resultData.length) return documentParam;
 
-        const resultDocumentOrMap = resultData[0]
-        let document = undefined
-        if ((resultDocumentOrMap instanceof Map)) {
-            if (! resultDocumentOrMap.size) return documentParam // 裡面可能沒東西；沒東西就把原來的 document 再傳回去
+      const resultDocumentOrMap = resultData[0];
+      let document = undefined;
+      if (resultDocumentOrMap instanceof Map) {
+        if (!resultDocumentOrMap.size) return documentParam; // 裡面可能沒東西；沒東西就把原來的 document 再傳回去
 
-            // TODO convert to aws
-            const sentencesJson = resultDocumentOrMap.values().next().value
-            const documentTranslatedSentences: TranslatedSentence[] = []
-            const documentEntity: Entity = resultDocumentOrMap.keys().next().value
-            document = new Document(documentEntity)
-            if (sentencesJson) {
-                sentencesJson.forEach( (segmentMap: any, sentenceNode: any) => { // loop sentences
-                    const sentenceTranslatedSegments: TranslatedSegment[] = []
-                    segmentMap.forEach( (emptyMap: any, segmentNode:any ) => { // loop segments
-                        // const segment = new TranslatedSegment(segmentNode) // load segment
-                        // sentenceTranslatedSegments.push(segment)
-                    })
-                    // const sentence = new TranslatedSentence(sentenceNode) // load sentence
-                    // sentence.translatedSegments = sentenceTranslatedSegments
-                    // documentTranslatedSentences.push(sentence)
-                })
-                document.translatedSentences = documentTranslatedSentences
-            }
-        } else {
-            throw '查詢結果不是 Map 或 Entity，程式或資料有問題'
+        // TODO convert to aws
+        const sentencesJson = resultDocumentOrMap.values().next().value;
+        const documentTranslatedSentences: TranslatedSentence[] = [];
+        const documentEntity: Entity = resultDocumentOrMap.keys().next().value;
+        document = new Document(documentEntity);
+        if (sentencesJson) {
+          sentencesJson.forEach((segmentMap: any, sentenceNode: any) => {
+            // loop sentences
+            const sentenceTranslatedSegments: TranslatedSegment[] = [];
+            segmentMap.forEach((emptyMap: any, segmentNode: any) => {
+              // loop segments
+              // const segment = new TranslatedSegment(segmentNode) // load segment
+              // sentenceTranslatedSegments.push(segment)
+            });
+            // const sentence = new TranslatedSentence(sentenceNode) // load sentence
+            // sentence.translatedSegments = sentenceTranslatedSegments
+            // documentTranslatedSentences.push(sentence)
+          });
+          document.translatedSentences = documentTranslatedSentences;
         }
+      } else {
+        throw "查詢結果不是 Map 或 Entity，程式或資料有問題";
+      }
 
-        return document
-    }).catch( (error) => {
-        console.error(error)
-        throw error
+      return document;
     })
+    .catch((error) => {
+      console.error(error);
+      throw error;
+    });
 }
 
 // translationHelper.toggleSegmentTranslationConfirmed 會來呼叫
 // 儲存 segment 初步翻譯
-export async function saveInitialSegmentTranslation (
-    targetPattern: TargetPattern
-    , document: Document
-    ) {
-    let existingSegment = undefined
+export async function saveInitialSegmentTranslation(targetPattern: TargetPattern, document: Document) {
+  let existingSegment = undefined;
 
-    if (targetPattern.token.sentence?.index == undefined) throw '資料有問題'
+  if (targetPattern.token.sentence?.index == undefined) throw "資料有問題";
 
-    const awsRequest = new backendAgent.SaveTranslatedSegmentRequest()
-    console.log('DOCUMENT ID', document.id)
-    awsRequest.documentId = document.id
-    // awsRequest.segmentIndex = targetPattern.token.indexInSentence
-    awsRequest.targetPatternBeginningVId = targetPattern.selection.selected.pieces[0].mappedGraphVertexId
+  const awsRequest = new backendAgent.SaveTranslatedSegmentRequest();
+  console.log("DOCUMENT ID", document.id);
+  awsRequest.documentId = document.id;
+  // awsRequest.segmentIndex = targetPattern.token.indexInSentence
+  awsRequest.targetPatternBeginningVId = targetPattern.selection.selected.pieces[0].mappedGraphVertexId;
 
-    const sentenceIndex: number = targetPattern.token.sentence?.index
-    const selectedTargetPatternId: bigint = targetPattern.selection.selected.pieces[0].mappedGraphVertexId
-        // TODO convert to aws
-    // const gremlinInvoke = new gremlinApi.GremlinInvoke()
+  const sentenceIndex: number = targetPattern.token.sentence?.index;
+  const selectedTargetPatternId: bigint = targetPattern.selection.selected.pieces[0].mappedGraphVertexId;
+  // TODO convert to aws
+  // const gremlinInvoke = new gremlinApi.GremlinInvoke()
 
-    const sentenceVertexAlias = 'translatedSentence'
+  const sentenceVertexAlias = "translatedSentence";
 
-    // 存檔
-    const existingSentence = document.translatedSentence(sentenceIndex)
-    if (existingSentence) {
-        // 更新 sentence
-        // gremlinInvoke.V(existingSentence.id)
-        // .as(sentenceVertexAlias)
+  // 存檔
+  const existingSentence = document.translatedSentence(sentenceIndex);
+  if (existingSentence) {
+    // 更新 sentence
+    // gremlinInvoke.V(existingSentence.id)
+    // .as(sentenceVertexAlias)
 
-        existingSegment = existingSentence.translatedSegment(targetPattern.token.indexInSentence)
+    existingSegment = existingSentence.translatedSegment(targetPattern.token.indexInSentence);
 
-        awsRequest.translatedSentence = existingSentence
-        
-    } else {
-        // 新建 TranslatedSentence
-        if (!document || !document.id) {
-            throw '必須有 Document，而且 Document 必須有 Id'
-        }
-        awsRequest.translatedSentence.index = sentenceIndex
-        // setence
-        // gremlinInvoke
-        // .addV(gremlinApi.translatedVertexLabels.translatedSentence) // sentence
-        // .property(TranslatedSentence.propertyNames.index, sentenceIndex)
-        // .as(sentenceVertexAlias)
-        // .addE(gremlinApi.translatedEdgeLabels.isPartOf)
-        // .to(new gremlinApi.GremlinInvoke(true).V(document.id)) // sentence -> document
+    awsRequest.translatedSentence = existingSentence;
+  } else {
+    // 新建 TranslatedSentence
+    if (!document || !document.id) {
+      throw "必須有 Document，而且 Document 必須有 Id";
     }
-    
-    // segment
-    const segmentAlias = 'segmentAlias'
-    const oldPiecesAlias = 'oldPiecesAlias'
-    if (existingSegment) {
-        // gremlinInvoke
-        // .V(existingSegment.id)
-        // .as(segmentAlias)
-        // .choose( // 這裡的邏輯好像是要從 segment 抓到 translated vertex/piece，準備要刪掉重建
-        //     new gremlinApi.GremlinInvoke(true).inE().hasLabel(gremlinApi.translatedEdgeLabels.isPartOf)
-        //     , new gremlinApi.GremlinInvoke(true).inE().hasLabel(gremlinApi.translatedEdgeLabels.isPartOf).outV().as(oldPiecesAlias) // 舊的 pieces 先選起來，最後才能刪
-        // )
-        // .select(segmentAlias)
-        // .dedup()
+    awsRequest.translatedSentence.index = sentenceIndex;
+    // setence
+    // gremlinInvoke
+    // .addV(gremlinApi.translatedVertexLabels.translatedSentence) // sentence
+    // .property(TranslatedSentence.propertyNames.index, sentenceIndex)
+    // .as(sentenceVertexAlias)
+    // .addE(gremlinApi.translatedEdgeLabels.isPartOf)
+    // .to(new gremlinApi.GremlinInvoke(true).V(document.id)) // sentence -> document
+  }
 
-        awsRequest.translatedSegment = existingSegment
-    
-    } else {
-        awsRequest.translatedSegment.rootTokenIndex = targetPattern.token.indexInSentence
-        // gremlinInvoke
-        // .addV(gremlinApi.translatedVertexLabels.translatedSegment) // segement
-        // .as(segmentAlias)
-        // .property(TranslatedSegment.propertyNames.rootTokenIndex, targetPattern.token.indexInSentence)
-        // .addE(gremlinApi.translatedEdgeLabels.isPartOf)
-        // .to(sentenceVertexAlias) // segment -> sentence
-        // .outV() // segment
-        // .addE(gremlinApi.translatedEdgeLabels.translateWith)
-        // .to(new gremlinApi.GremlinInvoke(true).V(selectedTargetPatternId)) // segment -> target pattern
-        // .outV()
+  // segment
+  const segmentAlias = "segmentAlias";
+  const oldPiecesAlias = "oldPiecesAlias";
+  if (existingSegment) {
+    // gremlinInvoke
+    // .V(existingSegment.id)
+    // .as(segmentAlias)
+    // .choose( // 這裡的邏輯好像是要從 segment 抓到 translated vertex/piece，準備要刪掉重建
+    //     new gremlinApi.GremlinInvoke(true).inE().hasLabel(gremlinApi.translatedEdgeLabels.isPartOf)
+    //     , new gremlinApi.GremlinInvoke(true).inE().hasLabel(gremlinApi.translatedEdgeLabels.isPartOf).outV().as(oldPiecesAlias) // 舊的 pieces 先選起來，最後才能刪
+    // )
+    // .select(segmentAlias)
+    // .dedup()
+
+    awsRequest.translatedSegment = existingSegment;
+  } else {
+    awsRequest.translatedSegment.rootTokenIndex = targetPattern.token.indexInSentence;
+    // gremlinInvoke
+    // .addV(gremlinApi.translatedVertexLabels.translatedSegment) // segement
+    // .as(segmentAlias)
+    // .property(TranslatedSegment.propertyNames.rootTokenIndex, targetPattern.token.indexInSentence)
+    // .addE(gremlinApi.translatedEdgeLabels.isPartOf)
+    // .to(sentenceVertexAlias) // segment -> sentence
+    // .outV() // segment
+    // .addE(gremlinApi.translatedEdgeLabels.translateWith)
+    // .to(new gremlinApi.GremlinInvoke(true).V(selectedTargetPatternId)) // segment -> target pattern
+    // .outV()
+  }
+  // 存 text pieces 和 token pieces
+  targetPattern.dialogPieces.pieces.forEach((piece: LinearTargetPatternPiece, index: number) => {
+    if (piece.type.name == LinearTargetPatternPiece.types.dependency.name) return; // 目前的邏輯是，type 是 text 或 token 才要處理，但以後可能會修改
+    const translatedPiece: backendAgent.TranslatedElement = new backendAgent.TranslatedElement();
+    translatedPiece.seq = index + 1;
+
+    let text = "";
+    translatedPiece.mappedTargetPatternPieceVid = piece.mappedGraphVertexId;
+
+    if (piece.appliedText) {
+      translatedPiece.appliedText = piece.appliedText;
+      text = piece.appliedText;
     }
-    // 存 text pieces 和 token pieces
-    targetPattern.dialogPieces.pieces.forEach( (piece: LinearTargetPatternPiece, index: number) => {
-        if (piece.type.name == LinearTargetPatternPiece.types.dependency.name) return // 目前的邏輯是，type 是 text 或 token 才要處理，但以後可能會修改
-        const translatedPiece: backendAgent.TranslatedElement = new backendAgent.TranslatedElement();
-        translatedPiece.seq = index + 1
+    let tokenLabel = undefined;
+    let property = undefined;
 
-        let text = ''
-        translatedPiece.mappedTargetPatternPieceVid = piece.mappedGraphVertexId
-        
-        if (piece.appliedText) {
-            translatedPiece.appliedText = piece.appliedText
-            text = piece.appliedText
-        }
-        let tokenLabel = undefined
-        let property = undefined
+    if (piece.type.name == LinearTargetPatternPiece.types.token.name) {
+      translatedPiece.type = backendAgent.MinimalClassName.TranslatedToken;
+      tokenLabel = gremlinApi.translatedVertexLabels.translatedToken;
+      property = TranslatedToken.propertyNames.translatedText;
+    } else if (piece.type.name == LinearTargetPatternPiece.types.text.name) {
+      translatedPiece.type = backendAgent.MinimalClassName.TranslatedPureText;
+      tokenLabel = gremlinApi.translatedVertexLabels.translatedText;
+      property = TranslatedText.propertyNames.text;
+    } else {
+      const error = "例外流程，程式控制有錯";
+      console.log(error);
+      throw error;
+    }
+    // gremlinInvoke
+    // .addV(tokenLabel)
+    // .property(property, text)
+    // .addE(gremlinApi.translatedEdgeLabels.isPartOf)
+    // .to(segmentAlias)
+    // .outV() // 回到 segment
 
-        if (piece.type.name == LinearTargetPatternPiece.types.token.name) {
-            translatedPiece.type = backendAgent.MinimalClassName.TranslatedToken
-            tokenLabel = gremlinApi.translatedVertexLabels.translatedToken
-            property = TranslatedToken.propertyNames.translatedText
-        } else if (piece.type.name == LinearTargetPatternPiece.types.text.name) {
-            translatedPiece.type = backendAgent.MinimalClassName.TranslatedPureText
-            tokenLabel = gremlinApi.translatedVertexLabels.translatedText
-            property = TranslatedText.propertyNames.text
-        } else {
-            const error = '例外流程，程式控制有錯'
-            console.log(error)
-            throw error
-        }
-        // gremlinInvoke
-        // .addV(tokenLabel)
-        // .property(property, text)
-        // .addE(gremlinApi.translatedEdgeLabels.isPartOf)
-        // .to(segmentAlias)
-        // .outV() // 回到 segment
-
-        awsRequest.translatedPieces.push(translatedPiece)
+    awsRequest.translatedPieces.push(translatedPiece);
+  });
+  const awsResponse = await backendAgent
+    .saveTranslatedSegment(awsRequest)
+    .then((responseData) => {
+      console.log("SAVE TRANSLATED SEGMENT RESPONSE DATA", responseData);
     })
-    const awsResponse = await backendAgent.saveTranslatedSegment(awsRequest)
-    .then( (responseData) => {
-        console.log('SAVE TRANSLATED SEGMENT RESPONSE DATA', responseData)
-    })
-    .catch( (error) => {
-        console.error(error)
-        throw error
-    })
+    .catch((error) => {
+      console.error(error);
+      throw error;
+    });
 
-    // gremlinInvoke.select(oldPiecesAlias).dedup().drop()
+  // gremlinInvoke.select(oldPiecesAlias).dedup().drop()
 
-    // TODO targetPattern.selection.selected.pieces
-        // 回傳的是新建的 vertex
-    // gremlinApi.submitAndParse(gremlinInvoke.command()).then((objects) => {
-    //     console.log('sentence saved', objects)
-    // })
+  // TODO targetPattern.selection.selected.pieces
+  // 回傳的是新建的 vertex
+  // gremlinApi.submitAndParse(gremlinInvoke.command()).then((objects) => {
+  //     console.log('sentence saved', objects)
+  // })
 
-    // TODO 更新 document 的 sentence 和 segement
-    // 更新 Document
-    // 不知道這裡會不會有 async 的問題
-        // TODO convert to aws
-    //################################################## 
-    await backendAgent.queryExistingDocument({id: document.id}).then( (reloadedDocument) => {
-        Object.assign(document, reloadedDocument)
-        console.log('reloaded document from remote', reloadedDocument)
-        console.log('reloaded document', document)
-        return document
+  // TODO 更新 document 的 sentence 和 segement
+  // 更新 Document
+  // 不知道這裡會不會有 async 的問題
+  // TODO convert to aws
+  //##################################################
+  await backendAgent.queryExistingDocument({ id: document.id }).then((reloadedDocument) => {
+    Object.assign(document, reloadedDocument);
+    console.log("reloaded document from remote", reloadedDocument);
+    console.log("reloaded document", document);
+    return document;
     // } ).then(backendAgent.queryExistingDocument).then( (awsUpdatedReloadedDocument) => {
     //     Object.assign(document, awsUpdatedReloadedDocument)
     //     console.log('reloaded document', document)
-    })
+  });
 }
 
 class TranslatedText {
-    $text: string = ''
+  $text: string = "";
 
-    get text() {
-        return this.$text
-    }
-    set text(text: string) {
-        this.$text = text
-    }
+  get text() {
+    return this.$text;
+  }
+  set text(text: string) {
+    this.$text = text;
+  }
 
-    static propertyNames = Object.freeze({
-        text: 'text'
-    })
+  static propertyNames = Object.freeze({
+    text: "text",
+  });
 }
 class TranslatedToken {
-    $translatedText: string = ''
+  $translatedText: string = "";
 
-    get translatedText() {
-        return this.$translatedText
-    }
-    set translatedText(translatedText: string) {
-        this.$translatedText = translatedText
-    }
+  get translatedText() {
+    return this.$translatedText;
+  }
+  set translatedText(translatedText: string) {
+    this.$translatedText = translatedText;
+  }
 
-    static propertyNames = Object.freeze({
-        translatedText: 'translatedText'
-    })
+  static propertyNames = Object.freeze({
+    translatedText: "translatedText",
+  });
 }
 export class TranslatedSegment {
-    rootTokenIndex?: number
-    id?: number
+  rootTokenIndex?: number;
+  id?: number;
 
-    static propertyNames = Object.freeze({
-        rootTokenIndex: 'rootTokenIndex'
-        , id: 'id'
-    })
-    static className = 'TranslatedSegment'
+  static propertyNames = Object.freeze({
+    rootTokenIndex: "rootTokenIndex",
+    id: "id",
+  });
+  static className = "TranslatedSegment";
 }
 export class TranslatedSentence {
-    index?: number
-    id?: number
-    translatedSegments: TranslatedSegment[] = []
+  index?: number;
+  id?: number;
+  translatedSegments: TranslatedSegment[] = [];
 
-    translatedSegment(index: number): TranslatedSegment {
-        // 測試發現如果沒有資料，會回傳空陣列
-        const matchingSentenceArray = this.translatedSegments.filter(segment => {return segment.rootTokenIndex == index})
-        return (undefined || matchingSentenceArray[0])
-    }
+  translatedSegment(index: number): TranslatedSegment {
+    // 測試發現如果沒有資料，會回傳空陣列
+    const matchingSentenceArray = this.translatedSegments.filter((segment) => {
+      return segment.rootTokenIndex == index;
+    });
+    return undefined || matchingSentenceArray[0];
+  }
 
-    static propertyNames = Object.freeze({
-        index: 'index'
-    })
-    static className = 'TranslatedSentence'
+  static propertyNames = Object.freeze({
+    index: "index",
+  });
+  static className = "TranslatedSentence";
 }
 export class Document {
-    content: string = ''
-    parse: any
-    gId: string = ''
-    private _id: any
-    $translatedSentences: TranslatedSentence[] = []
+  content: string = "";
+  parse: any;
+  gId: string = "";
+  private _id: any;
+  $translatedSentences: TranslatedSentence[] = [];
 
-    constructor(documentEntity?: Entity) {
-        if (! documentEntity) return
-        const parseJsonString = documentEntity.propertyJson[gremlinApi.propertyNames.parse][0][gremlinApi.keys.value][gremlinApi.keys.propertyValue]
-        const parse = JSON.parse(parseJsonString)
-        this.parse = parse
-        this._id = documentEntity.id
-        
-        const content = documentEntity.propertyJson[gremlinApi.propertyNames.content][0][gremlinApi.keys.value][gremlinApi.keys.propertyValue]
-        this.content = content || this.content
-    }
+  constructor(documentEntity?: Entity) {
+    if (!documentEntity) return;
+    const parseJsonString = documentEntity.propertyJson[gremlinApi.propertyNames.parse][0][gremlinApi.keys.value][gremlinApi.keys.propertyValue];
+    const parse = JSON.parse(parseJsonString);
+    this.parse = parse;
+    this._id = documentEntity.id;
 
-    translatedSentence(index: number): TranslatedSentence {
-        // 測試發現如果沒有資料，會回傳空陣列
-        const matchingSentenceArray = this.$translatedSentences.filter(sentence => {return sentence.index == index})
-        if (matchingSentenceArray.length > 1) {
-            const error = '相同 index 的 sentence 有重覆，資料有問題'
-            console.log(error)
-            throw error
-        }
-        return (undefined || matchingSentenceArray[0])
-    }
+    const content = documentEntity.propertyJson[gremlinApi.propertyNames.content][0][gremlinApi.keys.value][gremlinApi.keys.propertyValue];
+    this.content = content || this.content;
+  }
 
-    public get id() {
-        return this._id
+  translatedSentence(index: number): TranslatedSentence {
+    // 測試發現如果沒有資料，會回傳空陣列
+    const matchingSentenceArray = this.$translatedSentences.filter((sentence) => {
+      return sentence.index == index;
+    });
+    if (matchingSentenceArray.length > 1) {
+      const error = "相同 index 的 sentence 有重覆，資料有問題";
+      console.log(error);
+      throw error;
     }
-    public set id(id: any) {
-        this._id = id
-    }
+    return undefined || matchingSentenceArray[0];
+  }
 
-    get translatedSentences() {
-        return this.$translatedSentences
-    }
-    set translatedSentences(translatedSentences) {
-        // TODO 檢查重覆
-        this.$translatedSentences = translatedSentences
-    }
+  public get id() {
+    return this._id;
+  }
+  public set id(id: any) {
+    this._id = id;
+  }
 
+  get translatedSentences() {
+    return this.$translatedSentences;
+  }
+  set translatedSentences(translatedSentences) {
+    // TODO 檢查重覆
+    this.$translatedSentences = translatedSentences;
+  }
 }
